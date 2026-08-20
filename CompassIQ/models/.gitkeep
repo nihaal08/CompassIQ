@@ -1,3 +1,3 @@
 # This file ensures the models/ directory is tracked by git.
 # The actual .pkl files are git-ignored because they are large binary files.
-# Run ml/train_models.py and ml/similarity.py to regenerate them locally.
+# Run the training and similarity notebooks to regenerate these files locally.

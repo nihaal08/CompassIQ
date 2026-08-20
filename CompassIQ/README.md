@@ -30,11 +30,14 @@ CompassIQ/
 │   └── customer_support_data.csv    ← 20,000 ticket dataset
 │
 ├── ml/
-│   ├── preprocessing.py      ← NLP text cleaning
-│   ├── train_models.py       ← Train category + priority models
-│   ├── similarity.py         ← Build similarity vector store
-│   ├── predict.py            ← Runtime prediction module
-│   └── test_model.py         ← Verify AI pipeline
+│   ├── preprocessing.py       ← Runtime NLP text cleaning
+│   ├── predict.py             ← Runtime prediction and similarity API
+│   └── __init__.py
+│
+├── notebooks/
+│   ├── 01_train_models.ipynb  ← Cleaning, EDA, training, evaluation
+│   ├── 02_build_similarity.ipynb ← Similarity index creation
+│   └── 03_test_model.ipynb    ← End-to-end prediction checks
 │
 ├── models/                   ← Saved .pkl files (git-ignored)
 │   ├── category_model.pkl
@@ -151,8 +154,10 @@ CompassIQ/dataset/customer_support_data.csv
 
 ### Step 1 — Train the ML models
 
-```bash
-python ml/train_models.py
+Open and run all cells in:
+
+```text
+notebooks/01_train_models.ipynb
 ```
 
 Expected output:
@@ -164,14 +169,18 @@ Models saved to models/
 
 ### Step 2 — Build the similarity engine
 
-```bash
-python ml/similarity.py
+Run all cells in:
+
+```text
+notebooks/02_build_similarity.ipynb
 ```
 
 ### Step 3 — Test the AI
 
-```bash
-python ml/test_model.py
+Run all cells in:
+
+```text
+notebooks/03_test_model.ipynb
 ```
 
 Sample expected output:
@@ -222,4 +231,4 @@ Total records: **20,000**
 
 - `.pkl` model files are git-ignored (too large for version control)
 - Dataset CSV is git-ignored — add it locally before training
-- Re-run `train_models.py` and `similarity.py` after any changes to the dataset
+- Re-run the first two notebooks after any changes to the dataset
