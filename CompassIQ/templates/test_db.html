@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}CompassIQ - Database Connectivity Test{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-database-gear text-primary me-2"></i>Database Connection Test
+                    </h5>
+                    <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Home
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    {% if success %}
+                    <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1 fw-bold">Database connection successful</h5>
+                            <p class="mb-0 small text-success-emphasis">
+                                Successfully established a connection to the MySQL database server.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle mb-4">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" style="width: 35%;">Configuration Property</th>
+                                    <th scope="col">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-semibold">Host</td>
+                                    <td><code>{{ db_info.host }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Port</td>
+                                    <td><code>{{ db_info.port }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">User</td>
+                                    <td><code>{{ db_info.user }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Database Name</td>
+                                    <td><span class="badge bg-primary">{{ db_info.database }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">MySQL Server Version</td>
+                                    <td><code>{{ db_info.server_version }}</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-table me-2 text-secondary"></i>Detected Tables in <code>{{ db_info.database }}</code> ({{ tables|length }})</h6>
+                        {% if tables %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for table in tables %}
+                            <span class="badge bg-white text-dark border px-3 py-2"><i class="bi bi-check2 text-success me-1"></i>{{ table }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-warning small mb-0"><i class="bi bi-exclamation-triangle me-1"></i>No tables found yet. Please run <code>database/schema.sql</code> in MySQL Workbench.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if departments %}
+                    <div class="card bg-light border-0 p-3">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-diagram-3 me-2 text-secondary"></i>Seeded Departments ({{ departments|length }})</h6>
+                        <ul class="list-group list-group-flush bg-transparent">
+                            {% for dept in departments %}
+                            <li class="list-group-item bg-transparent px-0 py-1 d-flex justify-content-between align-items-center small">
+                                <span><i class="bi bi-tag text-primary me-2"></i>{{ dept.department_name }}</span>
+                                <span class="badge bg-secondary-subtle text-secondary">ID: {{ dept.id }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="alert alert-danger d-flex align-items-start mb-4" role="alert">
+                        <i class="bi bi-x-circle-fill fs-3 me-3 text-danger flex-shrink-0"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1 fw-bold">Database connection failed</h5>
+                            <p class="mb-2 text-danger-emphasis">
+                                Flask could not establish a connection to MySQL with the current configuration.
+                            </p>
+                            <hr class="my-2">
+                            <p class="mb-0 small font-monospace bg-white text-danger p-2 rounded border border-danger-subtle">
+                                {{ error_message }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card border-warning-subtle bg-warning-subtle p-3 mb-0">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-lightbulb me-1 text-warning"></i>Troubleshooting Checklist</h6>
+                        <ol class="small mb-0 ps-3 text-dark">
+                            <li>Ensure MySQL Server is running (via MySQL Workbench, XAMPP, or Windows Services).</li>
+                            <li>Verify your <code>.env</code> file credentials (host, user, password, port, database).</li>
+                            <li>Ensure the <code>compassiq</code> database exists by running <code>database/schema.sql</code>.</li>
+                        </ol>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white border-top py-3 text-end">
+                    <a href="{{ url_for('test_db') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Re-test Connection
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

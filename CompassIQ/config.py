@@ -1,24 +1,35 @@
-# Shared application settings.
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if present
+load_dotenv()
+
 class Config:
-    SECRET_KEY = "compassiq-secret-key"
+    """
+    Base configuration class for CompassIQ.
+    Reads database credentials and application settings from environment variables.
+    """
+    SECRET_KEY = os.getenv("SECRET_KEY", "compassiq-development-secret-key")
     DEBUG = False
     TESTING = False
 
-    # Database connection settings.
-    DB_HOST = "localhost"
-    DB_PORT = 3306
-    DB_USER = "root"
-    DB_PASSWORD = ""
-    DB_NAME = "compassiq_db"
+    # MySQL Database Configuration
+    MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
+    MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
+    MYSQL_USER = os.getenv("MYSQL_USER", "root")
+    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
+    MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "compassiq")
 
-    # Data and model locations.
-    DATASET_PATH = "dataset/customer_support_data.csv"
-    MODEL_DIR = "models"
+    # ML Artifact Paths
+    DATASET_PATH = os.getenv("DATASET_PATH", "dataset/customer_support_data.csv")
+    MODEL_DIR = os.getenv("MODEL_DIR", "models")
 
-# Local development settings.
+
 class DevelopmentConfig(Config):
+    """Local development environment configuration."""
     DEBUG = True
 
-# Production settings.
+
 class ProductionConfig(Config):
+    """Production environment configuration."""
     DEBUG = False
