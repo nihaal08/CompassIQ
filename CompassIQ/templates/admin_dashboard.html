@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold mb-1"><i class="fas fa-chart-line text-accent me-2"></i> Administrator Dashboard</h2>
+        <p class="text-muted mb-0">System overview, ticket statistics, department workload, and analytics.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('export_tickets_csv') }}" class="btn btn-glass">
+            <i class="fas fa-file-export me-1"></i> Export Report (CSV)
+        </a>
+    </div>
+</div>
+
+<!-- Key Performance Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Total Tickets</div>
+            <div class="stat-card-val">{{ stats.total_tickets }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Open Queue</div>
+            <div class="stat-card-val text-warning">{{ stats.open_tickets }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">In Progress</div>
+            <div class="stat-card-val text-info">{{ stats.in_progress }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Resolved</div>
+            <div class="stat-card-val text-success">{{ stats.resolved_tickets }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Active Agents</div>
+            <div class="stat-card-val text-accent">{{ stats.total_agents }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card p-3">
+            <div class="text-muted small">Avg Rating</div>
+            <div class="stat-card-val text-warning">4.8 <span class="fs-6">/ 5</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Visual Distribution Charts -->
+<div class="row g-4 mb-4">
+    <!-- Category Distribution -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fas fa-chart-pie text-accent me-2"></i> Category Distribution</h5>
+            <div class="chart-frame">
+                <canvas id="categoryChart" role="img" aria-label="Ticket category distribution chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Priority Distribution -->
+    <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+            <h5 class="fw-bold mb-3"><i class="fas fa-chart-bar text-warning me-2"></i> Priority Level Breakdown</h5>
+            <div class="chart-frame">
+                <canvas id="priorityChart" role="img" aria-label="Ticket priority distribution chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Administrator Ticket Queue -->
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <h5 class="fw-bold mb-1"><i class="fas fa-inbox text-accent me-2"></i> Administrator Ticket Queue</h5>
+            <p class="text-muted small mb-0">All tickets are visible here. Fraud tickets are assigned exclusively to the Admin queue.</p>
+        </div>
+        <span class="badge bg-danger text-white"><i class="fas fa-shield-halved me-1"></i> {{ fraud_tickets }} Fraud</span>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-5">
+            <div class="input-group">
+                <label class="input-group-text bg-dark border-glass text-yellow" for="table-search"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">Search all tickets</span></label>
+                <input type="search" id="table-search" class="form-control form-control-glass" placeholder="Search ticket, customer, or subject..." aria-label="Search all tickets">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="category-filter" class="form-select form-select-glass" aria-label="Filter tickets by category">
+                <option value="all">All Categories</option>
+                <option value="Fraud">Fraud / Admin Queue</option>
+                <option value="Technical">Technical Support</option>
+                <option value="Billing">Billing</option>
+                <option value="Account">Account Support</option>
+                <option value="General Inquiry">General Inquiry</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="priority-filter" class="form-select form-select-glass" aria-label="Filter tickets by priority">
+                <option value="all">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="status-filter" class="form-select form-select-glass" aria-label="Filter tickets by status">
+                <option value="all">All Statuses</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-glass mb-0">
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Customer</th>
+                    <th>Predicted Category</th>
+                    <th>Assigned Queue</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-table-body">
+                {% for ticket in tickets %}
+                <tr data-category="{{ ticket.category }}" data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}">
+                    <td><span class="fw-bold text-accent font-monospace">{{ ticket.ticket_code }}</span><div class="text-muted small">{{ ticket.submission_date }}</div></td>
+                    <td><strong class="text-heading">{{ ticket.customer_name }}</strong><div class="text-muted small">{{ ticket.customer_email }}</div></td>
+                    <td><span class="badge {% if ticket.category == 'Fraud' %}bg-danger{% else %}badge-dept{% endif %}">{{ ticket.category }}</span></td>
+                    <td><span class="text-muted">{{ ticket.assigned_department }}</span><div class="text-muted small">{{ ticket.assigned_agent_name }}</div></td>
+                    <td><span class="badge badge-priority badge-priority-{{ ticket.priority.lower() }}">{{ ticket.priority }}</span></td>
+                    <td>{{ ticket.status }}</td>
+                    <td><a href="{{ url_for('agent_ticket_detail', ticket_id=ticket.id) }}" class="btn btn-sm btn-glass"><i class="fas fa-eye me-1"></i> Review</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No tickets found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="ticket-list-actions">
+    <button type="button" class="btn btn-glass load-more-button" data-load-more="tickets-table-body" data-load-step="5" hidden>
+        <i class="fas fa-plus me-1"></i> Load more tickets
+    </button>
+</div>
+
+<!-- Department Performance Summary Table -->
+<div class="glass-card p-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-bold mb-0"><i class="fas fa-sitemap text-info me-2"></i> Department Performance & Workload</h5>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-glass">Manage Staff &rarr;</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-glass mb-0">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Assigned Agent</th>
+                    <th>Assigned Tickets</th>
+                    <th>Resolved Tickets</th>
+                    <th>Avg Resolution Time</th>
+                    <th>Satisfaction Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dept in department_stats %}
+                    <tr>
+                        <td>
+                            <span class="badge badge-dept">{{ dept.department }}</span>
+                        </td>
+                        <td>
+                            <strong class="text-heading">{{ dept.name }}</strong>
+                            <div class="text-muted small">{{ dept.email }}</div>
+                        </td>
+                        <td class="fw-bold text-accent">{{ dept.assigned }}</td>
+                        <td class="fw-bold text-success">{{ dept.resolved }}</td>
+                        <td class="text-muted small">{{ dept.avg_res_time }} hours</td>
+                        <td>
+                            <span class="badge bg-warning text-dark fw-bold">
+                                <i class="fas fa-star me-1"></i> {{ dept.satisfaction }} / 5.0
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Category Chart
+    fetch('/api/charts/category-distribution')
+        .then(res => res.json())
+        .then(data => {
+            new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: ['#397d7f', '#79aaa5', '#b9ddcf', '#5d999a', '#234b50']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#8890a8' } } }
+                }
+            });
+        });
+
+    // 2. Priority Chart
+    fetch('/api/charts/priority-distribution')
+        .then(res => res.json())
+        .then(data => {
+            new Chart(document.getElementById('priorityChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Tickets',
+                        data: data.counts,
+                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#526366' }, grid: { color: 'rgba(41,67,74,0.08)' } },
+                        y: { ticks: { color: '#526366' }, grid: { color: 'rgba(41,67,74,0.08)' } }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

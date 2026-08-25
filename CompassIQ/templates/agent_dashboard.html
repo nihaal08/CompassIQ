@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Agent Queue - {{ department_label }} Department{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge badge-yellow fs-6"><i class="fas fa-sitemap me-1"></i> {{ department_label }} Department Workspace</span>
+            <span class="badge bg-dark text-muted border border-secondary">Departmental Isolation Active</span>
+        </div>
+        <h2 class="fw-bold text-white mb-0">Assigned {{ department_label }} Ticket Queue</h2>
+        <p class="text-muted small mb-0">Showing only complaints assigned to <strong>{{ department_label }}</strong> by the AI machine learning engine.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('knowledge_base') }}" class="btn btn-glass-yellow">
+            <i class="fas fa-book me-1"></i> Knowledge Base
+        </a>
+    </div>
+</div>
+
+<!-- Department Workload Counters -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small">{{ department_label }} Tickets</div>
+                <div class="stat-card-val">{{ stats.total_assigned }}</div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-folder-open"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small">Pending Action</div>
+                <div class="stat-card-val text-warning">{{ stats.open }}</div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small">In Progress</div>
+                <div class="stat-card-val text-info">{{ stats.in_progress }}</div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-spinner"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card p-3 d-flex align-items-center justify-content-between">
+            <div>
+                <div class="text-muted small">Resolved</div>
+                <div class="stat-card-val text-success">{{ stats.resolved }}</div>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-check-double"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtering & Search -->
+<div class="glass-card p-3 mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <label class="input-group-text bg-dark border-glass text-yellow" for="table-search"><i class="fas fa-search" aria-hidden="true"></i><span class="visually-hidden">Search department tickets</span></label>
+                            <input type="search" id="table-search" class="form-control form-control-glass" placeholder="Search {{ department_label }} tickets by ID, customer name, or keyword..." aria-label="Search department tickets">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="priority-filter" class="form-select form-select-glass" aria-label="Filter tickets by priority">
+                <option value="all">Sort / Filter Priority</option>
+                <option value="Critical">Critical Priority</option>
+                <option value="High">High Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="Low">Low Priority</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select id="status-filter" class="form-select form-select-glass" aria-label="Filter tickets by status">
+                <option value="all">All Ticket Statuses</option>
+                <option value="Open">Open Queue</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Department Agent Tickets Table -->
+<div class="glass-card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-glass mb-0">
+            <thead>
+                <tr>
+                    <th>Ticket Code</th>
+                    <th>Customer Name</th>
+                    <th>Subject & Summary</th>
+                    <th>Category</th>
+                    <th>AI Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-table-body">
+                {% if tickets %}
+                    {% for ticket in tickets %}
+                    <tr data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}">
+                        <td>
+                            <span class="fw-bold text-yellow font-monospace">{{ ticket.ticket_code }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-white">{{ ticket.customer_name }}</div>
+                            <div class="text-muted small">{{ ticket.customer_email }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-white">{{ ticket.subject }}</div>
+                            <div class="text-muted small text-truncate" style="max-width: 260px;">{{ ticket.description }}</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-dept">{{ ticket.category }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-priority badge-priority-{{ ticket.priority.lower() }}">
+                                {{ ticket.priority }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if ticket.status == 'Open' %}
+                                <span class="badge badge-status-open"><i class="fas fa-circle me-1 fs-xs"></i> Open</span>
+                            {% elif ticket.status == 'In Progress' %}
+                                <span class="badge badge-status-progress"><i class="fas fa-spinner fa-spin me-1 fs-xs"></i> In Progress</span>
+                            {% elif ticket.status == 'Resolved' %}
+                                <span class="badge badge-status-resolved"><i class="fas fa-check-circle me-1 fs-xs"></i> Resolved</span>
+                            {% else %}
+                                <span class="badge badge-status-closed"><i class="fas fa-lock me-1 fs-xs"></i> Closed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('agent_ticket_detail', ticket_id=ticket.id) }}" class="btn btn-sm btn-yellow">
+                                <i class="fas fa-brain me-1"></i> Resolve Ticket
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle display-4 mb-3 d-block text-success"></i>
+                            No pending tickets in the {{ department_label }} department queue right now.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="ticket-list-actions">
+    <button type="button" class="btn btn-glass load-more-button" data-load-more="tickets-table-body" data-load-step="5" hidden>
+        <i class="fas fa-plus me-1"></i> Load more tickets
+    </button>
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block head %}
+<style>
+    .register-page {
+        min-height: calc(100vh - 74px);
+        display: flex;
+        align-items: stretch;
+        background: #fbfaf7;
+    }
+
+    .register-left {
+        flex: 1 1 58%;
+        background: #dcefee;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 5rem clamp(2rem, 7vw, 7rem);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-left::before {
+        content: '';
+        position: absolute;
+        inset: 0 8% 0 0;
+        opacity: .5;
+        background: radial-gradient(ellipse at 12% 18%, #3f7f82 0 10%, transparent 10.5%), radial-gradient(ellipse at 40% 52%, #92c8c4 0 18%, transparent 18.5%), linear-gradient(118deg, transparent 35%, rgba(31, 77, 80, .55) 35.5% 38%, transparent 38.5%);
+    }
+
+    .register-left > * { position: relative; }
+    .register-left .hero-pill { color: #2d6769; background: rgba(255,255,255,.58); border: 1px solid rgba(45,103,105,.25); border-radius: 3px; }
+    .register-left .hero-title { color: #29434a; font-family: 'DM Serif Display', Georgia, serif; font-size: clamp(2.8rem, 5vw, 4.8rem); font-weight: 700; line-height: 1.02; letter-spacing: 0; }
+    .register-left .highlight-white { color: #29434a; }
+    .register-left .highlight-yellow { color: #2f7779; text-shadow: none; }
+    .register-left .hero-desc { color: #456568; max-width: 480px; }
+    .register-left .feature-pill { background: rgba(255,255,255,.66); border: 1px solid rgba(45,103,105,.18); border-radius: 3px; color: #3d5d60; box-shadow: none; }
+    .register-left .feature-pill i { color: #397d7f; }
+
+    .register-page { min-height: 100vh; background: #f3f6f5; }
+    .register-left { flex: 1 1 60%; justify-content: flex-end; padding: clamp(2rem, 7vw, 6rem); background: #102a43; }
+    .register-left::before { display: none; }
+    .register-left .hero-pill { color: #bfe0d7; background: #1a4058; border-color: #346477; }
+    .register-left .hero-title { max-width: 650px; color: #fff; font-family: 'Manrope', sans-serif; font-size: clamp(2.4rem, 4.5vw, 4.25rem); line-height: 1.03; font-weight: 800; }
+    .register-left .highlight-white { color: #fff; }
+    .register-left .highlight-yellow { color: #a8d8cb; }
+    .register-left .hero-desc { color: #b8cdd2; font-size: 1rem; }
+    .register-left .feature-pill { color: #d5e5e3; background: transparent; border-color: #31566c; }
+    .register-left .feature-pill i { color: #a8d8cb; }
+    .register-form-panel { flex: 0 0 min(40%, 500px); background: #fff; border-left: 1px solid #dce5e2; padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4.5rem); }
+    .auth-form-box { max-width: 390px; }
+    .auth-form-box h2 { color: #102a43; font-family: 'Manrope', sans-serif; font-size: 1.8rem; text-align: left; }
+    .auth-form-box > .text-center { text-align: left !important; }
+    .auth-form-box .auth-icon { color: #16766f; font-size: 1.4rem; }
+    .auth-form-box .form-label { color: #304b59; }
+    .auth-form-box .form-control-glass, .auth-form-box .form-select-glass { background: #f7faf9 !important; border-color: #c8d5d1 !important; }
+    .auth-form-box .btn-yellow { width: 100%; background: #16766f !important; box-shadow: none; }
+    .auth-form-box .btn-yellow:hover { background: #0f5f59 !important; }
+
+    .register-form-panel {
+        flex: 0 0 min(43%, 500px);
+        background: #fbfaf7;
+        display: flex;
+        align-items: center;
+        padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 6vw, 5rem);
+    }
+
+    @media (max-width: 992px) {
+        .register-page { flex-direction: column; }
+        .register-left { padding: 3rem 2rem; }
+        .register-form-panel { flex: none; width: 100%; padding: 3rem 1.5rem; }
+    }
+
+    @media (max-width: 767.98px) {
+        .register-left { padding: 3rem 1.5rem; }
+        .register-left .hero-title { font-size: 2.7rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+    <section class="register-left" aria-label="CompassIQ account benefits">
+        <div class="hero-pill">
+            <i class="fas fa-bolt"></i> CompassIQ AI Ticket Intelligence
+        </div>
+
+        <h1 class="hero-title">
+            Build a better<br>
+            support journey<br>
+            with <span class="highlight-white">human</span> + <span class="highlight-yellow">AI</span>
+        </h1>
+
+        <p class="hero-desc">
+            Create your workspace account and bring intelligent ticket routing, priority prediction, and semantic guidance to every customer conversation.
+        </p>
+
+        <div class="hero-features">
+            <span class="feature-pill"><i class="fas fa-brain"></i> Intelligent Insights</span>
+            <span class="feature-pill"><i class="fas fa-sitemap"></i> Smart Routing</span>
+            <span class="feature-pill"><i class="fas fa-search"></i> Case Matching</span>
+            <span class="feature-pill"><i class="fas fa-bolt"></i> Priority Scoring</span>
+        </div>
+    </section>
+
+    <section class="register-form-panel">
+        <div class="auth-form-box">
+            <div class="text-center mb-4">
+                <i class="fas fa-user-plus auth-icon mb-2"></i>
+                <h2>Create your account</h2>
+                <p class="text-muted">Join your customer support workspace</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="mb-3">
+                    <label for="register-name" class="form-label text-muted small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-glass text-yellow"><i class="fas fa-user"></i></span>
+                        <input type="text" id="register-name" name="name" class="form-control form-control-glass" placeholder="Jane Smith" required autocomplete="name">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="register-email" class="form-label text-muted small fw-semibold">Email Address <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-glass text-yellow"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="register-email" name="email" class="form-control form-control-glass" placeholder="jane@compassiq.ai" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="role-select" class="form-label text-muted small fw-semibold">Account Role <span class="text-danger">*</span></label>
+                    <select name="role" id="role-select" class="form-select form-select-glass" required>
+                        <option value="customer" selected>Customer (Submit & Track Complaints)</option>
+                        <option value="agent">Support Agent (Department Workspace)</option>
+                    </select>
+                </div>
+
+                <!-- Agent Department Selection (Asked during account creation!) -->
+                <div class="mb-3" id="department-wrapper" style="display: none;">
+                    <label for="register-department" class="form-label text-warning small fw-bold">Select Support Department <span class="text-danger">*</span></label>
+                    <select id="register-department" name="department" class="form-select form-select-glass border-warning">
+                        <option value="Technical" selected>Technical Support (Software, Bugs, Crashes)</option>
+                        <option value="Billing">Billing Support (Payments, Refunds, Invoices)</option>
+                        <option value="Account">Account Support (Security, Login, MFA)</option>
+                        <option value="General Inquiry">General Inquiry (Inquiries & Product Help)</option>
+                    </select>
+                    <div class="text-muted fs-xs mt-1">Agent will only be assigned tickets matching this specific department.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="register-password" class="form-label text-muted small fw-semibold">Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-glass text-yellow"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="register-password" name="password" class="form-control form-control-glass" placeholder="Choose a secure password" required autocomplete="new-password" minlength="8" aria-describedby="password-help">
+                    </div>
+                    <div id="password-help" class="form-text">Use at least 8 characters.</div>
+                </div>
+
+                <button type="submit" class="btn btn-yellow w-100 py-2.5 mb-3">
+                    <i class="fas fa-user-check me-2"></i> Register Account
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted small mb-0">Already have an account? <a href="{{ url_for('login') }}" class="text-accent text-decoration-none fw-bold">Log In</a></p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

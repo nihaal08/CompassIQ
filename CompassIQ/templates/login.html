@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | CompassIQ AI{% endblock %}
+
+{% block head %}
+<style>
+/* Auth page styles are shared with register.html through the global theme. */
+main.container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+
+.login-root {
+    min-height: calc(100vh - 66px);
+    display: flex;
+    align-items: stretch;
+    background: #060709;
+}
+
+/* LEFT Hero Section (HackerRank Dark Aesthetic) */
+.login-left {
+    flex: 1 1 58%;
+    background: radial-gradient(circle at 40% 40%, rgba(250, 204, 21, 0.08) 0%, #060709 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    color: #facc15;
+    padding: 0.4rem 1rem;
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #4b5563;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title .highlight-white {
+    color: #ffffff;
+}
+
+.hero-title .highlight-yellow {
+    color: #facc15;
+    text-shadow: 0 0 30px rgba(250, 204, 21, 0.4);
+}
+
+.hero-desc {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+}
+
+.hero-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.feature-pill {
+    background: #11141c;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.feature-pill i { color: #facc15; }
+
+/* RIGHT Form Section */
+.login-right {
+    flex: 0 0 460px;
+    background: #0d0f15;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 3.5rem;
+    min-height: 100%;
+}
+
+.login-box {
+    background: #12151e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+
+.login-box h3 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.3rem;
+}
+
+.login-box .subtitle {
+    color: #94a3b8;
+    font-size: 0.88rem;
+    margin-bottom: 1.8rem;
+}
+
+.form-group-clean { margin-bottom: 1.2rem; }
+
+.form-group-clean label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 0.45rem;
+}
+
+.input-icon-wrap {
+    position: relative;
+}
+
+.input-icon-wrap i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.input-clean {
+    width: 100%;
+    background: #0a0c12;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 0.75rem 1rem 0.75rem 2.6rem;
+    font-size: 0.92rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.input-clean:focus {
+    border-color: #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
+}
+
+.select-clean {
+    width: 100%;
+    background: #0a0c12;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.92rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.select-clean:focus {
+    border-color: #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
+}
+
+.btn-signin {
+    width: 100%;
+    background: #facc15;
+    color: #000000 !important;
+    font-weight: 800;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 20px rgba(250, 204, 21, 0.35);
+}
+
+.btn-signin:hover {
+    background: #eab308;
+    box-shadow: 0 6px 28px rgba(250, 204, 21, 0.55);
+    transform: translateY(-1px);
+}
+
+.divider-text {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    margin: 1.5rem 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.quick-login-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.btn-quick {
+    background: #0a0c12;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-quick:hover {
+    border-color: #facc15;
+    color: #facc15;
+    background: rgba(250, 204, 21, 0.08);
+}
+
+.btn-quick i { color: #facc15; font-size: 0.75rem; }
+
+.login-footer-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.login-footer-link a {
+    color: #facc15;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+@media (max-width: 992px) {
+    .login-root { flex-direction: column; }
+    .login-left  { padding: 3rem 2rem; }
+    .hero-title { font-size: 2.4rem; }
+    .login-right { flex: none; width: 100%; border-left: none; padding: 2rem 1.5rem; }
+}
+
+/* Reference-inspired light auth treatment */
+.login-root { min-height: calc(100vh - 74px); background: #fbfaf7; color: #30404a; }
+.login-left { flex: 1 1 58%; padding: 5rem clamp(2rem, 7vw, 7rem); background: #dcefee; position: relative; }
+.login-left::before { content: ''; position: absolute; inset: 0 8% 0 0; opacity: .5; background: radial-gradient(ellipse at 12% 18%, #3f7f82 0 10%, transparent 10.5%), radial-gradient(ellipse at 40% 52%, #92c8c4 0 18%, transparent 18.5%), linear-gradient(118deg, transparent 35%, rgba(31, 77, 80, .55) 35.5% 38%, transparent 38.5%); }
+.login-left > * { position: relative; }
+.hero-pill { color: #2d6769; background: rgba(255,255,255,.58); border: 1px solid rgba(45,103,105,.25); border-radius: 3px; margin-bottom: 2rem; }
+.hero-title { color: #29434a; font-family: 'DM Serif Display', Georgia, serif; font-size: clamp(2.8rem, 5vw, 4.8rem); font-weight: 700; line-height: 1.02; letter-spacing: 0; }
+.hero-title .highlight-white { color: #29434a; }
+.hero-title .highlight-yellow { color: #2f7779; text-shadow: none; }
+.hero-desc { color: #456568; max-width: 480px; }
+.feature-pill { background: rgba(255,255,255,.66); border: 1px solid rgba(45,103,105,.18); border-radius: 3px; color: #3d5d60; box-shadow: none; }
+.feature-pill i { color: #397d7f; }
+.login-right { flex: 0 0 min(43%, 500px); background: #fbfaf7; border-left: 0; padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 6vw, 5rem); }
+.login-box { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; max-width: 360px; width: 100%; margin: 0 auto; }
+.login-box h3 { color: #2d3842; font-family: 'DM Serif Display', Georgia, serif; font-size: 2.1rem; letter-spacing: 0; text-align: center; }
+.login-box .subtitle, .login-footer-link { color: #708082; text-align: center; }
+.form-group-clean label { color: #526366; font-weight: 400; }
+.input-clean, .select-clean { background: #fff !important; border: 1px solid #d6dddd !important; color: #30404a !important; border-radius: 18px; padding: .9rem 1rem; }
+.input-icon-wrap i { color: #a4b2b2; }
+.input-clean:focus, .select-clean:focus { border-color: #5d999a !important; box-shadow: 0 0 0 3px rgba(93,153,154,.14) !important; }
+.btn-signin { background: #3d4858; color: #fff !important; border-radius: 18px; box-shadow: none; padding: .85rem 1rem; }
+.btn-signin:hover { background: #2e3948; box-shadow: none; }
+.divider-text { color: #839092; text-transform: none; letter-spacing: 0; }
+.divider-text::before, .divider-text::after { background: #dfe5e4; }
+.btn-quick { background: #fff; border: 1px solid #dce3e2; border-radius: 14px; color: #526366; }
+.btn-quick:hover { border-color: #5d999a; color: #2f7779; background: #f3f9f8; }
+.btn-quick i, .login-footer-link a { color: #579496; }
+
+.demo-logins { width: 100%; max-width: 390px; margin-right: auto; margin-left: auto; text-align: left; }
+.demo-logins summary { text-align: center; }
+.quick-login-grid { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.btn-quick { width: 100%; min-height: 46px; justify-content: flex-start; padding: .65rem .75rem; }
+.btn-quick[style*="grid-column"] { justify-content: center; }
+
+/* Product auth treatment */
+.login-root { min-height: 100vh !important; background: #f3f6f5 !important; }
+.login-left { flex: 1 1 60% !important; justify-content: flex-end !important; padding: clamp(2rem, 7vw, 6rem) !important; background: #102a43 !important; }
+.login-left::before { display: none !important; }
+.login-left .hero-pill { color: #bfe0d7 !important; background: #1a4058 !important; border: 1px solid #346477 !important; border-radius: 4px !important; margin-bottom: 1.5rem !important; }
+.login-left .hero-title { max-width: 650px; color: #fff !important; font-family: 'Manrope', sans-serif !important; font-size: clamp(2.4rem, 4.5vw, 4.25rem) !important; line-height: 1.03 !important; font-weight: 800 !important; }
+.login-left .highlight-white { color: #fff !important; }
+.login-left .highlight-yellow { color: #a8d8cb !important; text-shadow: none !important; }
+.login-left .hero-desc { max-width: 540px; color: #b8cdd2 !important; font-size: 1rem !important; }
+.login-left .feature-pill { color: #d5e5e3 !important; background: transparent !important; border: 1px solid #31566c !important; border-radius: 4px !important; box-shadow: none !important; }
+.login-left .feature-pill i { color: #a8d8cb !important; }
+.login-right { flex: 0 0 min(40%, 500px) !important; padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4.5rem) !important; background: #fff !important; border-left: 1px solid #dce5e2 !important; }
+.login-box { max-width: 390px !important; padding: 0 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+.login-box h3 { color: #102a43 !important; font-family: 'Manrope', sans-serif !important; font-size: 1.8rem !important; text-align: left !important; }
+.login-box .subtitle, .login-footer-link { color: #71838a !important; text-align: left !important; }
+.form-group-clean label { color: #304b59 !important; font-weight: 800 !important; }
+.input-clean, .select-clean { color: #1d3442 !important; background: #f7faf9 !important; border: 1px solid #c8d5d1 !important; border-radius: 5px !important; padding: .72rem .85rem .72rem 2.55rem !important; }
+.select-clean { padding-left: .85rem !important; }
+.input-clean:focus, .select-clean:focus { border-color: #16766f !important; box-shadow: 0 0 0 3px rgba(22, 118, 111, .12) !important; }
+.input-icon-wrap i { color: #789197 !important; }
+.btn-signin { margin-top: 1.25rem !important; padding: .72rem 1rem !important; color: #fff !important; background: #16766f !important; border-radius: 5px !important; box-shadow: none !important; }
+.btn-signin:hover { background: #0f5f59 !important; box-shadow: none !important; transform: none !important; }
+.divider-text { color: #8a999e !important; }
+.btn-quick { color: #49606a !important; background: #fff !important; border: 1px solid #dce5e2 !important; border-radius: 5px !important; }
+.btn-quick:hover { color: #0f5f59 !important; background: #f0f7f5 !important; border-color: #9fc8c0 !important; }
+.login-footer-link a, .btn-quick i { color: #16766f !important; }
+@media (max-width: 992px) { .login-left { justify-content: center !important; } }
+@media (max-width: 480px) { .quick-login-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-root">
+
+    <!-- LEFT Hero Section (HackerRank Dark & Yellow Style) -->
+    <div class="login-left">
+        <div class="hero-pill">
+            <i class="fas fa-bolt"></i> CompassIQ AI Ticket Intelligence
+        </div>
+
+        <h1 class="hero-title">
+            The future<br>
+            of support<br>
+            is <span class="highlight-white">human</span> + <span class="highlight-yellow">AI</span>
+        </h1>
+
+        <p class="hero-desc">
+            Intelligent NLP classification, priority prediction, and semantic guidance that automatically routes every customer complaint to the right department.
+        </p>
+
+        <div class="hero-features">
+            <span class="feature-pill"><i class="fas fa-brain"></i> NLP Logistic Regression</span>
+            <span class="feature-pill"><i class="fas fa-sitemap"></i> Department Routing</span>
+            <span class="feature-pill"><i class="fas fa-search"></i> Top-3 Case Matching</span>
+            <span class="feature-pill"><i class="fas fa-bolt"></i> Priority Scoring</span>
+        </div>
+    </div>
+
+    <!-- RIGHT Sign In Form -->
+    <div class="login-right">
+        <div class="login-box">
+            <h3>Welcome back!</h3>
+            <p class="subtitle">Sign in to your support portal</p>
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group-clean">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-icon-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="login-email" class="input-clean"
+                               placeholder="user@compassiq.ai" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group-clean">
+                    <label for="login-password">Password</label>
+                    <div class="input-icon-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="login-password" class="input-clean"
+                               placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div class="form-group-clean">
+                    <label for="login-department">Department <span class="field-hint">(for agents only)</span></label>
+                    <select name="department" id="login-department" class="select-clean">
+                        <option value="">— Auto / Not an Agent —</option>
+                        <option value="Technical">Technical Support</option>
+                        <option value="Billing">Billing &amp; Financial</option>
+                        <option value="Account">Account &amp; Security</option>
+                        <option value="General Inquiry">General Inquiry</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-signin">
+                    <i class="fas fa-sign-in-alt"></i> Sign In to Portal
+                </button>
+            </form>
+
+            <details class="demo-logins">
+                <summary>Demo access</summary>
+                <div class="quick-login-grid">
+                <button type="button" class="btn-quick"
+                        onclick="quickLogin('customer@compassiq.ai','password123','')">
+                    <i class="fas fa-user"></i> Customer
+                </button>
+                <button type="button" class="btn-quick"
+                        onclick="quickLogin('agent@compassiq.ai','password123','Technical')">
+                    <i class="fas fa-headset"></i> Tech Agent
+                </button>
+                <button type="button" class="btn-quick"
+                        onclick="quickLogin('david.kim@compassiq.ai','password123','Billing')">
+                    <i class="fas fa-file-invoice-dollar"></i> Billing Agent
+                </button>
+                <button type="button" class="btn-quick"
+                        onclick="quickLogin('elena.rodriguez@compassiq.ai','password123','Account')">
+                    <i class="fas fa-user-lock"></i> Account Agent
+                </button>
+                <button type="button" class="btn-quick"
+                        onclick="quickLogin('general.agent@compassiq.ai','password123','General Inquiry')">
+                    <i class="fas fa-circle-question"></i> General Agent
+                </button>
+                <button type="button" class="btn-quick" style="grid-column: 1 / -1;"
+                        onclick="quickLogin('admin@compassiq.ai','password123','')">
+                    <i class="fas fa-user-shield"></i> Administrator
+                </button>
+                </div>
+            </details>
+
+            <p class="login-footer-link">
+                New to CompassIQ? <a href="{{ url_for('register') }}">Create an Account</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function quickLogin(email, password, dept) {
+    document.getElementById('login-email').value = email;
+    document.getElementById('login-password').value = password;
+    document.getElementById('login-department').value = dept;
+}
+</script>
+{% endblock %}

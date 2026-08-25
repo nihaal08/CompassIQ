@@ -21,32 +21,28 @@ CompassIQ is an intelligent customer support ticket routing system that uses Mac
 ```
 CompassIQ/
 │
-├── app.py                    ← Flask entry point (Week 3)
-├── config.py                 ← App configuration
+├── app.py                    ← Canonical Flask entry point
+├── routes.py                 ← Flask routes, auth, and API handlers
+├── database.py               ← SQLite schema initialization and access
 ├── requirements.txt          ← Python dependencies
 ├── .gitignore
 │
-├── dataset/
-│   └── customer_support_data.csv    ← 20,000 ticket dataset
+├── data/
+│   └── enhanced_customer_support_data.csv ← Runtime seed dataset
 │
 ├── ml/
-│   ├── preprocessing.py       ← Runtime NLP text cleaning
-│   ├── predict.py             ← Runtime prediction and similarity API
+│   ├── preprocessing.py       ← Notebook NLP helper
+│   ├── predict.py             ← Notebook prediction helper
 │   └── __init__.py
 │
 ├── notebooks/
-│   ├── 01_train_models.ipynb  ← Cleaning, EDA, training, evaluation
-│   ├── 02_build_similarity.ipynb ← Similarity index creation
 │   └── 03_test_model.ipynb    ← End-to-end prediction checks
 │
-├── models/                   ← Saved .pkl files (git-ignored)
-│   ├── category_model.pkl
-│   ├── category_vectorizer.pkl
-│   ├── priority_model.pkl
-│   ├── priority_vectorizer.pkl
-│   ├── similarity_vectorizer.pkl
-│   ├── ticket_vectors.pkl
-│   └── similarity_data.pkl
+├── models/                   ← Saved joblib artifacts
+│   ├── category_pipeline.joblib
+│   ├── priority_pipeline.joblib
+│   ├── similarity_index.joblib
+│   └── model_metrics.json
 │
 ├── templates/                ← HTML templates (Week 3)
 │
@@ -152,30 +148,15 @@ CompassIQ/dataset/customer_support_data.csv
 
 ## 🚀 Running the AI Pipeline
 
-### Step 1 — Train the ML models
+### Step 1 — Train the ML models and similarity index
 
-Open and run all cells in:
+Run the production trainer from the repository root:
 
-```text
-notebooks/01_train_models.ipynb
+```bash
+python -m CompassIQ.train_model
 ```
 
-Expected output:
-```
-Category Model Accuracy: ~XX%
-Priority Model Accuracy: ~XX%
-Models saved to models/
-```
-
-### Step 2 — Build the similarity engine
-
-Run all cells in:
-
-```text
-notebooks/02_build_similarity.ipynb
-```
-
-### Step 3 — Test the AI
+### Step 2 — Test the AI
 
 Run all cells in:
 
@@ -192,10 +173,10 @@ Assigned Department : Billing
 Top 3 Similar Tickets: ...
 ```
 
-### Step 4 — Start Flask (Week 2 stub)
+### Step 3 — Start Flask
 
 ```bash
-python app.py
+python -m CompassIQ.app
 ```
 
 Visit: http://localhost:5000
@@ -215,6 +196,10 @@ Total records: **20,000**
 
 ---
 
+The application uses SQLite for runtime ticket storage and loads the serialized
+artifacts used by `ml_engine.py` at startup. The `ml/` package is retained for
+the included training/test notebooks; the web application does not import it.
+
 ## 📅 Development Timeline
 
 | Week | Focus | Status |
@@ -231,4 +216,4 @@ Total records: **20,000**
 
 - `.pkl` model files are git-ignored (too large for version control)
 - Dataset CSV is git-ignored — add it locally before training
-- Re-run the first two notebooks after any changes to the dataset
+- Re-run `python -m CompassIQ.train_model` after any changes to the dataset

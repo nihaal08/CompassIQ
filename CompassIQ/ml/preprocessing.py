@@ -1,35 +1,23 @@
+"""Shared text normalization used by training, prediction, and similarity search."""
+
+import html
 import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
 
-# Download the language resources used for cleaning.
-nltk.download("stopwords", quiet=True)
-nltk.download("wordnet", quiet=True)
-nltk.download("omw-1.4", quiet=True)
 
-# Create reusable text-cleaning helpers.
-stop_words = set(stopwords.words("english"))
-lemmatizer = WordNetLemmatizer()
-
-# Clean one ticket's text.
 def preprocess_text(text):
-    if not isinstance(text, str):
+    """Normalize support text without removing domain-specific words."""
+    if text is None:
         return ""
-    
-    # Normalize case.
-    text = text.lower()
-    
-    # Remove links and punctuation.
-    text = re.sub(r"http\S+|www\S+|https\S+", "", text)
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    
-    # Remove common words and reduce words to their base form.
-    words = [
-        lemmatizer.lemmatize(word)
-        for word in text.split()
-        if word not in stop_words
-    ]
-    
-    return " ".join(words)
+
+    value = html.unescape(str(text)).lower()
+    value = re.sub(r"https?://\S+|www\.\S+", " ", value)
+    value = re.sub(r"<[^>]+>", " ", value)
+
+    value = re.sub(r"(.)\1{3,}", r"\1\1", value)
+    value = re.sub(r"[^a-z0-9\s]", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def combine_ticket_text(subject, description):
+    """Create the single text representation used throughout the ML system."""
+    return preprocess_text(f"{subject or ''} {description or ''}")
