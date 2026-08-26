@@ -1,3 +1,0 @@
-# This file ensures the models/ directory is tracked by git.
-# The actual .pkl files are git-ignored because they are large binary files.
-# Run the training and similarity notebooks to regenerate these files locally.

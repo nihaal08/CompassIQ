@@ -1,1 +1,0 @@
-"""CompassIQ application package."""

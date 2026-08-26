@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrator Command Center — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Top Admin Banner -->
+    <div class="col-12">
+        <div class="glass-panel p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 text-uppercase mb-2" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Root Administration
+                </span>
+                <h2 class="fw-bold mb-1">Global Security & Operations Console</h2>
+                <p class="text-muted mb-0 small">Real-time system telemetry, user verification queue, and automated AI fraud escalation.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-dark border border-secondary border-opacity-50 p-2 text-cyan">
+                    <i class="bi bi-broadcast me-1"></i> System Active
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Telemetry Cards (4 Metrics) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="metric-label">Total System Tickets</span>
+                <i class="bi bi-ticket-perforated fs-4 text-cyan"></i>
+            </div>
+            <div class="metric-value mt-2">{{ metrics.total_tickets }}</div>
+            <div class="text-dim small mt-1">Across all departments</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="metric-card" style="border-left: 4px solid #FF9900;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="metric-label">Pending Verifications</span>
+                <i class="bi bi-person-badge fs-4 text-warning"></i>
+            </div>
+            <div class="metric-value mt-2 text-warning">{{ metrics.pending_users }}</div>
+            <div class="text-dim small mt-1">Awaiting admin review</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="metric-card" style="border-left: 4px solid #00E676;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="metric-label">Resolution Rate</span>
+                <i class="bi bi-pie-chart fs-4 text-success"></i>
+            </div>
+            <div class="metric-value mt-2 text-success">{{ metrics.resolve_rate }}%</div>
+            <div class="text-dim small mt-1">Closed & resolved ratio</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="metric-card" style="border-left: 4px solid #7928CA;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="metric-label">Avg Resolution Time</span>
+                <i class="bi bi-clock-history fs-4 text-purple" style="color: #00D2FF;"></i>
+            </div>
+            <div class="metric-value mt-2" style="color: #00D2FF;">{{ metrics.avg_resolution_hours }} hrs</div>
+            <div class="text-dim small mt-1">Mean lifecycle duration</div>
+        </div>
+    </div>
+
+    <!-- Analytics Charts Row (3 Charts) -->
+    <div class="col-12 col-lg-4">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-uppercase tracking-wide text-cyan fw-bold mb-3" style="font-size: 0.85rem;">
+                <i class="bi bi-bar-chart me-1"></i> Department Ticket Volume
+            </h6>
+            <div class="chart-container">
+                <canvas id="deptVolumeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-uppercase tracking-wide text-cyan fw-bold mb-3" style="font-size: 0.85rem;">
+                <i class="bi bi-pie-chart me-1"></i> Priority Distribution
+            </h6>
+            <div class="chart-container">
+                <canvas id="priorityDoughnutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="glass-panel p-4 h-100">
+            <h6 class="text-uppercase tracking-wide text-cyan fw-bold mb-3" style="font-size: 0.85rem;">
+                <i class="bi bi-star-half me-1"></i> Customer CSAT (1 to 5 Stars)
+            </h6>
+            <div class="chart-container">
+                <canvas id="satisfactionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Verification Queue Table -->
+    <div class="col-12">
+        <div class="glass-panel p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-warning">
+                        <i class="bi bi-person-exclamation me-2"></i> Customer Verification Queue ({{ pending_users|length }})
+                    </h5>
+                    <span class="text-dim small">Review registered customer accounts pending approval before granting portal access.</span>
+                </div>
+            </div>
+
+            {% if pending_users|length == 0 %}
+                <div class="p-4 text-center text-muted bg-dark bg-opacity-40 rounded">
+                    <i class="bi bi-shield-check fs-2 text-success d-block mb-1"></i>
+                    <span>All customer accounts have been verified. No pending users in queue.</span>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr class="border-secondary border-opacity-25 text-dim small text-uppercase">
+                                <th>User ID</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Bill No / Product ID</th>
+                                <th>Registered At</th>
+                                <th class="text-end">Verification Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in pending_users %}
+                                <tr class="border-secondary border-opacity-10">
+                                    <td class="font-monospace text-cyan">#{{ u.user_id }}</td>
+                                    <td class="fw-bold text-white">{{ u.full_name }}</td>
+                                    <td>{{ u.email }}</td>
+                                    <td>
+                                        <span class="font-monospace text-warning">{{ u.bill_no_product_id or 'None Provided' }}</span>
+                                    </td>
+                                    <td class="text-dim small">{{ u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else '' }}</td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}">
+                                                <button type="submit" class="btn btn-cyber-success btn-sm">
+                                                    <i class="bi bi-check2 me-1"></i> Approve
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('reject_user', user_id=u.user_id) }}">
+                                                <button type="submit" class="btn btn-cyber-danger btn-sm">
+                                                    <i class="bi bi-x me-1"></i> Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Fraud Management Center Table -->
+    <div class="col-12">
+        <div class="glass-panel p-4 border-danger border-opacity-50">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-danger">
+                        <i class="bi bi-shield-fill-exclamation me-2"></i> AI Fraud & Security Escalation Center ({{ fraud_tickets|length }})
+                    </h5>
+                    <span class="text-dim small">Tickets flagged for potential fraud, identity theft, or policy violations.</span>
+                </div>
+            </div>
+
+            {% if fraud_tickets|length == 0 %}
+                <div class="p-4 text-center text-muted bg-dark bg-opacity-40 rounded">
+                    <i class="bi bi-shield-check fs-2 text-cyan d-block mb-1"></i>
+                    <span>No active fraud or security incidents detected by AI Engine.</span>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                        <thead>
+                            <tr class="border-secondary border-opacity-25 text-dim small text-uppercase">
+                                <th>Ticket ID</th>
+                                <th>Customer</th>
+                                <th>Subject & Reason</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th class="text-end">Security Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ft in fraud_tickets %}
+                                <tr class="border-secondary border-opacity-10">
+                                    <td class="font-monospace text-danger fw-bold">{{ ft.ticket_id }}</td>
+                                    <td>
+                                        <div class="fw-bold text-white">{{ ft.customer_name }}</div>
+                                        <div class="text-dim small">{{ ft.customer_email }} (Status: <span class="text-warning">{{ ft.user_status }}</span>)</div>
+                                    </td>
+                                    <td style="max-width: 320px;">
+                                        <div class="text-white fw-semibold text-truncate">{{ ft.subject }}</div>
+                                        <div class="text-dim small text-truncate">{{ ft.description }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-priority badge-priority-{{ ft.predicted_priority }}">{{ ft.predicted_priority }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status badge-status-{{ ft.status|replace(' ', '') }}">{{ ft.status }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-2">
+                                            <form method="POST" action="{{ url_for('ban_user', user_id=ft.customer_id) }}" onsubmit="return confirm('Ban user {{ ft.customer_name }} permanently?');">
+                                                <button type="submit" class="btn btn-cyber-danger btn-sm" title="Ban Customer">
+                                                    <i class="bi bi-slash-circle me-1"></i> Ban User
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ft.ticket_id) }}">
+                                                <button type="submit" class="btn btn-cyber-outline btn-sm" title="Close Ticket">
+                                                    <i class="bi bi-check2-all me-1"></i> Dismiss / Close
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const deptLabels = {{ dept_labels | tojson }};
+        const deptData = {{ dept_data | tojson }};
+
+        const prioLabels = {{ prio_labels | tojson }};
+        const prioData = {{ prio_data | tojson }};
+
+        const satLabels = {{ sat_labels | tojson }};
+        const satData = {{ sat_data | tojson }};
+
+        initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData);
+    });
+</script>
+{% endblock %}

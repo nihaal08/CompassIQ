@@ -1,0 +1,110 @@
+/* ==========================================================================
+   CompassIQ — CSS Variables & Design Tokens
+   Enterprise Light Theme - Palette, Typography, Spacing, Shadows
+   ========================================================================== */
+
+:root {
+  /* ====== TYPOGRAPHY ====== */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-base: 14px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ====== COLOR PALETTE ====== */
+  /* Primary Brand Colors */
+  --primary: #1e3a8a;                  /* Deep Corporate Blue */
+  --primary-hover: #172554;             /* Darker shade for hover */
+  --primary-light: #eff6ff;             /* Light blue background */
+  
+  /* Accent Colors */
+  --accent: #2563eb;                    /* Muted Blue for active states */
+  --accent-hover: #1d4ed8;
+
+  /* Background & Surfaces */
+  --bg-app: #f8fafc;                    /* Off-white canvas (main background) */
+  --surface: #ffffff;                   /* Pure white card surfaces */
+  --surface-subtle: #f1f5f9;             /* Muted headers & subtle sections */
+  --surface-hover: #f0f4f8;              /* Surface hover state */
+
+  /* Borders */
+  --border-subtle: #e2e8f0;              /* Subtle light borders */
+  --border-strong: #cbd5e1;              /* Stronger borders for sections */
+
+  /* Text Colors */
+  --text-primary: #0f172a;               /* Primary text color */
+  --text-secondary: #475569;             /* Secondary text color */
+  --text-muted: #94a3b8;                 /* Muted/placeholder text */
+
+  /* Semantic Feedback Colors */
+  --success: #16a34a;                    /* Success green */
+  --success-bg: #f0fdf4;                 /* Success background */
+  
+  --warning: #d97706;                    /* Warning amber */
+  --warning-bg: #fffbeb;                 /* Warning background */
+  
+  --high-priority: #ea580c;              /* High priority orange */
+  --high-priority-bg: #fff7ed;           /* High priority background */
+  
+  --danger: #dc2626;                     /* Danger red */
+  --danger-bg: #fef2f2;                  /* Danger background */
+  
+  --info: #0284c7;                       /* Info blue */
+  --info-bg: #f0f9ff;                    /* Info background */
+
+  /* Status Colors (mapped to semantic feedback) */
+  --status-submitted: #0284c7;           /* Info blue */
+  --status-submitted-bg: #f0f9ff;
+  
+  --status-review: #d97706;              /* Warning amber */
+  --status-review-bg: #fffbeb;
+  
+  --status-progress: #2563eb;            /* Accent muted blue */
+  --status-progress-bg: #eff6ff;
+  
+  --status-resolved: #16a34a;            /* Success green */
+  --status-resolved-bg: #f0fdf4;
+  
+  --status-closed: #6b7280;              /* Gray */
+  --status-closed-bg: #f3f4f6;
+
+  /* Priority Colors */
+  --priority-low: #16a34a;               /* Green */
+  --priority-low-bg: #f0fdf4;
+  
+  --priority-medium: #d97706;            /* Amber */
+  --priority-medium-bg: #fffbeb;
+  
+  --priority-high: #ea580c;              /* Orange */
+  --priority-high-bg: #fff7ed;
+  
+  --priority-critical: #dc2626;          /* Red */
+  --priority-critical-bg: #fef2f2;
+
+  /* ====== SPACING ====== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* ====== BORDER RADIUS ====== */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* ====== SHADOWS ====== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.12);
+
+  /* ====== LAYOUT ====== */
+  --sidebar-width: 240px;
+  --header-height: 56px;
+  --mobile-breakpoint: 768px;
+  --tablet-breakpoint: 1024px;
+}

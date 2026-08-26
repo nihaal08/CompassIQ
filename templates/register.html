@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — CompassIQ</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-app);
+            padding: var(--spacing-lg);
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 520px;
+        }
+        .auth-card {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+        .auth-header {
+            text-align: center;
+        }
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+        .auth-brand-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+        .form-grid.full {
+            grid-template-columns: 1fr;
+        }
+        .info-box {
+            background-color: var(--info-bg);
+            border: 1px solid #7dd3fc;
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: var(--info);
+            font-size: 0.9rem;
+            margin: var(--spacing-lg) 0;
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: flex-start;
+        }
+        .info-box i {
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="card auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="auth-brand">
+                    <div class="auth-brand-icon">
+                        <i class="bi bi-compass"></i>
+                    </div>
+                    <h1 style="margin: 0; font-size: 1.5rem;">CompassIQ</h1>
+                </div>
+                <p class="text-secondary" style="margin: 0; margin-bottom: var(--spacing-md);">Create your account</p>
+                <p class="text-muted" style="margin: 0; font-size: 0.9rem;">Join our AI-powered support platform</p>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" name="full_name" class="form-input" placeholder="e.g. Alex Morgan" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address *</label>
+                    <input type="email" name="email" class="form-input" placeholder="alex.morgan@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bill No / Product Serial / Order ID</label>
+                    <input type="text" name="bill_no_product_id" class="form-input" placeholder="e.g. INV-2026-90481">
+                    <div class="form-helper-text">Provided for administrative account verification</div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input type="password" name="password" class="form-input" placeholder="••••••••" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password *</label>
+                        <input type="password" name="confirm_password" class="form-input" placeholder="••••••••" required minlength="6">
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <i class="bi bi-shield-check"></i>
+                    <span>All new customer accounts require admin verification before access is granted.</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" style="padding: 12px;">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </button>
+            </form>
+
+            <!-- Sign In Link -->
+            <div style="text-align: center; border-top: 1px solid var(--border-subtle); padding-top: var(--spacing-lg);">
+                <p class="text-secondary" style="margin: 0; font-size: 0.95rem;">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}" style="color: var(--accent); font-weight: var(--font-weight-semibold); text-decoration: none;">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
