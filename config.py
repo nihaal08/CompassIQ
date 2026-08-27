@@ -1,7 +1,7 @@
 """
 CompassIQ — Application Configuration Module
 ============================================
-Manages environment variables, database credentials, security keys,
+Manages environment variables, database configuration, security keys,
 and application defaults with dynamic .env auto-creation and loading.
 """
 
@@ -32,19 +32,8 @@ class Config:
     # Flask Security Key
     SECRET_KEY = os.getenv('SECRET_KEY', 'compassiq_secret_key_2026')
 
-    # MySQL Database Settings (Supports MYSQL_* and DB_* naming formats)
-    DB_HOST = os.getenv('MYSQL_HOST', os.getenv('DB_HOST', 'localhost'))
-    DB_PORT = int(os.getenv('MYSQL_PORT', os.getenv('DB_PORT', 3306)))
-    DB_USER = os.getenv('MYSQL_USER', os.getenv('DB_USER', 'root'))
-    DB_PASSWORD = os.getenv('MYSQL_PASSWORD', os.getenv('DB_PASSWORD', ''))
-    DB_NAME = os.getenv('MYSQL_DB', os.getenv('DB_NAME', 'compassiq_db'))
-
-    # Aliases for direct attribute access
-    MYSQL_HOST = DB_HOST
-    MYSQL_PORT = DB_PORT
-    MYSQL_USER = DB_USER
-    MYSQL_PASSWORD = DB_PASSWORD
-    MYSQL_DB = DB_NAME
+    # SQLite3 Database Settings
+    DATABASE_PATH = os.path.join(BASE_DIR, 'compassiq.db')
 
     # Session / Cookie settings
     SESSION_COOKIE_HTTPONLY = True

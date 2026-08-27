@@ -1,10 +1,7 @@
 -- ============================================================================
 -- CompassIQ — AI-Powered Customer Support Ticket Management System
--- Database Schema & Seed Data
+-- Database Schema & Seed Data (SQLite3)
 -- ============================================================================
-
-CREATE DATABASE IF NOT EXISTS compassiq_db;
-USE compassiq_db;
 
 -- Drop tables if they already exist in reverse order of foreign keys
 DROP TABLE IF EXISTS ticket_replies;
@@ -16,66 +13,66 @@ DROP TABLE IF EXISTS users;
 -- 1. Users Table
 -- ----------------------------------------------------------------------------
 CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(120) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('customer', 'agent', 'admin') NOT NULL DEFAULT 'customer',
-    department ENUM('Technical', 'Billing', 'Account', 'General Inquiry', 'None') DEFAULT 'None',
-    bill_no_product_id VARCHAR(100) NULL,
-    account_status ENUM('PENDING', 'APPROVED', 'REJECTED', 'BANNED') DEFAULT 'PENDING',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK(role IN ('customer', 'agent', 'admin')),
+    department TEXT DEFAULT 'None' CHECK(department IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'None')),
+    bill_no_product_id TEXT,
+    account_status TEXT DEFAULT 'PENDING' CHECK(account_status IN ('PENDING', 'APPROVED', 'REJECTED', 'BANNED')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ----------------------------------------------------------------------------
 -- 2. Tickets Table
 -- ----------------------------------------------------------------------------
 CREATE TABLE tickets (
-    ticket_id VARCHAR(30) PRIMARY KEY,
-    customer_id INT NOT NULL,
-    subject VARCHAR(255) NOT NULL,
+    ticket_id TEXT PRIMARY KEY,
+    customer_id INTEGER NOT NULL,
+    subject TEXT NOT NULL,
     description TEXT NOT NULL,
-    predicted_category ENUM('Technical', 'Billing', 'Account', 'General Inquiry', 'Fraud') NOT NULL,
-    predicted_priority ENUM('Low', 'Medium', 'High', 'Critical') NOT NULL,
-    assigned_department ENUM('Technical', 'Billing', 'Account', 'General Inquiry', 'Admin_Fraud') NOT NULL,
-    status ENUM('Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed') DEFAULT 'Submitted',
-    assigned_agent_id INT NULL,
-    resolution_notes TEXT NULL,
-    satisfaction_score INT NULL CHECK (satisfaction_score BETWEEN 1 AND 5),
-    customer_feedback TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    resolved_at TIMESTAMP NULL,
+    predicted_category TEXT NOT NULL CHECK(predicted_category IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'Fraud')),
+    predicted_priority TEXT NOT NULL CHECK(predicted_priority IN ('Low', 'Medium', 'High', 'Critical')),
+    assigned_department TEXT NOT NULL CHECK(assigned_department IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'Admin_Fraud')),
+    status TEXT DEFAULT 'Submitted' CHECK(status IN ('Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed')),
+    assigned_agent_id INTEGER,
+    resolution_notes TEXT,
+    satisfaction_score INTEGER CHECK(satisfaction_score BETWEEN 1 AND 5),
+    customer_feedback TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at DATETIME,
     CONSTRAINT fk_ticket_customer FOREIGN KEY (customer_id) REFERENCES users (user_id) ON DELETE CASCADE,
     CONSTRAINT fk_ticket_agent FOREIGN KEY (assigned_agent_id) REFERENCES users (user_id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- ----------------------------------------------------------------------------
 -- 3. Ticket Similar Matches Table
 -- ----------------------------------------------------------------------------
 CREATE TABLE ticket_similar_matches (
-    match_id INT AUTO_INCREMENT PRIMARY KEY,
-    ticket_id VARCHAR(30) NOT NULL,
-    similar_ticket_ref_id VARCHAR(30) NOT NULL,
-    similarity_score DECIMAL(5, 2) NOT NULL,
-    similar_subject VARCHAR(255) NOT NULL,
+    match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id TEXT NOT NULL,
+    similar_ticket_ref_id TEXT NOT NULL,
+    similarity_score REAL NOT NULL,
+    similar_subject TEXT NOT NULL,
     similar_description TEXT NOT NULL,
-    historical_resolution_hours INT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    historical_resolution_hours INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_similar_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (ticket_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- ----------------------------------------------------------------------------
 -- 4. Ticket Replies Table
 -- ----------------------------------------------------------------------------
 CREATE TABLE ticket_replies (
-    reply_id INT AUTO_INCREMENT PRIMARY KEY,
-    ticket_id VARCHAR(30) NOT NULL,
-    sender_id INT NOT NULL,
+    reply_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id TEXT NOT NULL,
+    sender_id INTEGER NOT NULL,
     message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reply_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (ticket_id) ON DELETE CASCADE,
     CONSTRAINT fk_reply_sender FOREIGN KEY (sender_id) REFERENCES users (user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 -- ----------------------------------------------------------------------------
 -- Seed Data
@@ -103,9 +100,9 @@ INSERT INTO users (user_id, full_name, email, password_hash, role, department, b
 
 -- Seed Sample Tickets
 INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
-('TKT-100001', 6, 'Cloud sync fails with Error Code 502', 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', 'Technical', 'High', 'Technical', 'In Progress', 2, NULL, NULL, NULL, NOW() - INTERVAL 2 DAY, NULL),
-('TKT-100002', 6, 'Charged twice for Pro annual subscription renewal', 'I noticed two identical charges of $199 on my credit card statement for invoice #88912.', 'Billing', 'High', 'Billing', 'Resolved', 3, 'Processed refund for duplicate charge via Stripe gateway. Reference: RFD-88219.', 5, 'Quick response and smooth refund! Thank you Sarah.', NOW() - INTERVAL 5 DAY, NOW() - INTERVAL 4 DAY),
-('TKT-100003', 6, 'How do I add team members to our workspace?', 'Looking for documentation or instructions on adding 5 new team members with editor permissions.', 'General Inquiry', 'Low', 'General Inquiry', 'Resolved', 5, 'Sent step-by-step invite guide and granted license seats.', 5, 'Great support, solved within 20 mins!', NOW() - INTERVAL 7 DAY, NOW() - INTERVAL 7 DAY);
+('TKT-100001', 6, 'Cloud sync fails with Error Code 502', 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', 'Technical', 'High', 'Technical', 'In Progress', 2, NULL, NULL, NULL, datetime('now', '-2 days'), NULL),
+('TKT-100002', 6, 'Charged twice for Pro annual subscription renewal', 'I noticed two identical charges of $199 on my credit card statement for invoice #88912.', 'Billing', 'High', 'Billing', 'Resolved', 3, 'Processed refund for duplicate charge via Stripe gateway. Reference: RFD-88219.', 5, 'Quick response and smooth refund! Thank you Sarah.', datetime('now', '-5 days'), datetime('now', '-4 days')),
+('TKT-100003', 6, 'How do I add team members to our workspace?', 'Looking for documentation or instructions on adding 5 new team members with editor permissions.', 'General Inquiry', 'Low', 'General Inquiry', 'Resolved', 5, 'Sent step-by-step invite guide and granted license seats.', 5, 'Great support, solved within 20 mins!', datetime('now', '-7 days'), datetime('now', '-7 days'));
 
 -- Seed Sample Similar Matches for TKT-100001
 INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
@@ -115,6 +112,6 @@ INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity
 
 -- Seed Sample Replies for TKT-100001
 INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
-('TKT-100001', 6, 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', NOW() - INTERVAL 2 DAY),
-('TKT-100001', 2, 'Hello David, thank you for reaching out. We have identified a potential chunk-size limit in our reverse proxy. We are deploying a patch to test server now.', NOW() - INTERVAL 1 DAY),
-('TKT-100001', 6, 'Understood, let me know when I can re-test the upload.', NOW() - INTERVAL 12 HOUR);
+(1, 'TKT-100001', 6, 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', datetime('now', '-2 days')),
+(2, 'TKT-100001', 2, 'Hello David, thank you for reaching out. We have identified a potential chunk-size limit in our reverse proxy. We are deploying a patch to test server now.', datetime('now', '-1 days')),
+(3, 'TKT-100001', 6, 'Understood, let me know when I can re-test the upload.', datetime('now', '-12 hours'));

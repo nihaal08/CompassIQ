@@ -47,7 +47,7 @@
                         <div class="card" style="cursor: pointer; transition: all 0.2s ease; margin: 0;" onclick="selectTicket('{{ ticket.ticket_id }}')">
                             <div style="padding: var(--spacing-md);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                                    <span style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent);">{{ ticket.ticket_id }}</span>
+                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticket_id }}</span>
                                     <span class="badge badge-priority-{{ ticket.predicted_priority }}">{{ ticket.predicted_priority }}</span>
                                 </div>
                                 <h5 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.95rem;">{{ ticket.subject }}</h5>
@@ -56,7 +56,7 @@
                                 </p>
                                 <div style="display: flex; justify-content: space-between; align-items: center; padding-top: var(--spacing-sm); border-top: 1px solid var(--border-subtle);">
                                     <span class="badge badge-status-{{ ticket.status|replace(' ', '') }}">{{ ticket.status }}</span>
-                                    <span class="text-muted" style="font-size: 0.8rem;">{{ ticket.created_at.strftime('%m/%d %H:%M') if ticket.created_at else '' }}</span>
+                                    <span class="text-muted" style="font-size: 0.8rem;">{{ ticket.created_at[:10] if ticket.created_at else '' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +72,7 @@
             <div class="workspace-section">
                 <h4 style="margin: 0 0 var(--spacing-md) 0;">Ticket Details</h4>
                 <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-lg);">
-                    <span id="detailTicketId" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent);">TKT-000000</span>
+                    <span id="detailTicketId" class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">TKT-000000</span>
                     <span id="detailCategory" class="badge badge-category">Category</span>
                     <span id="detailPriority" class="badge badge-priority-High">Priority</span>
                 </div>
@@ -81,24 +81,57 @@
             </div>
 
             <div class="workspace-section">
-                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">AI Recommendations</h5>
+                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">AI Intelligence</h5>
                 <div id="aiRecommendations" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                    <!-- Similar tickets will be loaded here -->
+                    <!-- AI predictions will be loaded here -->
+                    <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                        <span class="badge badge-category" id="aiCategory">Category</span>
+                        <span class="badge badge-priority-Medium" id="aiPriority">Priority</span>
+                    </div>
                 </div>
             </div>
 
             <div class="workspace-section">
-                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">Communication</h5>
+                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">Top-3 Similar Historical Tickets</h5>
+                <div id="similarTickets" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                    <!-- Similar tickets will be loaded here -->
+                    <div class="ai-recommendation-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                            <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">HIST-XXXXXX</span>
+                            <span class="similarity-pill">88%</span>
+                        </div>
+                        <h6 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.9rem;">Similar Subject</h6>
+                        <p class="text-secondary" style="margin: 0 0 var(--spacing-sm) 0; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            Similar description preview...
+                        </p>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">
+                            <i class="bi bi-clock"></i> Resolved in 4 hours
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-section">
+                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">Communication History</h5>
+                <div class="chat-thread-container" id="chatThread">
+                    <!-- Chat messages will be loaded here -->
+                </div>
+            </div>
+
+            <div class="workspace-section">
+                <h5 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem;">Agent Response</h5>
                 <form method="POST" id="replyForm" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
                     <input type="hidden" name="ticket_id" id="formTicketId">
                     <textarea name="message" class="form-textarea" placeholder="Reply to customer..." required></textarea>
-                    <select name="status" class="form-select" required>
-                        <option value="Submitted">Submitted</option>
-                        <option value="Under Review">Under Review</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">Send Reply & Update</button>
+                    <div style="display: flex; gap: var(--spacing-md);">
+                        <select name="status" class="form-select" required style="flex: 1;">
+                            <option value="Submitted">Submitted</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                        <button type="submit" class="btn btn-accent">Send Response</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -115,157 +148,109 @@ function selectTicket(ticketId) {
     document.getElementById('formTicketId').value = ticketId;
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('ticketDetailPanel').style.display = 'block';
-    // In production, fetch ticket details via AJAX
+    
+    // Load ticket details
+    fetch(`/agent/tickets/${ticketId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const ticket = data.ticket;
+                const replies = data.replies;
+                const similarMatches = data.similar_matches;
+                
+                // Update ticket details
+                document.getElementById('detailTicketId').textContent = ticket.ticket_id;
+                document.getElementById('detailSubject').textContent = ticket.subject;
+                document.getElementById('detailDescription').textContent = ticket.description;
+                
+                // Update badges
+                document.getElementById('detailCategory').textContent = ticket.predicted_category;
+                document.getElementById('detailCategory').className = `badge badge-category-${ticket.predicted_category.replace(' ', '')}`;
+                document.getElementById('detailPriority').textContent = ticket.predicted_priority;
+                document.getElementById('detailPriority').className = `badge badge-priority-${ticket.predicted_priority}`;
+                
+                // Update AI predictions
+                document.getElementById('aiCategory').textContent = ticket.predicted_category;
+                document.getElementById('aiCategory').className = `badge badge-category-${ticket.predicted_category.replace(' ', '')}`;
+                document.getElementById('aiPriority').textContent = ticket.predicted_priority;
+                document.getElementById('aiPriority').className = `badge badge-priority-${ticket.predicted_priority}`;
+                
+                // Load similar tickets
+                const similarContainer = document.getElementById('similarTickets');
+                similarContainer.innerHTML = '';
+                
+                if (similarMatches && similarMatches.length > 0) {
+                    similarMatches.forEach(match => {
+                        const similarityPercent = Math.round(match.similarity_score * 100) / 100;
+                        similarContainer.innerHTML += `
+                            <div class="ai-recommendation-card">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">${match.similar_ticket_ref_id}</span>
+                                    <span class="similarity-pill">${similarityPercent}%</span>
+                                </div>
+                                <h6 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.9rem;">${match.similar_subject}</h6>
+                                <p class="text-secondary" style="margin: 0 0 var(--spacing-sm) 0; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                    ${match.similar_description}
+                                </p>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                    <i class="bi bi-clock"></i> Resolved in ${match.historical_resolution_hours || 'N/A'} hours
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    similarContainer.innerHTML = '<p class="text-muted">No similar tickets found in database.</p>';
+                }
+                
+                // Load chat history
+                const chatContainer = document.getElementById('chatThread');
+                chatContainer.innerHTML = '';
+                
+                if (replies && replies.length > 0) {
+                    replies.forEach(reply => {
+                        const isAgent = reply.sender_role === 'agent';
+                        chatContainer.innerHTML += `
+                            <div class="chat-bubble ${isAgent ? 'chat-bubble-agent' : 'chat-bubble-customer'}">
+                                ${reply.message}
+                                <div class="chat-meta">
+                                    <span>${reply.sender_name}</span>
+                                    <span>${new Date(reply.created_at).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    chatContainer.innerHTML = '<p class="text-muted" style="text-align: center; padding: 20px;">No communication history yet.</p>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading ticket details:', error);
+        });
 }
-</script>
-{% endblock %}
-            
-            <!-- Left Sub-Column / Sidebar: Ticket Queue List (40% width on desktop) -->
-            <div class="col-12 col-lg-4">
-                <div class="glass-panel p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0 text-uppercase tracking-wide text-cyan" style="font-size: 0.85rem;">
-                            <i class="bi bi-list-task me-1"></i> Assigned Tickets ({{ tickets|length }})
-                        </h6>
-                    </div>
 
-                    {% if tickets|length == 0 %}
-                        <div class="p-4 text-center text-muted">
-                            <i class="bi bi-check2-circle fs-3 text-cyan d-block mb-2"></i>
-                            <span>No tickets in this status queue.</span>
-                        </div>
-                    {% else %}
-                        <div class="d-flex flex-column gap-2" style="max-height: 75vh; overflow-y: auto; padding-right: 4px;">
-                            {% for t in tickets %}
-                                <div class="glass-card-interactive agent-ticket-row p-3" onclick="selectAgentTicket('{{ t.ticket_id }}', this)">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="font-monospace text-cyan fw-bold small">{{ t.ticket_id }}</span>
-                                        <span class="badge-priority badge-priority-{{ t.predicted_priority }}">
-                                            {{ t.predicted_priority }}
-                                        </span>
-                                    </div>
-                                    <h6 class="text-white mb-1 text-truncate" style="font-size: 0.92rem;">{{ t.subject }}</h6>
-                                    <div class="text-dim small text-truncate mb-2">{{ t.customer_name }} &bull; {{ t.customer_email }}</div>
-                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10 small">
-                                        <span class="badge-status badge-status-{{ t.status|replace(' ', '') }}">{{ t.status }}</span>
-                                        <span class="text-dim" style="font-size: 0.72rem;">{{ t.created_at.strftime('%m/%d %H:%M') if t.created_at else '' }}</span>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Right Workspace: Split View (Left Ticket Conversation + Right AI Intelligence Panel) -->
-            <div class="col-12 col-lg-8">
-                <!-- Empty Placeholder State -->
-                <div class="glass-panel p-5 text-center" id="agentEmptyState" {% if tickets|length > 0 %}style="display: block;"{% endif %}>
-                    <i class="bi bi-cursor text-cyan fs-1 mb-3 d-block"></i>
-                    <h5 class="text-white">Select a Ticket from the Queue</h5>
-                    <p class="text-muted small">Choose any ticket on the left to launch the dual-pane AI Intelligence workspace.</p>
-                </div>
-
-                <!-- Active Split-Screen Workspace (Initially Hidden until ticket clicked) -->
-                <div class="glass-panel p-4" id="agentTicketWorkspace" style="display: none;">
-                    
-                    <!-- Top Workspace Header -->
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 pb-3 mb-3 border-bottom border-secondary border-opacity-25">
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="font-monospace text-cyan fw-bold fs-5" id="agentTicketIdHeading">TKT-XXXXXX</span>
-                                <span class="badge-category" id="agentAiCategoryBadge">Category</span>
-                                <span class="badge-priority" id="agentAiPriorityPill">Priority</span>
-                            </div>
-                            <h5 class="text-white mb-0" id="agentTicketSubject">Subject Title</h5>
-                        </div>
-                        <div class="text-dim small text-md-end">
-                            <div>Customer: <strong class="text-light" id="agentCustomerName">Name</strong> (<span id="agentCustomerEmail">email</span>)</div>
-                            <div>Product ID / Bill No: <span class="text-cyan font-monospace" id="agentCustomerProduct">N/A</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Split Columns inside Workspace: Left (Conversation & Actions) vs Right (AI Recommendations) -->
-                    <div class="row g-3">
-                        
-                        <!-- Left Sub-Pane: Conversation Thread & Response Form -->
-                        <div class="col-12 col-xl-7">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="text-dim small text-uppercase tracking-wide fw-bold">
-                                    <i class="bi bi-chat-dots me-1 text-cyan"></i> Communication History
-                                </span>
-                            </div>
-
-                            <div class="chat-thread-container bg-dark bg-opacity-60 border border-secondary border-opacity-25 rounded p-3 mb-3" id="agentThreadContainer" style="max-height: 300px;">
-                                <!-- Dynamically loaded replies -->
-                            </div>
-
-                            <!-- Agent Reply & Status Control Box -->
-                            <form method="POST" id="agentReplyForm" action="">
-                                <div class="mb-3">
-                                    <label class="form-label text-muted small text-uppercase tracking-wide">Reply to Customer</label>
-                                    <textarea name="message" id="agentReplyMessage" rows="3" class="form-control form-glass" placeholder="Type solution, instructions, or status update for customer..."></textarea>
-                                </div>
-
-                                <div class="row g-2 mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted small text-uppercase tracking-wide">Update Status</label>
-                                        <select name="status" id="agentStatusSelect" class="form-select form-glass">
-                                            <option value="Submitted">Submitted</option>
-                                            <option value="Under Review">Under Review</option>
-                                            <option value="In Progress">In Progress</option>
-                                            <option value="Resolved">Resolved</option>
-                                            <option value="Closed">Closed</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label text-muted small text-uppercase tracking-wide">Internal Resolution Notes</label>
-                                        <input type="text" name="resolution_notes" id="agentResolutionNotes" class="form-control form-glass" placeholder="e.g. Patch deployed / Refund Ref #...">
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="btn btn-cyber w-100 py-2">
-                                    <i class="bi bi-check2-circle me-1"></i> Send Reply & Update Ticket
-                                </button>
-                            </form>
-                        </div>
-
-                        <!-- Right Sub-Pane: AI Intelligence & Top-3 Similar Historical Solutions -->
-                        <div class="col-12 col-xl-5">
-                            <div class="p-3 bg-dark bg-opacity-40 border border-primary border-opacity-40 rounded h-100">
-                                <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-primary border-opacity-30">
-                                    <i class="bi bi-stars text-cyan fs-5"></i>
-                                    <div>
-                                        <h6 class="fw-bold mb-0 text-cyan">AI Intelligence Panel</h6>
-                                        <span class="text-dim" style="font-size: 0.72rem;">Top-3 Nearest Historical Matches</span>
-                                    </div>
-                                </div>
-
-                                <!-- Container for Top-3 Similar Matches -->
-                                <div id="aiSimilarTicketsContainer">
-                                    <!-- Populated via AJAX -->
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Auto-select first ticket if present on load
-    document.addEventListener('DOMContentLoaded', () => {
-        const firstTicket = document.querySelector('.agent-ticket-row');
-        if (firstTicket) {
-            firstTicket.click();
+// Handle form submission with status change
+document.getElementById('replyForm').addEventListener('submit', function(e) {
+    const form = this;
+    const formData = new FormData(form);
+    
+    // Add resolution notes if status is Resolved
+    const statusSelect = form.querySelector('select[name="status"]');
+    if (statusSelect.value === 'Resolved') {
+        const resolutionNotes = prompt('Please provide resolution notes:');
+        if (resolutionNotes) {
+            formData.append('resolution_notes', resolutionNotes);
         }
+    }
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        window.location.reload();
     });
+});
 </script>
 {% endblock %}

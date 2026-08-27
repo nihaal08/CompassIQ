@@ -24,8 +24,11 @@
 </head>
 <body>
     <div id="app">
+        <!-- ========== SIDEBAR OVERLAY (Mobile) ========== -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
         <!-- ========== SIDEBAR NAVIGATION ========== -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <!-- Brand -->
             <a href="{{ url_for('index') }}" class="sidebar-brand">
                 <div class="sidebar-brand-icon">
@@ -47,7 +50,7 @@
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('create_ticket') }}" class="nav-link {% if request.endpoint == 'create_ticket' %}active{% endif %}">
+                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link">
                                 <i class="bi bi-plus-circle"></i>
                                 <span>Create Ticket</span>
                             </a>
@@ -144,8 +147,13 @@
 
         <!-- ========== HEADER ========== -->
         <header class="header">
-            <div class="header-breadcrumb">
-                {% block breadcrumb %}Dashboard{% endblock %}
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="header-breadcrumb">
+                    {% block breadcrumb %}Dashboard{% endblock %}
+                </div>
             </div>
             <div class="header-actions">
                 {% if g.user %}
@@ -205,6 +213,13 @@
 
     <!-- ========== SCRIPTS ========== -->
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
         function closeFlashModal(button) {
             const backdrop = button.closest('.alert-modal-backdrop');
             if (backdrop) {

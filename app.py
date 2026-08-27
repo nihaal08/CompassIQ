@@ -50,7 +50,7 @@ def get_current_user():
         return None
     try:
         user = query_db(
-            "SELECT user_id, full_name, email, role, department, bill_no_product_id, account_status FROM users WHERE user_id = %s",
+            "SELECT user_id, full_name, email, role, department, bill_no_product_id, account_status FROM users WHERE user_id = ?",
             (session['user_id'],),
             one=True
         )
@@ -147,7 +147,7 @@ def register():
             return render_template('register.html')
 
         # Check existing user
-        existing_user = query_db("SELECT user_id FROM users WHERE email = %s", (email,), one=True)
+        existing_user = query_db("SELECT user_id FROM users WHERE email = ?", (email,), one=True)
         if existing_user:
             flash("An account with this email address already exists.", "danger")
             return render_template('register.html')
@@ -158,7 +158,7 @@ def register():
             # Customers are created with account_status = 'PENDING'
             modify_db(
                 """INSERT INTO users (full_name, email, password_hash, role, department, bill_no_product_id, account_status)
-                   VALUES (%s, %s, %s, 'customer', 'None', %s, 'PENDING')""",
+                   VALUES (?, ?, ?, 'customer', 'None', ?, 'PENDING')""",
                 (full_name, email, hashed_password, bill_no_product_id)
             )
             flash(
@@ -186,7 +186,7 @@ def login():
             flash("Please enter both email and password.", "warning")
             return render_template('login.html')
 
-        user = query_db("SELECT * FROM users WHERE email = %s", (email,), one=True)
+        user = query_db("SELECT * FROM users WHERE email = ?", (email,), one=True)
 
         if not user or not check_password_hash(user['password_hash'], password):
             flash("Invalid email or password. Please verify your credentials.", "danger")
@@ -242,7 +242,7 @@ def customer_dashboard():
         """SELECT t.*, u.full_name as agent_name
            FROM tickets t
            LEFT JOIN users u ON t.assigned_agent_id = u.user_id
-           WHERE t.customer_id = %s
+           WHERE t.customer_id = ?
            ORDER BY t.created_at DESC""",
         (g.user['user_id'],)
     )
@@ -275,7 +275,7 @@ def create_ticket():
             """INSERT INTO tickets (ticket_id, customer_id, subject, description,
                                    predicted_category, predicted_priority,
                                    assigned_department, status)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, 'Submitted')""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'Submitted')""",
             (ticket_id, g.user['user_id'], subject, description,
              predicted_category, predicted_priority, assigned_dept)
         )
@@ -283,7 +283,7 @@ def create_ticket():
         # 2. Insert initial ticket reply message
         modify_db(
             """INSERT INTO ticket_replies (ticket_id, sender_id, message)
-               VALUES (%s, %s, %s)""",
+               VALUES (?, ?, ?)""",
             (ticket_id, g.user['user_id'], description)
         )
 
@@ -292,7 +292,7 @@ def create_ticket():
             modify_db(
                 """INSERT INTO ticket_similar_matches
                    (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours)
-                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                   VALUES (?, ?, ?, ?, ?, ?)""",
                 (ticket_id,
                  match['similar_ticket_ref_id'],
                  match['similarity_score'],
@@ -319,7 +319,7 @@ def view_customer_ticket(ticket_id):
         """SELECT t.*, u.full_name as agent_name
            FROM tickets t
            LEFT JOIN users u ON t.assigned_agent_id = u.user_id
-           WHERE t.ticket_id = %s AND t.customer_id = %s""",
+           WHERE t.ticket_id = ? AND t.customer_id = ?""",
         (ticket_id, g.user['user_id']),
         one=True
     )
@@ -332,7 +332,7 @@ def view_customer_ticket(ticket_id):
         """SELECT r.*, u.full_name as sender_name, u.role as sender_role
            FROM ticket_replies r
            JOIN users u ON r.sender_id = u.user_id
-           WHERE r.ticket_id = %s
+           WHERE r.ticket_id = ?
            ORDER BY r.created_at ASC""",
         (ticket_id,)
     )
@@ -354,7 +354,7 @@ def customer_ticket_reply(ticket_id):
 
     # Verify ownership
     ticket = query_db(
-        "SELECT status FROM tickets WHERE ticket_id = %s AND customer_id = %s",
+        "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
         (ticket_id, g.user['user_id']),
         one=True
     )
@@ -367,7 +367,7 @@ def customer_ticket_reply(ticket_id):
         return redirect(url_for('customer_dashboard'))
 
     modify_db(
-        "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (%s, %s, %s)",
+        "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
         (ticket_id, g.user['user_id'], message)
     )
     flash("Reply sent successfully.", "success")
@@ -385,7 +385,7 @@ def submit_feedback(ticket_id):
         return redirect(url_for('customer_dashboard'))
 
     ticket = query_db(
-        "SELECT status FROM tickets WHERE ticket_id = %s AND customer_id = %s",
+        "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
         (ticket_id, g.user['user_id']),
         one=True
     )
@@ -395,8 +395,8 @@ def submit_feedback(ticket_id):
 
     modify_db(
         """UPDATE tickets
-           SET satisfaction_score = %s, customer_feedback = %s, status = 'Closed'
-           WHERE ticket_id = %s AND customer_id = %s""",
+           SET satisfaction_score = ?, customer_feedback = ?, status = 'Closed'
+           WHERE ticket_id = ? AND customer_id = ?""",
         (score, feedback, ticket_id, g.user['user_id'])
     )
     flash("Thank you! Your satisfaction feedback has been recorded.", "success")
@@ -419,15 +419,15 @@ def agent_dashboard():
         FROM tickets t
         JOIN users u ON t.customer_id = u.user_id
         LEFT JOIN users a ON t.assigned_agent_id = a.user_id
-        WHERE t.assigned_department = %s
+        WHERE t.assigned_department = ?
     """
     params = [agent_dept]
 
     if status_filter != 'all':
-        sql += " AND t.status = %s"
+        sql += " AND t.status = ?"
         params.append(status_filter)
 
-    sql += " ORDER BY FIELD(t.predicted_priority, 'Critical', 'High', 'Medium', 'Low'), t.created_at DESC"
+    sql += " ORDER BY CASE t.predicted_priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 WHEN 'Low' THEN 4 ELSE 5 END, t.created_at DESC"
 
     tickets = query_db(sql, tuple(params))
     
@@ -440,7 +440,7 @@ def agent_dashboard():
             SUM(status = 'In Progress') as count_in_progress,
             SUM(status = 'Resolved') as count_resolved
            FROM tickets
-           WHERE assigned_department = %s""",
+           WHERE assigned_department = ?""",
         (agent_dept,),
         one=True
     )
@@ -466,7 +466,7 @@ def agent_ticket_details(ticket_id):
            FROM tickets t
            JOIN users u ON t.customer_id = u.user_id
            LEFT JOIN users a ON t.assigned_agent_id = a.user_id
-           WHERE t.ticket_id = %s AND (t.assigned_department = %s OR %s = 'Admin')""",
+           WHERE t.ticket_id = ? AND (t.assigned_department = ? OR ? = 'Admin')""",
         (ticket_id, agent_dept, g.user['role']),
         one=True
     )
@@ -478,7 +478,7 @@ def agent_ticket_details(ticket_id):
         """SELECT r.*, u.full_name as sender_name, u.role as sender_role
            FROM ticket_replies r
            JOIN users u ON r.sender_id = u.user_id
-           WHERE r.ticket_id = %s
+           WHERE r.ticket_id = ?
            ORDER BY r.created_at ASC""",
         (ticket_id,)
     )
@@ -486,7 +486,7 @@ def agent_ticket_details(ticket_id):
     # Fetch AI Similar Matches
     similar_matches = query_db(
         """SELECT * FROM ticket_similar_matches
-           WHERE ticket_id = %s
+           WHERE ticket_id = ?
            ORDER BY similarity_score DESC LIMIT 3""",
         (ticket_id,)
     )
@@ -513,7 +513,7 @@ def agent_ticket_reply(ticket_id):
 
     # Verify ticket scope
     ticket = query_db(
-        "SELECT * FROM tickets WHERE ticket_id = %s AND assigned_department = %s",
+        "SELECT * FROM tickets WHERE ticket_id = ? AND assigned_department = ?",
         (ticket_id, agent_dept),
         one=True
     )
@@ -524,27 +524,27 @@ def agent_ticket_reply(ticket_id):
     # Insert reply if given
     if message:
         modify_db(
-            "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (%s, %s, %s)",
+            "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
             (ticket_id, g.user['user_id'], message)
         )
 
     # Update ticket status and resolution notes
-    update_fields = ["assigned_agent_id = %s"]
+    update_fields = ["assigned_agent_id = ?"]
     params = [g.user['user_id']]
 
     if new_status and new_status in ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed']:
-        update_fields.append("status = %s")
+        update_fields.append("status = ?")
         params.append(new_status)
         if new_status == 'Resolved':
-            update_fields.append("resolved_at = NOW()")
+            update_fields.append("resolved_at = CURRENT_TIMESTAMP")
 
     if resolution_notes:
-        update_fields.append("resolution_notes = %s")
+        update_fields.append("resolution_notes = ?")
         params.append(resolution_notes)
 
     params.append(ticket_id)
     modify_db(
-        f"UPDATE tickets SET {', '.join(update_fields)} WHERE ticket_id = %s",
+        f"UPDATE tickets SET {', '.join(update_fields)} WHERE ticket_id = ?",
         tuple(params)
     )
 
@@ -567,7 +567,7 @@ def admin_dashboard():
 
     # Calculate average resolution time in hours
     avg_res_row = query_db(
-        """SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, resolved_at)) as avg_hrs
+        """SELECT AVG((julianday(resolved_at) - julianday(created_at)) * 24) as avg_hrs
            FROM tickets
            WHERE status IN ('Resolved', 'Closed') AND resolved_at IS NOT NULL""",
         one=True
@@ -645,7 +645,7 @@ def admin_dashboard():
 @app.route('/admin/users/<int:user_id>/approve', methods=['POST'])
 @admin_required
 def approve_user(user_id):
-    modify_db("UPDATE users SET account_status = 'APPROVED' WHERE user_id = %s", (user_id,))
+    modify_db("UPDATE users SET account_status = 'APPROVED' WHERE user_id = ?", (user_id,))
     flash(f"User ID #{user_id} approved successfully.", "success")
     return redirect(url_for('admin_dashboard'))
 
@@ -653,7 +653,7 @@ def approve_user(user_id):
 @app.route('/admin/users/<int:user_id>/reject', methods=['POST'])
 @admin_required
 def reject_user(user_id):
-    modify_db("UPDATE users SET account_status = 'REJECTED' WHERE user_id = %s", (user_id,))
+    modify_db("UPDATE users SET account_status = 'REJECTED' WHERE user_id = ?", (user_id,))
     flash(f"User ID #{user_id} registration rejected.", "warning")
     return redirect(url_for('admin_dashboard'))
 
@@ -661,7 +661,7 @@ def reject_user(user_id):
 @app.route('/admin/users/<int:user_id>/ban', methods=['POST'])
 @admin_required
 def ban_user(user_id):
-    modify_db("UPDATE users SET account_status = 'BANNED' WHERE user_id = %s", (user_id,))
+    modify_db("UPDATE users SET account_status = 'BANNED' WHERE user_id = ?", (user_id,))
     flash(f"User ID #{user_id} has been banned from the system.", "danger")
     return redirect(url_for('admin_dashboard'))
 
@@ -670,7 +670,7 @@ def ban_user(user_id):
 @admin_required
 def admin_close_ticket(ticket_id):
     modify_db(
-        "UPDATE tickets SET status = 'Closed', resolved_at = NOW(), resolution_notes = 'Closed by Administrator security audit.' WHERE ticket_id = %s",
+        "UPDATE tickets SET status = 'Closed', resolved_at = CURRENT_TIMESTAMP, resolution_notes = 'Closed by Administrator security audit.' WHERE ticket_id = ?",
         (ticket_id,)
     )
     flash(f"Ticket {ticket_id} closed by Admin.", "info")

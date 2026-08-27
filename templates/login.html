@@ -19,133 +19,388 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: var(--bg-app);
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
         }
+        
         .auth-container {
-            width: 100%;
-            max-width: 420px;
-            padding: var(--spacing-lg);
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg-canvas);
         }
-        .auth-card {
+        
+        .auth-split {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        .auth-left {
+            flex: 1;
+            background: linear-gradient(135deg, var(--surface-mint) 0%, var(--bg-canvas) 100%);
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-xl);
-        }
-        .auth-header {
-            text-align: center;
-        }
-        .auth-brand {
-            display: flex;
-            align-items: center;
             justify-content: center;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
+            align-items: center;
+            padding: var(--spacing-3xl);
+            position: relative;
+            overflow: hidden;
         }
-        .auth-brand-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23133829' fill-opacity='0.05' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,96,576,90.7C672,85,768,139,864,154.7C960,171,1056,149,1152,122.7C1248,96,1344,64,1392,48L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: cover;
+            background-position: bottom;
+            opacity: 0.3;
+        }
+        
+        .auth-right {
+            flex: 1;
+            background: var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-3xl);
+            position: relative;
+        }
+        
+        .auth-right::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-lime);
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.2;
+        }
+        
+        .auth-logo {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+        
+        .auth-logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-green) 100%);
+            border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
+            font-size: 2rem;
+            margin: 0 auto var(--spacing-md);
         }
+        
+        .auth-logo-text {
+            font-size: 1.5rem;
+            font-weight: var(--font-weight-bold);
+            color: var(--primary);
+        }
+        
+        .auth-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-form-container {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .auth-title {
+            font-size: 1.75rem;
+            font-weight: var(--font-weight-bold);
+            color: white;
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+        
+        .auth-input {
+            width: 100%;
+            height: 48px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-full);
+            color: white;
+            font-size: 0.95rem;
+            margin-bottom: var(--spacing-lg);
+            transition: all 0.2s ease;
+        }
+        
+        .auth-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--accent-lime);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .auth-button {
+            width: 100%;
+            height: 48px;
+            background: var(--accent-lime);
+            color: var(--primary);
+            border: none;
+            border-radius: var(--radius-full);
+            font-size: 1rem;
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .auth-button:hover {
+            background: var(--accent-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+        
+        .auth-links {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+        
+        .auth-links a {
+            color: var(--accent-lime);
+            text-decoration: none;
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .auth-links a:hover {
+            color: var(--accent-green);
+            text-decoration: underline;
+        }
+        
+        .auth-divider {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin: var(--spacing-lg) 0;
+            position: relative;
+        }
+        
+        .auth-divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .auth-divider span {
+            background: var(--primary);
+            padding: 0 var(--spacing-md);
+            position: relative;
+            z-index: 1;
+        }
+        
         .demo-credentials {
-            background-color: var(--surface-subtle);
-            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: var(--radius-lg);
             padding: var(--spacing-lg);
             margin-top: var(--spacing-xl);
         }
+        
         .demo-row {
             display: flex;
             justify-content: space-between;
             padding: var(--spacing-sm) 0;
             font-size: 0.85rem;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .demo-row:last-child {
             border-bottom: none;
         }
+        
         .demo-label {
             font-weight: var(--font-weight-semibold);
-            color: var(--text-primary);
+            color: rgba(255, 255, 255, 0.9);
         }
+        
         .demo-value {
-            color: var(--text-secondary);
+            color: rgba(255, 255, 255, 0.7);
             font-family: 'Courier New', monospace;
+        }
+        
+        /* Responsive Auth */
+        @media (max-width: 768px) {
+            .auth-split {
+                flex-direction: column;
+            }
+            
+            .auth-left {
+                display: none;
+            }
+            
+            .auth-right {
+                padding: var(--spacing-xl);
+            }
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
-        <div class="card auth-card">
-            <!-- Header -->
-            <div class="auth-header">
-                <div class="auth-brand">
-                    <div class="auth-brand-icon">
+        <div class="auth-split">
+            <!-- Left Side - Hero/Branding -->
+            <div class="auth-left">
+                <div class="auth-logo">
+                    <div class="auth-logo-icon">
                         <i class="bi bi-compass"></i>
                     </div>
-                    <h1 style="margin: 0; font-size: 1.5rem;">CompassIQ</h1>
+                    <div class="auth-logo-text">CompassIQ</div>
                 </div>
-                <p class="text-secondary" style="margin: 0; margin-bottom: var(--spacing-md);">Sign in to your account</p>
-                <p class="text-muted" style="margin: 0; font-size: 0.9rem;">AI-powered customer support platform</p>
-            </div>
-
-            <!-- Form -->
-            <form method="POST" action="{{ url_for('login') }}">
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" name="email" class="form-input" placeholder="name@company.com" required autofocus>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-input" placeholder="••••••••" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100" style="padding: 12px;">
-                    <i class="bi bi-box-arrow-in-right"></i> Sign In
-                </button>
-            </form>
-
-            <!-- Sign Up Link -->
-            <div style="text-align: center; border-top: 1px solid var(--border-subtle); padding-top: var(--spacing-lg);">
-                <p class="text-secondary" style="margin: 0; font-size: 0.95rem;">
-                    Don't have an account?
-                    <a href="{{ url_for('register') }}" style="color: var(--accent); font-weight: var(--font-weight-semibold); text-decoration: none;">Create account</a>
+                <p class="auth-subtitle">
+                    AI-powered customer support intelligence that transforms how you understand and resolve customer issues.
                 </p>
+                <div style="position: relative; z-index: 1; margin-top: var(--spacing-2xl);">
+                    <div style="display: flex; gap: var(--spacing-md); align-items: center; color: var(--primary);">
+                        <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                        <i class="bi bi-lightning-charge" style="font-size: 2rem;"></i>
+                        <i class="bi bi-graph-up-arrow" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
             </div>
 
-            <!-- Demo Credentials -->
-            <div class="demo-credentials">
-                <h6 style="margin: 0 0 var(--spacing-md) 0; color: var(--text-primary);">
-                    <i class="bi bi-terminal"></i> Demo Credentials
-                </h6>
-                <div class="demo-row">
-                    <span class="demo-label">Admin</span>
-                    <span class="demo-value">admin@compassiq.com / admin123</span>
-                </div>
-                <div class="demo-row">
-                    <span class="demo-label">Tech Agent</span>
-                    <span class="demo-value">agent.tech@compassiq.com / agent123</span>
-                </div>
-                <div class="demo-row">
-                    <span class="demo-label">Verified Customer</span>
-                    <span class="demo-value">david.miller@example.com / customer123</span>
-                </div>
-                <div class="demo-row">
-                    <span class="demo-label">Pending Customer</span>
-                    <span class="demo-value">samantha.reed@example.com / customer123</span>
+            <!-- Right Side - Sign-In Container -->
+            <div class="auth-right">
+                <div class="auth-form-container">
+                    <h1 class="auth-title">Login</h1>
+                    
+                    <form method="POST" action="{{ url_for('login') }}">
+                        <input type="email" name="email" class="auth-input" placeholder="Enter your username" required autofocus>
+                        <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
+                        
+                        <button type="submit" class="auth-button">
+                            Login to CompassIQ
+                        </button>
+                    </form>
+                    
+                    <div class="auth-links">
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    
+                    <div class="auth-divider">
+                        <span>or</span>
+                    </div>
+                    
+                    <div class="auth-links">
+                        Don't have an account? <a href="{{ url_for('register') }}">Register Now</a>
+                    </div>
+                    
+                    <!-- Demo Credentials -->
+                    <div class="demo-credentials">
+                        <h6 style="margin: 0 0 var(--spacing-md) 0; color: rgba(255, 255, 255, 0.9);">
+                            <i class="bi bi-terminal"></i> Demo Credentials
+                        </h6>
+                        <div class="demo-row">
+                            <span class="demo-label">Admin</span>
+                            <span class="demo-value">admin@compassiq.com / admin123</span>
+                        </div>
+                        <div class="demo-row">
+                            <span class="demo-label">Tech Agent</span>
+                            <span class="demo-value">agent.tech@compassiq.com / agent123</span>
+                        </div>
+                        <div class="demo-row">
+                            <span class="demo-label">Verified Customer</span>
+                            <span class="demo-value">david.miller@example.com / customer123</span>
+                        </div>
+                        <div class="demo-row">
+                            <span class="demo-label">Pending Customer</span>
+                            <span class="demo-value">samantha.reed@example.com / customer123</span>
+                        </div>
+                    </div>
+                    
+                    <div class="auth-links" style="margin-top: var(--spacing-lg); font-size: 0.8rem;">
+                        <a href="#">Terms and Services</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Flash Messages Modal -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert-modal-backdrop show" id="flashAlertModal_{{ loop.index }}">
+                    <div class="alert-modal-box">
+                        <button type="button" class="modal-close-top-left" onclick="closeFlashModal(this)">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+
+                        <h3 class="alert-modal-title">
+                            {% if category == 'pending_approval' %}
+                                <i class="bi bi-hourglass-split" style="color: var(--warning);"></i> Account Pending
+                            {% elif category == 'danger' %}
+                                <i class="bi bi-shield-x" style="color: var(--danger);"></i> Access Denied
+                            {% elif category == 'success' %}
+                                <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
+                            {% elif category == 'warning' %}
+                                <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Notice
+                            {% else %}
+                                <i class="bi bi-info-circle" style="color: var(--info);"></i> Information
+                            {% endif %}
+                        </h3>
+                        
+                        <p class="alert-modal-message">{{ message }}</p>
+
+                        <div class="alert-modal-buttons">
+                            <button type="button" class="btn btn-primary" onclick="closeFlashModal(this)">
+                                Acknowledge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        function closeFlashModal(button) {
+            const backdrop = button.closest('.alert-modal-backdrop');
+            if (backdrop) {
+                backdrop.classList.remove('show');
+                setTimeout(() => backdrop.remove(), 250);
+            }
+        }
+
+        // Auto-close modal after 5 seconds if success
+        document.querySelectorAll('.alert-modal-backdrop.show').forEach(backdrop => {
+            const isSuccess = backdrop.querySelector('.alert-modal-title i.bi-check2-circle');
+            if (isSuccess) {
+                setTimeout(() => {
+                    backdrop.classList.remove('show');
+                    setTimeout(() => backdrop.remove(), 250);
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>

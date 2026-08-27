@@ -1,6 +1,6 @@
 /* ==========================================================================
    CompassIQ — CSS Variables & Design Tokens
-   Enterprise Light Theme - Palette, Typography, Spacing, Shadows
+   Modern Forest Green + Lime/Mint + Crisp Cream Palette
    ========================================================================== */
 
 :root {
@@ -13,74 +13,100 @@
   --font-weight-bold: 700;
 
   /* ====== COLOR PALETTE ====== */
-  /* Primary Brand Colors */
-  --primary: #1e3a8a;                  /* Deep Corporate Blue */
-  --primary-hover: #172554;             /* Darker shade for hover */
-  --primary-light: #eff6ff;             /* Light blue background */
-  
-  /* Accent Colors */
-  --accent: #2563eb;                    /* Muted Blue for active states */
-  --accent-hover: #1d4ed8;
+  /* Primary Forest Green */
+  --primary-dark: #1b4332;              /* Deep rich evergreen used in headers/dark accents */
+  --primary: #133829;                   /* Main forest green */
+  --primary-hover: #0f2b1f;             /* Darker shade for hover */
+  --primary-light: #eefbf3;             /* Light mint background */
+
+  /* Vivid Lime / Spring Green Accent */
+  --accent-green: #22c55e;              /* Vivid green for active states */
+  --accent-lime: #4ade80;               /* Crisp lime for buttons and highlights */
+  --accent-teal: #40916c;               /* Teal accent for secondary actions */
+  --accent-hover: #16a34a;             /* Darker green for hover states */
+
+  /* Soft Mint Surface */
+  --surface-mint: #eefbf3;             /* Pill badges, subtle icon backgrounds */
+  --surface-mint-light: #f0fdf4;       /* Lighter mint for card hover tints */
 
   /* Background & Surfaces */
-  --bg-app: #f8fafc;                    /* Off-white canvas (main background) */
-  --surface: #ffffff;                   /* Pure white card surfaces */
-  --surface-subtle: #f1f5f9;             /* Muted headers & subtle sections */
-  --surface-hover: #f0f4f8;              /* Surface hover state */
+  --bg-canvas: #f8faf9;                /* Clean canvas background */
+  --bg-canvas-alt: #ffffff;             /* Pure white alternative */
+  --surface-white: #ffffff;            /* Card surfaces */
+  --surface-subtle: #f1f5f4;           /* Muted headers & subtle sections */
+  --surface-hover: #e8f5e9;            /* Forest green hover state */
 
   /* Borders */
-  --border-subtle: #e2e8f0;              /* Subtle light borders */
-  --border-strong: #cbd5e1;              /* Stronger borders for sections */
+  --border-subtle: #e5e7eb;            /* Subtle light borders */
+  --border-mint: #bbf7d0;              /* Mint green borders */
+  --border-strong: #d1d5db;            /* Stronger borders for sections */
 
   /* Text Colors */
-  --text-primary: #0f172a;               /* Primary text color */
-  --text-secondary: #475569;             /* Secondary text color */
-  --text-muted: #94a3b8;                 /* Muted/placeholder text */
+  --text-primary: #111827;             /* Dark charcoal text */
+  --text-secondary: #374151;           /* Secondary text color */
+  --text-muted: #6b7280;               /* Muted/placeholder text */
+  --text-light: #9ca3af;               /* Light gray text for placeholders */
 
   /* Semantic Feedback Colors */
-  --success: #16a34a;                    /* Success green */
-  --success-bg: #f0fdf4;                 /* Success background */
+  --success: #16a34a;                  /* Success green */
+  --success-bg: #f0fdf4;               /* Success background */
   
-  --warning: #d97706;                    /* Warning amber */
-  --warning-bg: #fffbeb;                 /* Warning background */
+  --warning: #d97706;                  /* Warning amber */
+  --warning-bg: #fef3c7;               /* Warning background */
   
-  --high-priority: #ea580c;              /* High priority orange */
-  --high-priority-bg: #fff7ed;           /* High priority background */
+  --high-priority: #ea580c;            /* High priority orange */
+  --high-priority-bg: #fff7ed;         /* High priority background */
   
-  --danger: #dc2626;                     /* Danger red */
-  --danger-bg: #fef2f2;                  /* Danger background */
+  --danger: #dc2626;                   /* Danger red */
+  --danger-bg: #fee2e2;                /* Danger background */
   
-  --info: #0284c7;                       /* Info blue */
-  --info-bg: #f0f9ff;                    /* Info background */
+  --info: #0284c7;                     /* Info blue */
+  --info-bg: #f0f9ff;                  /* Info background */
 
   /* Status Colors (mapped to semantic feedback) */
-  --status-submitted: #0284c7;           /* Info blue */
-  --status-submitted-bg: #f0f9ff;
+  --status-submitted: #22c55e;         /* Accent green */
+  --status-submitted-bg: #f0fdf4;
   
-  --status-review: #d97706;              /* Warning amber */
-  --status-review-bg: #fffbeb;
+  --status-review: #d97706;            /* Warning amber */
+  --status-review-bg: #fef3c7;
   
-  --status-progress: #2563eb;            /* Accent muted blue */
-  --status-progress-bg: #eff6ff;
+  --status-progress: #4ade80;          /* Lime green */
+  --status-progress-bg: #eefbf3;
   
-  --status-resolved: #16a34a;            /* Success green */
+  --status-resolved: #16a34a;         /* Success green */
   --status-resolved-bg: #f0fdf4;
   
-  --status-closed: #6b7280;              /* Gray */
+  --status-closed: #6b7280;            /* Gray */
   --status-closed-bg: #f3f4f6;
 
   /* Priority Colors */
-  --priority-low: #16a34a;               /* Green */
+  --priority-low: #16a34a;             /* Green */
   --priority-low-bg: #f0fdf4;
   
-  --priority-medium: #d97706;            /* Amber */
-  --priority-medium-bg: #fffbeb;
+  --priority-medium: #d97706;          /* Amber */
+  --priority-medium-bg: #fef3c7;
   
-  --priority-high: #ea580c;              /* Orange */
+  --priority-high: #ea580c;            /* Orange */
   --priority-high-bg: #fff7ed;
   
-  --priority-critical: #dc2626;          /* Red */
-  --priority-critical-bg: #fef2f2;
+  --priority-critical: #dc2626;        /* Red */
+  --priority-critical-bg: #fee2e2;
+
+  /* Category Colors */
+  --category-technical: #0284c7;        /* Blue for technical */
+  --category-technical-bg: #f0f9ff;
+  
+  --category-billing: #d97706;         /* Amber for billing */
+  --category-billing-bg: #fef3c7;
+  
+  --category-account: #7c3aed;         /* Purple for account */
+  --category-account-bg: #f5f3ff;
+  
+  --category-inquiry: #6b7280;         /* Gray for general inquiry */
+  --category-inquiry-bg: #f3f4f6;
+  
+  --category-fraud: #dc2626;          /* Red for fraud */
+  --category-fraud-bg: #fee2e2;
 
   /* ====== SPACING ====== */
   --spacing-xs: 4px;
@@ -92,19 +118,30 @@
   --spacing-3xl: 48px;
 
   /* ====== BORDER RADIUS ====== */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
 
   /* ====== SHADOWS ====== */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
 
   /* ====== LAYOUT ====== */
-  --sidebar-width: 240px;
-  --header-height: 56px;
+  --sidebar-width: 260px;
+  --header-height: 64px;
   --mobile-breakpoint: 768px;
   --tablet-breakpoint: 1024px;
+
+  /* ====== Z-INDEX ====== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
 }
