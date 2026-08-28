@@ -219,36 +219,6 @@
             z-index: 1;
         }
         
-        .demo-credentials {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            margin-top: var(--spacing-xl);
-        }
-        
-        .demo-row {
-            display: flex;
-            justify-content: space-between;
-            padding: var(--spacing-sm) 0;
-            font-size: 0.85rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .demo-row:last-child {
-            border-bottom: none;
-        }
-        
-        .demo-label {
-            font-weight: var(--font-weight-semibold);
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .demo-value {
-            color: rgba(255, 255, 255, 0.7);
-            font-family: 'Courier New', monospace;
-        }
-        
         /* Responsive Auth */
         @media (max-width: 768px) {
             .auth-split {
@@ -314,32 +284,115 @@
                         Don't have an account? <a href="{{ url_for('register') }}">Register Now</a>
                     </div>
                     
-                    <!-- Demo Credentials -->
-                    <div class="demo-credentials">
-                        <h6 style="margin: 0 0 var(--spacing-md) 0; color: rgba(255, 255, 255, 0.9);">
-                            <i class="bi bi-terminal"></i> Demo Credentials
-                        </h6>
-                        <div class="demo-row">
-                            <span class="demo-label">Admin</span>
-                            <span class="demo-value">admin@compassiq.com / admin123</span>
-                        </div>
-                        <div class="demo-row">
-                            <span class="demo-label">Tech Agent</span>
-                            <span class="demo-value">agent.tech@compassiq.com / agent123</span>
-                        </div>
-                        <div class="demo-row">
-                            <span class="demo-label">Verified Customer</span>
-                            <span class="demo-value">david.miller@example.com / customer123</span>
-                        </div>
-                        <div class="demo-row">
-                            <span class="demo-label">Pending Customer</span>
-                            <span class="demo-value">samantha.reed@example.com / customer123</span>
-                        </div>
+                    <!-- Demo Credentials Button -->
+                    <div style="text-align: center; margin-top: var(--spacing-lg);">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="openDemoModalBtn" style="background: var(--surface-mint, #eefbf3); color: #1b4332; border: 1px solid #bbf7d0; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; border-radius: 20px; font-weight: 500;">
+                            🔑 Quick Demo Access
+                        </button>
                     </div>
+                    
+                    <style>
+                        #openDemoModalBtn:hover {
+                            background: #dcfce7;
+                            color: #14532d;
+                            border-color: #86efac;
+                            transform: translateY(-1px);
+                        }
+                    </style>
                     
                     <div class="auth-links" style="margin-top: var(--spacing-lg); font-size: 0.8rem;">
                         <a href="#">Terms and Services</a>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Credentials Modal -->
+    <div class="modal-backdrop-custom" id="demoCredentialsModal">
+        <div class="modal-content-custom">
+            <button type="button" class="modal-close-top-left" id="closeDemoModalBtn" style="color: #6b7280; font-size: 1.25rem; cursor: pointer; background: none; border: none; padding: 0; transition: color 0.2s ease;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            
+            <style>
+                #closeDemoModalBtn:hover {
+                    color: #111827;
+                }
+            </style>
+            
+            <h3 style="font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: var(--spacing-lg); text-align: center;">
+                Demo Access Credentials
+            </h3>
+            
+            <!-- Administrator Section -->
+            <div class="demo-section">
+                <div class="demo-cred-item" data-email="admin@compassiq.com" data-password="Admin@Compass2026">
+                    <div class="demo-role-badge">Admin</div>
+                    <div class="demo-cred-info">
+                        <span class="cred-email">admin@compassiq.com</span>
+                        <span class="cred-sep">/</span>
+                        <code class="cred-pwd">Admin@Compass2026</code>
+                    </div>
+                    <button type="button" class="demo-autofill-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Auto Fill
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Department Agents Section -->
+            <div class="demo-section">
+                <div class="demo-cred-item" data-email="tech.support@compassiq.com" data-password="Tech@Support2026">
+                    <div class="demo-role-badge">Tech Support</div>
+                    <div class="demo-cred-info">
+                        <span class="cred-email">tech.support@compassiq.com</span>
+                        <span class="cred-sep">/</span>
+                        <code class="cred-pwd">Tech@Support2026</code>
+                    </div>
+                    <button type="button" class="demo-autofill-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Auto Fill
+                    </button>
+                </div>
+                <div class="demo-cred-item" data-email="billing.support@compassiq.com" data-password="Billing@Support2026">
+                    <div class="demo-role-badge">Billing Support</div>
+                    <div class="demo-cred-info">
+                        <span class="cred-email">billing.support@compassiq.com</span>
+                        <span class="cred-sep">/</span>
+                        <code class="cred-pwd">Billing@Support2026</code>
+                    </div>
+                    <button type="button" class="demo-autofill-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Auto Fill
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Customer Accounts Section -->
+            <div class="demo-section">
+                <div class="demo-cred-item" data-email="alex.morgan@customer.com" data-password="Customer@2026">
+                    <div class="demo-role-badge">Customer (Approved)</div>
+                    <div class="demo-cred-info">
+                        <span class="cred-email">alex.morgan@customer.com</span>
+                        <span class="cred-sep">/</span>
+                        <code class="cred-pwd">Customer@2026</code>
+                    </div>
+                    <button type="button" class="demo-autofill-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Auto Fill
+                    </button>
+                </div>
+                <div class="demo-cred-item" data-email="jordan.lee@customer.com" data-password="Customer@2026">
+                    <div class="demo-role-badge">Customer (Pending)</div>
+                    <div class="demo-cred-info">
+                        <span class="cred-email">jordan.lee@customer.com</span>
+                        <span class="cred-sep">/</span>
+                        <code class="cred-pwd">Customer@2026</code>
+                    </div>
+                    <button type="button" class="demo-autofill-btn">
+                        <i class="bi bi-box-arrow-in-right"></i> Auto Fill
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
                 </div>
             </div>
         </div>
@@ -400,6 +453,67 @@
                     setTimeout(() => backdrop.remove(), 250);
                 }, 5000);
             }
+        });
+
+        // Demo Credentials Modal Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const openDemoModalBtn = document.getElementById('openDemoModalBtn');
+            const closeDemoModalBtn = document.getElementById('closeDemoModalBtn');
+            const demoCredentialsModal = document.getElementById('demoCredentialsModal');
+            const emailInput = document.querySelector('input[name="email"]');
+            const passwordInput = document.querySelector('input[name="password"]');
+
+            // Open modal
+            if (openDemoModalBtn) {
+                openDemoModalBtn.addEventListener('click', function() {
+                    demoCredentialsModal.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            // Close modal via X button
+            if (closeDemoModalBtn) {
+                closeDemoModalBtn.addEventListener('click', function() {
+                    demoCredentialsModal.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Close modal when clicking outside
+            if (demoCredentialsModal) {
+                demoCredentialsModal.addEventListener('click', function(e) {
+                    if (e.target === demoCredentialsModal) {
+                        demoCredentialsModal.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && demoCredentialsModal.classList.contains('show')) {
+                    demoCredentialsModal.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Auto-fill functionality
+            const autofillButtons = document.querySelectorAll('.demo-autofill-btn');
+            autofillButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const item = this.closest('.demo-cred-item');
+                    const email = item.getAttribute('data-email');
+                    const password = item.getAttribute('data-password');
+
+                    if (emailInput) emailInput.value = email;
+                    if (passwordInput) passwordInput.value = password;
+
+                    // Close modal and focus on email field
+                    demoCredentialsModal.classList.remove('show');
+                    document.body.style.overflow = '';
+                    if (emailInput) emailInput.focus();
+                });
+            });
         });
     </script>
 </body>
