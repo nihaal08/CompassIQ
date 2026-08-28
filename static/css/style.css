@@ -386,14 +386,6 @@ a:hover {
     font-size: 1.5rem;
   }
 
-  .workspace-split {
-    grid-template-columns: 1fr;
-  }
-
-  .workspace-right {
-    order: -1;
-  }
-
   /* Mobile Table Scrolling */
   .table-container {
     overflow-x: auto;
@@ -417,10 +409,6 @@ a:hover {
 
   .main-content {
     margin-left: 220px;
-  }
-
-  .workspace-split {
-    grid-template-columns: 1fr 320px;
   }
 }
 
@@ -550,34 +538,7 @@ a:hover {
   padding: var(--spacing-lg);
 }
 
-/* Split Layout for Department Dashboard */
-.workspace-split {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: var(--spacing-lg);
-  height: 100%;
-  align-items: stretch;
-}
-
-.workspace-left {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.workspace-right {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  overflow-y: auto;
-}
-
-.workspace-section {
-  background: var(--surface-white);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-}
+/* Split Layout for Department Dashboard - REMOVED - Now using full-width layout with modal */
 
 /* Sign Out Link */
 .sign-out-link {

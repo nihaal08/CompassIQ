@@ -155,10 +155,6 @@
 <!-- Ticket Detail Modal -->
 <div id="ticketDetailModal" class="alert-modal-backdrop">
     <div class="alert-modal-box" style="max-width: 700px; text-align: left;">
-        <button type="button" class="modal-close-top-left" onclick="closeTicketModal()">
-            <i class="bi bi-x-lg"></i>
-        </button>
-        
         <div id="ticketDetailContent">
             <!-- Content loaded via JavaScript -->
         </div>
@@ -190,8 +186,15 @@ function openTicketDetail(ticketId) {
                 
                 let html = `
                     <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
-                        <h3 class="card-title">${ticket.ticket_id}</h3>
-                        <p class="card-subtitle">${ticket.subject}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 class="card-title">${ticket.ticket_id}</h3>
+                                <p class="card-subtitle">${ticket.subject}</p>
+                            </div>
+                            <button type="button" class="modal-close-btn" onclick="closeTicketModal()">
+                                &times;
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="card-body">

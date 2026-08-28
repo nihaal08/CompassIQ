@@ -311,19 +311,14 @@
     <!-- Demo Credentials Modal -->
     <div class="modal-backdrop-custom" id="demoCredentialsModal">
         <div class="modal-content-custom">
-            <button type="button" class="modal-close-top-left" id="closeDemoModalBtn" style="color: #6b7280; font-size: 1.25rem; cursor: pointer; background: none; border: none; padding: 0; transition: color 0.2s ease;">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            
-            <style>
-                #closeDemoModalBtn:hover {
-                    color: #111827;
-                }
-            </style>
-            
-            <h3 style="font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: var(--spacing-lg); text-align: center;">
-                Demo Access Credentials
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid #e5e7eb;">
+                <h3 style="font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0;">
+                    Demo Access Credentials
+                </h3>
+                <button type="button" class="modal-close-btn" id="closeDemoModalBtn">
+                    &times;
+                </button>
+            </div>
             
             <!-- Administrator Section -->
             <div class="demo-section">
@@ -404,8 +399,8 @@
             {% for category, message in messages %}
                 <div class="alert-modal-backdrop show" id="flashAlertModal_{{ loop.index }}">
                     <div class="alert-modal-box">
-                        <button type="button" class="modal-close-top-left" onclick="closeFlashModal(this)">
-                            <i class="bi bi-x-lg"></i>
+                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)">
+                            &times;
                         </button>
 
                         <h3 class="alert-modal-title">

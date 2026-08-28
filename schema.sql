@@ -93,20 +93,117 @@ INSERT INTO users (user_id, full_name, email, password_hash, role, department, b
 -- Pending Verification Customer
 (5, 'Jordan Lee', 'jordan.lee@customer.com', 'scrypt:32768:8:1$4YEsKGVvgicyo5jF$91f462f09be44df01ca3a665e4959a28986b848a6a5a5c07dfaba51b05d893120ce4f7dfcc2de0fadbbcbd09b0c2468fe7483e28912f2073b2bfc9797fd3fb40', 'customer', 'None', 'INV-2026-9942', 'PENDING');
 
--- Seed Sample Tickets
+-- Seed Sample Tickets - Technical Support
 INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
 ('TKT-100001', 4, 'Cloud sync fails with Error Code 502', 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', 'Technical', 'High', 'Technical', 'In Progress', 2, NULL, NULL, NULL, datetime('now', '-2 days'), NULL),
-('TKT-100002', 4, 'Charged twice for Pro annual subscription renewal', 'I noticed two identical charges of $199 on my credit card statement for invoice #88912.', 'Billing', 'High', 'Billing', 'Resolved', 3, 'Processed refund for duplicate charge via Stripe gateway. Reference: RFD-88219.', 5, 'Quick response and smooth refund! Thank you.', datetime('now', '-5 days'), datetime('now', '-4 days')),
-('TKT-100003', 4, 'How do I add team members to our workspace?', 'Looking for documentation or instructions on adding 5 new team members with editor permissions.', 'General Inquiry', 'Low', 'General Inquiry', 'Resolved', NULL, 'Sent step-by-step invite guide and granted license seats.', 5, 'Great support, solved within 20 mins!', datetime('now', '-7 days'), datetime('now', '-7 days'));
+('TKT-100002', 4, 'Kernel panic and continuous boot loop after firmware v2.4 update', 'After installing the latest firmware update v2.4, my device enters a continuous boot loop with kernel panic errors. Cannot access recovery mode.', 'Technical', 'Critical', 'Technical', 'Submitted', NULL, NULL, NULL, NULL, datetime('now', '-1 days'), NULL),
+('TKT-100003', 4, 'Bluetooth audio stutter when connected beyond 5 meters', 'Bluetooth audio connection works fine within close range but experiences severe stuttering and dropouts when device is more than 5 meters away.', 'Technical', 'Low', 'Technical', 'Resolved', 2, 'Updated Bluetooth driver firmware to v4.2.1 - improved connection stability.', 4, 'Audio quality improved significantly after driver update.', datetime('now', '-10 days'), datetime('now', '-9 days'));
 
--- Seed Sample Similar Matches for TKT-100001
+-- Seed Sample Tickets - Billing Support
+INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
+('TKT-200001', 4, 'Charged twice for annual enterprise subscription renewal', 'I noticed two identical charges of $1,199 on my corporate credit card for the annual enterprise subscription renewal. Please refund the duplicate charge immediately.', 'Billing', 'Critical', 'Billing', 'Submitted', NULL, NULL, NULL, NULL, datetime('now', '-3 days'), NULL),
+('TKT-200002', 4, 'Invoice PDF not generating GST breakdown', 'When downloading invoice PDFs, the GST tax breakdown section is not appearing. Need detailed GST breakdown for accounting purposes and tax filing.', 'Billing', 'Medium', 'Billing', 'In Progress', 3, NULL, NULL, NULL, datetime('now', '-5 days'), NULL),
+('TKT-200003', 4, 'Update credit card expiration date and billing address', 'Need to update the credit card expiration date for our corporate account and change the billing address to our new office location.', 'Billing', 'Low', 'Billing', 'Resolved', 3, 'Updated payment method and billing address in billing system.', 5, 'Quick and efficient update process.', datetime('now', '-14 days'), datetime('now', '-13 days'));
+
+-- Seed Sample Tickets - Account Support
+INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
+('TKT-300001', 4, 'Two-factor authentication SMS OTP never received on international number', 'I am traveling internationally and not receiving SMS OTP codes for 2FA authentication. My local carrier works but your SMS service seems blocked for my country code.', 'Account', 'High', 'Account', 'Submitted', NULL, NULL, NULL, NULL, datetime('now', '-4 days'), NULL),
+('TKT-300002', 4, 'Request to transfer account ownership to new team admin', 'Our current account admin is leaving the company. Need to transfer full account ownership and administrative privileges to our new team lead.', 'Account', 'Low', 'Account', 'Resolved', NULL, 'Account ownership transferred successfully with all permissions preserved.', 5, 'Smooth transfer process, no data loss.', datetime('now', '-21 days'), datetime('now', '-20 days'));
+
+-- Seed Sample Tickets - General Inquiry
+INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
+('TKT-400001', 4, 'Inquiry regarding standard replacement warranty coverage period', 'What is the standard warranty coverage period for hardware replacements? Need to know if our devices are still under warranty for potential replacement.', 'General Inquiry', 'Low', 'General Inquiry', 'In Progress', NULL, NULL, NULL, NULL, datetime('now', '-6 days'), NULL),
+('TKT-400002', 4, 'API rate limits and documentation for webhooks integration', 'We are building custom integrations and need information about API rate limits, webhook payload formats, and authentication methods for third-party app development.', 'General Inquiry', 'Medium', 'General Inquiry', 'Submitted', NULL, NULL, NULL, NULL, datetime('now', '-2 days'), NULL);
+
+-- Seed Sample Tickets - Fraud / Security Queue
+INSERT INTO tickets (ticket_id, customer_id, subject, description, predicted_category, predicted_priority, assigned_department, status, assigned_agent_id, resolution_notes, satisfaction_score, customer_feedback, created_at, resolved_at) VALUES
+('TKT-500001', 4, 'Suspicious unrecognized login attempt from IP range in Eastern Europe', 'Received security alert about login attempt from IP address 185.14.x.x in Eastern Europe. I have never traveled there and do not recognize this activity. Please investigate potential account compromise.', 'Fraud', 'Critical', 'Admin_Fraud', 'Submitted', NULL, NULL, NULL, NULL, datetime('now', '-12 hours'), NULL),
+('TKT-500002', 4, 'Unauthorized refund claim submitted with forged invoice number', 'Someone submitted a refund claim using forged invoice number INV-FAKE-9999. I never made this purchase and this appears to be fraudulent activity targeting our account.', 'Fraud', 'Critical', 'Admin_Fraud', 'In Progress', 1, 'Investigating fraudulent claim - account temporarily secured.', NULL, NULL, datetime('now', '-2 days'), NULL);
+
+-- Seed Sample Similar Matches for TKT-100001 (Technical)
 INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
 ('TKT-100001', 'HIST-40192', 88.50, 'Data not syncing - Cloud connection drop', 'Desktop application crashes during heavy upload payloads above 40MB.', 4),
 ('TKT-100001', 'HIST-31102', 82.10, 'Sync error 502 Gateway Timeout on large batch', 'Encountering 502 gateway timeouts when transferring binary media files.', 6),
 ('TKT-100001', 'HIST-19044', 76.40, 'Application freeze during sync operation', 'Sync process hangs on 100% and does not complete database write.', 8);
 
--- Seed Sample Replies for TKT-100001
+-- Seed Sample Similar Matches for TKT-100002 (Technical)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-100002', 'HIST-82001', 91.20, 'Boot loop after firmware update v2.3', 'Device enters continuous restart loop after automatic firmware update installation.', 12),
+('TKT-100002', 'HIST-73550', 85.60, 'Kernel panic on startup sequence', 'System crashes with kernel panic during boot sequence, unable to access OS.', 8),
+('TKT-100002', 'HIST-60222', 79.30, 'Recovery mode inaccessible after update', 'Cannot access recovery mode or safe mode after recent system update.', 6);
+
+-- Seed Sample Similar Matches for TKT-100003 (Technical)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-100003', 'HIST-55100', 87.80, 'Audio dropout on Bluetooth connection', 'Bluetooth audio experiences intermittent dropouts and connection instability.', 4),
+('TKT-100003', 'HIST-42150', 82.40, 'Connection range limited to 3 meters', 'Bluetooth connection drops when device moves beyond 3 meters from paired device.', 3);
+
+-- Seed Sample Similar Matches for TKT-200001 (Billing)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-200001', 'HIST-99012', 93.50, 'Duplicate charge for subscription renewal', 'Customer charged twice for annual subscription renewal on same date.', 2),
+('TKT-200001', 'HIST-87501', 88.20, 'Unauthorized recurring charge', 'Unexpected recurring charge appeared on credit card statement.', 4),
+('TKT-200001', 'HIST-76230', 84.10, 'Billing dispute for enterprise subscription', 'Dispute over enterprise subscription billing amount and charge frequency.', 6);
+
+-- Seed Sample Similar Matches for TKT-200002 (Billing)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-200002', 'HIST-65200', 89.70, 'Missing tax breakdown on invoice PDF', 'Invoice PDF downloads without GST/tax breakdown section visible.', 3),
+('TKT-200002', 'HIST-54310', 83.50, 'Tax calculation error on invoice', 'Invoice shows incorrect tax calculation for business account.', 5);
+
+-- Seed Sample Similar Matches for TKT-200003 (Billing)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-200003', 'HIST-48200', 86.30, 'Update payment method for corporate account', 'Need to change credit card on file for enterprise billing.', 2),
+('TKT-200003', 'HIST-37150', 81.90, 'Change billing address for subscription', 'Request to update billing address to new corporate office location.', 1);
+
+-- Seed Sample Similar Matches for TKT-300001 (Account)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-300001', 'HIST-29200', 90.40, 'SMS OTP not received internationally', '2FA SMS codes not delivered when traveling abroad.', 8),
+('TKT-300001', 'HIST-18150', 85.20, 'Authentication codes blocked for certain regions', 'OTP delivery blocked for specific country codes due to carrier restrictions.', 12);
+
+-- Seed Sample Similar Matches for TKT-300002 (Account)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-300002', 'HIST-17200', 88.60, 'Transfer admin rights to new user', 'Need to transfer administrative privileges from departing employee to replacement.', 4),
+('TKT-300002', 'HIST-16300', 82.80, 'Account ownership change request', 'Request to change primary account owner and billing contact.', 6);
+
+-- Seed Sample Similar Matches for TKT-400001 (General Inquiry)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-400001', 'HIST-15200', 87.90, 'Warranty coverage expiration inquiry', 'Customer asking about warranty period for hardware devices.', 2),
+('TKT-400001', 'HIST-14100', 83.40, 'Replacement policy for damaged equipment', 'Inquiry about replacement process for warranty-covered damage.', 3);
+
+-- Seed Sample Similar Matches for TKT-400002 (General Inquiry)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-400002', 'HIST-13300', 91.10, 'API integration documentation request', 'Need API documentation for third-party integration development.', 4),
+('TKT-400002', 'HIST-12200', 86.70, 'Webhook payload format specification', 'Request for webhook event payload structure and authentication.', 5);
+
+-- Seed Sample Similar Matches for TKT-500001 (Fraud)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-500001', 'HIST-11100', 94.30, 'Suspicious login from foreign IP address', 'Customer reports login attempt from unrecognized international IP.', 24),
+('TKT-500001', 'HIST-10100', 89.50, 'Account security alert for unusual location', 'Security system flagged login from geographic location not associated with account.', 18);
+
+-- Seed Sample Similar Matches for TKT-500002 (Fraud)
+INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours) VALUES
+('TKT-500002', 'HIST-09100', 92.80, 'Fraudulent refund claim with fake invoice', 'Customer reports fraudulent refund request using fabricated invoice number.', 36),
+('TKT-500002', 'HIST-08100', 87.40, 'Unauthorized chargeback initiated', 'Unexpected chargeback filed on legitimate transaction.', 48);
+
+-- Seed Sample Replies for TKT-100001 (Technical)
 INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
 (1, 'TKT-100001', 4, 'Hi team, whenever I upload data larger than 50MB, the desktop app crashes with a 502 gateway error.', datetime('now', '-2 days')),
 (2, 'TKT-100001', 2, 'Hello Alex, thank you for reaching out. We have identified a potential chunk-size limit in our reverse proxy. We are deploying a patch to test server now.', datetime('now', '-1 days')),
 (3, 'TKT-100001', 4, 'Understood, let me know when I can re-test the upload.', datetime('now', '-12 hours'));
+
+-- Seed Sample Replies for TKT-200001 (Billing)
+INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
+(4, 'TKT-200001', 4, 'I noticed two identical charges of $1,199 on my corporate credit card for the annual enterprise subscription renewal. Please refund the duplicate charge immediately.', datetime('now', '-3 days')),
+(5, 'TKT-200001', 3, 'Thank you for reporting this billing issue. We are investigating the duplicate charge and will process a refund once confirmed.', datetime('now', '-2 days'));
+
+-- Seed Sample Replies for TKT-300001 (Account)
+INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
+(6, 'TKT-300001', 4, 'I am traveling internationally and not receiving SMS OTP codes for 2FA authentication. My local carrier works but your SMS service seems blocked for my country code.', datetime('now', '-4 days'));
+
+-- Seed Sample Replies for TKT-400001 (General Inquiry)
+INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
+(7, 'TKT-400001', 4, 'What is the standard warranty coverage period for hardware replacements? Need to know if our devices are still under warranty for potential replacement.', datetime('now', '-6 days')),
+(8, 'TKT-400001', 5, 'Standard hardware warranty covers 12 months from purchase date. I can check your specific device warranty status if you provide the serial numbers.', datetime('now', '-5 days'));
+
+-- Seed Sample Replies for TKT-500001 (Fraud)
+INSERT INTO ticket_replies (reply_id, ticket_id, sender_id, message, created_at) VALUES
+(9, 'TKT-500001', 4, 'Received security alert about login attempt from IP address 185.14.x.x in Eastern Europe. I have never traveled there and do not recognize this activity. Please investigate potential account compromise.', datetime('now', '-12 hours')),
+(10, 'TKT-500001', 1, 'Security alert received. We have temporarily secured your account and are investigating the unauthorized access attempt. Please verify your identity through the secure link sent to your email.', datetime('now', '-6 hours'));
