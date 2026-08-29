@@ -1,0 +1,337 @@
+COMPASSIQ - AI POWERED TICKET
+MANAGEMENT SYSTEM
+
+Scrum Master / Developer
+MOHAMED NIHAL
+MES25MCA-2037
+Department of Computer Applications
+MES College of Engineering Kuttippuram
+
+Product Owner / Guide
+Ms. Reshma M.R.
+Assistant Professor
+Department of Computer Applications
+MES College of Engineering Kuttippuram
+
+Introduction:
+This is an AI-powered customer support ticket intelligence system designed for 
+consumer electronics enterprises. It automates ticket classification, priority 
+prediction, Top-3 similar historical ticket retrieval, and dynamic department 
+routing using Natural Language Processing and Machine Learning to reduce 
+response times and eliminate manual triage errors.
+
+Objectives:
+• Automate end-to-end customer support ticket triage and routing.
+• Classify customer complaints into predefined categories using Logistic Regression.
+• Predict the priority level (Low, Medium, High, Critical) for incoming tickets.
+• Retrieve Top-3 similar historical tickets using TF-IDF and Cosine Similarity.
+• Provide AI-based historical solution context to assist support staff.
+• Implement Role-Based Access Control (Customer, Agent, Admin) with security gatekeeping.
+• Reduce manual effort and improve customer satisfaction (CSAT) through faster support.
+
+Technology Stack:
+Technology              | Library / Tool        | Purpose
+------------------------+-----------------------+---------------------------------------
+Web Framework           | Flask 3.0+ (Python)   | Backend REST API and MVC controller
+Security & Auth         | Werkzeug 3.0+         | Password hashing & session-based RBAC
+Database Engine         | SQLite3               | Relational data storage & constraints
+Machine Learning        | scikit-learn 1.3+     | Logistic Regression classifiers
+NLP & Linguistics       | NLTK 3.8+             | Text cleaning, lemmatization & stopwords
+Feature Extraction      | TF-IDF Vectorizer     | Unigram & bigram feature matrix
+Imbalance Handling      | imbalanced-learn      | SMOTE feature space oversampling
+Model Serialization     | joblib 1.3+           | Trained ML model artifact persistence
+Data Processing         | pandas & numpy        | Dataset processing & matrix operations
+Frontend Interface      | HTML5, CSS3, ES6 JS   | Responsive UI & dynamic modal views
+UI Framework & Icons    | Bootstrap 5 & Icons   | Component library & typography
+Analytics Engine        | Chart.js 4.4+         | Real-time admin telemetry visualizations
+
+
+#Existing System:
+Existing customer support operations rely on manual triage by human agents or rigid 
+rule-based pattern matchers that are slow, error-prone, and lack semantic understanding.
+
+System                  | Description                                  | Limitation
+------------------------+----------------------------------------------+--------------------------------------
+Manual Support Triage   | Human agents read and route tickets manually.| Slow response time, high misrouting.
+Rule-Based Regex Routers| Uses rigid keyword matching rules.           | Lacks semantic context; breaks easily.
+Generic Helpdesk Forms  | Standard web forms without AI intelligence.  | No automated priority/category triage.
+Keyword Search Systems  | Basic text matching for past resolutions.    | Low relevance, zero vector similarity.
+Static Support Queues   | Monolithic queues without role isolation.    | No fraud escalation desk or SLA tracking.
+
+
+#Proposed System:
+It proposes a cost-effective, intelligent AI support ticket system that combines real-time 
+NLP categorization, machine learning priority prediction, Top-3 cosine similarity retrieval, 
+and automated multi-department routing with a modern web dashboard.
+
+> AI Classification & Retrieval Mappings
+Input Pattern / Issue          | Target Action / Department | AI Inference Method
+-------------------------------+----------------------------+--------------------------------------
+Error, crash, kernel, 502, API | Technical Support          | Logistic Regression (>75% conf)
+Charge, refund, invoice, GST   | Billing Support            | Logistic Regression (>75% conf)
+2FA, OTP, password reset, login| Account Support            | Logistic Regression (>75% conf)
+Warranty, manual, inquiry      | General Inquiry            | Logistic Regression (>45% conf)
+Unauthorized charge, hacked    | Admin_Fraud Escalation Desk| Rule-based keyword trigger override
+Urgency & SLA Impact           | Priority (Low/Med/High/Crit| Balanced Logistic Regression
+Complaint Text Similarity      | Top-3 Similar Solutions    | Sparse Cosine Similarity (Score %)
+
+
+* Module Description
+Module                 | Technology                   | Function
+-----------------------+------------------------------+---------------------------------------
+Customer Module        | Flask + HTML5/CSS3/JS        | User registration, ticket submission, 
+                       |                              | 5-stage progress tracking, CSAT rating.
+AI Intelligence Module | NLTK + scikit-learn + joblib | Text preprocessing, TF-IDF vectorization,
+                       |                              | category and priority ML predictions.
+Similarity Retrieval   | scikit-learn + numpy         | Sparse Cosine Similarity calculation, 
+Module                 |                              | Top-3 match retrieval & score scaling.
+Department Module      | Flask + Bootstrap 5          | Department queues, centered modal split
+                       |                              | workspace, response & status update.
+Administrator Module   | Flask + SQLite3 + Chart.js   | User approval gatekeeping, fraud desk,
+                       |                              | KPI telemetry & performance analytics.
+
+
+* Developing Environment
+Component              | Specification
+-----------------------+------------------------------------------------------
+Operating System       | Windows 10 / 11
+Processor              | Intel Core i3 / i5
+RAM                    | 4GB minimum (8GB recommended)
+Programming Language   | Python 3.10 / 3.11+
+Web Framework          | Flask 3.0+
+Database               | SQLite3
+Key Libraries          | scikit-learn, NLTK, imbalanced-learn, joblib, pandas
+IDE                    | Visual Studio Code
+Dataset                | 20,000 Consumer Electronics Customer Support Records
+
+
+Sprint Plan
+Backlog Item             | Completion | Hours | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 1                 |            |       |    |    |    |    |    |    |    |    |    |    
+Requirement Analysis     | 10/01/2026 |   4   | 1  | 1  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+Database Schema Design   | 14/01/2026 |   6   | 0  | 0  | 2  | 2  | 1  | 1  | 0  | 0  | 0  |  0 
+SQLite Database Layer    | 18/01/2026 |   5   | 0  | 0  | 0  | 0  | 2  | 2  | 1  | 0  | 0  |  0 
+Flask Setup & Config     | 22/01/2026 |   4   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 0  |  0 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 2                 |            |       |    |    |    |    |    |    |    |    |    |    
+Dataset Preprocessing    | 27/01/2026 |   6   | 2  | 2  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+NLTK & TF-IDF Pipeline   | 01/02/2026 |   7   | 0  | 0  | 2  | 2  | 2  | 1  | 0  | 0  | 0  |  0 
+Logistic Reg. & SMOTE    | 05/02/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Cosine Similarity Engine | 09/02/2026 |   6   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 2  |  0 
+Model Serialization      | 12/02/2026 |   3   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 2  |  1 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 3                 |            |       |    |    |    |    |    |    |    |    |    |    
+Auth & RBAC Security     | 18/02/2026 |   6   | 2  | 2  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+Customer Submission UI   | 22/02/2026 |   7   | 0  | 0  | 2  | 2  | 2  | 1  | 0  | 0  | 0  |  0 
+AI Engine Integration    | 26/02/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Department Workspace UI  | 02/03/2026 |   8   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 2  |  2 
+Admin & Fraud Desk       | 06/03/2026 |   6   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 3  |  3 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 4                 |            |       |    |    |    |    |    |    |    |    |    |    
+UI Redesign & Modals     | 12/03/2026 |   8   | 2  | 2  | 2  | 2  | 0  | 0  | 0  | 0  | 0  |  0 
+CSAT & Chart.js Engine   | 16/03/2026 |   6   | 0  | 0  | 2  | 2  | 1  | 1  | 0  | 0  | 0  |  0 
+Automated System Testing | 22/03/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Performance Optimization | 26/03/2026 |   4   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 1  | 1  |  0 
+Final Documentation      | 31/03/2026 |   5   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 3  |  2 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Total                    |            |  115  | 14 | 14 | 14 | 14 | 14 | 13 | 14 | 14 | 13 |  9 
+
+
+Product Backlog
+ID   | Name                                     | Priority | Estimate (Hours) | Status
+-----+------------------------------------------+----------+------------------+-----------
+1    | Project Setup & DB Initialization        | High     | 15               | Completed
+2    | Data Preprocessing & Lemmatization       | High     | 6                | Completed
+3    | TF-IDF Feature Extraction Pipeline       | High     | 7                | Completed
+4    | Category & Priority Model Training       | High     | 8                | Completed
+5    | Cosine Similarity Retrieval Engine       | High     | 6                | Completed
+6    | User Registration & Approval Gatekeeping | High     | 6                | Completed
+7    | RBAC Authentication & Session Security   | High     | 6                | Completed
+8    | Customer Ticket Submission & Tracker     | High     | 7                | Completed
+9    | AI Dynamic Routing Engine                | High     | 8                | Completed
+10   | Department Modal Workspace & Reply Desk  | High     | 8                | Completed
+11   | Administrator Analytics & Telemetry      | Medium   | 6                | Completed
+12   | Responsive UI & Solid Modal Redesign     | Medium   | 8                | Completed
+13   | CSAT Star Rating & Feedback System       | Medium   | 6                | Completed
+14   | System Integration & 87-Case Testing     | High     | 9                | Completed
+-----+------------------------------------------+----------+------------------+-----------
+Total|                                          |          | 115              | Completed
+
+
+User Story
+ID   | As a type of User | I want to...                             | So that I can...
+-----+-------------------+------------------------------------------+--------------------------------------------------
+1    | Customer          | Register with Bill No / Product ID       | Create an account awaiting verification.
+2    | Customer          | Submit a complaint with Subject & Details| Request support assistance for my device.
+3    | Customer          | View my ticket status on a 5-stage bar   | Track progress from Submitted to Resolved.
+4    | Customer          | Read responses from support agents       | Communicate and get help on my issue.
+5    | Customer          | Rate resolved tickets (1–5 stars)        | Provide feedback on support service quality.
+6    | Department Agent  | View my department's isolated queue      | Focus only on tickets relevant to my team.
+7    | Department Agent  | Inspect AI predicted category & priority | Quickly identify issue urgency and context.
+8    | Department Agent  | View Top-3 similar historical solutions  | Reference proven solutions to resolve tickets.
+9    | Department Agent  | Respond to customers & update status     | Resolve complaints and add resolution notes.
+10   | Administrator     | Approve or reject pending user accounts  | Prevent unauthorized platform access.
+11   | Administrator     | Monitor the Fraud escalation desk        | Take immediate security actions (ban/close).
+12   | Administrator     | View real-time KPI charts (Chart.js)     | Monitor department load and satisfaction trends.
+13   | Administrator     | Audit system-wide telemetry              | Track automated ML performance metrics.
+14   | System            | Preprocess text and extract TF-IDF       | Classify category and priority in real-time.
+
+
+Project Plan
+Process Flow Diagram:
+
+                       [ START ]
+                           |
+                           v
+               [ User Starts / Registers ]
+                           |
+                           v
+               < Is Account Approved? >
+                /                    \
+         [ NO (PENDING) ]        [ YES (APPROVED) ]
+                |                        |
+                v                        v
+        [ Block Access ]         [ Authenticate Session ]
+        (Modal Notice)                   |
+                                         v
+                             [ Customer Submits Ticket ]
+                                         |
+                                         v
+                             [ NLP Text Preprocessing ]
+                            (Clean, Lemmatize, Stopwords)
+                                         |
+                                         v
+                             [ TF-IDF Vectorization ]
+                                         |
+                                         v
+                           [ Predict Category & Priority ]
+                                         |
+                                         v
+                            < Fraud Keyword Trigger? >
+                             /                      \
+                     [ YES ]                      [ NO ]
+                        |                            |
+                        v                            v
+             [ Route to Admin_Fraud ]    [ Sparse Cosine Similarity ]
+             (Security Escalation)       (Compute Historical Matrix)
+                        |                            |
+                        |                            v
+                        |                 [ Retrieve Top-3 Matches ]
+                        |                 (Similarity % & Res. Hours)
+                        |                            |
+                        +----------------------------+
+                                     |
+                                     v
+                        [ Dynamic Routing Engine ]
+                        (Technical / Billing / Account)
+                                     |
+                                     v
+                        [ Agent Workspace Modal ]
+                        (AI Badges & Similar Solutions)
+                                     |
+                                     v
+                        [ Agent Submits Resolution ]
+                                     |
+                                     v
+                        [ Customer 5-Stage Tracker ]
+                                     |
+                                     v
+                        [ Customer CSAT Star Rating ]
+                                     |
+                                     v
+                        [ Admin Analytics Telemetry ]
+                                     |
+                                     v
+                                 [ STOP ]
+
+
+* Details of Versions
+Version 1.0 (15/01/2026)
+• Initial Flask application setup and SQLite3 database schema creation.
+• Basic manual ticket submission form without AI inference.
+
+Version 1.1 (01/02/2026)
+• Integrated NLTK preprocessing pipeline (WordNet lemmatization, stopword cleaning).
+• Added TF-IDF feature vectorization and basic Logistic Regression classifier.
+
+Version 1.2 (15/02/2026)
+• Trained category and priority models with SMOTE class balancing.
+• Implemented sparse Cosine Similarity retrieval for Top-3 historical ticket matches.
+
+Version 1.3 (01/03/2026)
+• Built Role-Based Access Control (RBAC) with Werkzeug password hashing.
+• Implemented PENDING account registration gatekeeping and dynamic routing.
+
+Version 1.4 (15/03/2026)
+• Modernized UI to Forest Green theme with solid high-contrast modal popups.
+• Implemented customer 5-stage progress tracker and agent centered modal workspace.
+
+Version 1.5 (31/03/2026)
+• Added Chart.js telemetry dashboards and post-resolution CSAT star rating system.
+• Completed 87-case automated test suite with 100% pass rate and sub-50ms latency.
+
+
+* Database and UI Design
+ Database Design:
+Table                  | Attributes [PK/FK]                 | Purpose
+-----------------------+------------------------------------+--------------------------------------------------
+users                  | user_id (PK), full_name, email,    | Stores user credentials, roles (customer/agent/
+                       | password_hash, role, department,   | admin), department, and account approval status.
+                       | bill_no_product_id, account_status |
+tickets                | ticket_id (PK), customer_id (FK),  | Stores customer complaints, AI predictions,
+                       | subject, description, category,    | assigned department, status, and resolution.
+                       | priority, status, assigned_agent   |
+ticket_similar_matches | match_id (PK), ticket_id (FK),     | Stores Top-3 historical ticket reference matches,
+                       | similar_ref_id, similarity_score,  | similarity percentages, and resolution hours.
+                       | similar_subject, resolution_hours  |
+ticket_replies         | reply_id (PK), ticket_id (FK),     | Stores two-way communication threads between
+                       | sender_id (FK), message, timestamp | customers and assigned support agents.
+
+
+=> UI Design:
+Interface of CompassIQ AI Ticket Management:
++----------------------------------------------------------------------------------------------------+
+|  COMPASSIQ  |  AI Support Intelligence Desk                  [ Role: Agent | Department: Technical ]|
++----------------------------------------------------------------------------------------------------+
+|  QUEUE FILTER: [All] [Submitted] [In Progress] [Resolved]             SEARCH: [ Enter Keyword... ] |
++----------------------------------------------------------------------------------------------------+
+|  TICKET QUEUE (Full Width Grid):                                                                   |
+|  [TKT-100001] Cloud sync fails with Error Code 502  | Pri: High  | Status: In Progress | [View Modal]|
+|  [TKT-100002] Kernel panic after firmware update    | Pri: Crit  | Status: Submitted   | [View Modal]|
++----------------------------------------------------------------------------------------------------+
+|  CENTERED DETAIL POPUP MODAL (Solid White Background #ffffff, Top-Right Close Button [X]):         |
+|  +-----------------------------------------------------------------------------------------------+ |
+|  | Ticket: TKT-100001   [Technical] [High]                                                   [X] | |
+|  | Customer: Alex Morgan (alex.morgan@customer.com)                                             | |
+|  | Description: "Whenever I upload data larger than 50MB, the desktop app crashes with 502 error"| |
+|  | --------------------------------------------------------------------------------------------- | |
+|  | AI INTELLIGENCE & TOP-3 SIMILAR HISTORICAL MATCHES:                                           | |
+|  | • HIST-40192 (88.5% Match) | "Data not syncing - Cloud connection drop" | Res: 4.2 Hours      | |
+|  |   [Use Solution Context]                                                                      | |
+|  | --------------------------------------------------------------------------------------------- | |
+|  | AGENT RESPONSE & ACTION DESK:                                                                 | |
+|  | [ Enter response message to customer...                                                     ] | |
+|  | Status: [ In Progress v ]   Resolution Notes: [ Applied timeout patch                      ] | |
+|  | [ Send Reply & Update Status ]                                                                | |
+|  +-----------------------------------------------------------------------------------------------+ |
++----------------------------------------------------------------------------------------------------+
+
+
+* Testing and Validation
+TC-No | Description                                                | Status
+------+------------------------------------------------------------+--------
+TC-01 | Python syntax & module compilation (app.py, ai_engine.py)  | Pass
+TC-02 | Requirements.txt dependency validation (12/12 packages)    | Pass
+TC-03 | SQLite database initialization & table existence           | Pass
+TC-04 | Foreign key constraints & transaction rollback tests       | Pass
+TC-05 | Seed user accounts validation (Admin, Agents, Customers)   | Pass
+TC-06 | NLTK text preprocessing & lemmatization pipeline           | Pass
+TC-07 | ML category & priority prediction inference (<50ms)        | Pass
+TC-08 | Sparse Cosine Similarity retrieval (<25ms)                 | Pass
+TC-09 | Flask public routes & login page rendering                 | Pass
+TC-10 | Registration flow with PENDING status gatekeeping          | Pass
+TC-11 | Login guard blocking unapproved pending accounts           | Pass
+TC-12 | Role-Based Access Control (RBAC) route security            | Pass
+TC-13 | Customer CSAT star rating range validation (1–5 stars)     | Pass
+TC-14 | High-contrast centered modal UI & top-right close buttons  | Pass

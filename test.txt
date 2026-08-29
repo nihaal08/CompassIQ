@@ -1,0 +1,145 @@
+
+================================================================================
+COMPASSIQ - COMPREHENSIVE AUTOMATED TEST REPORT
+================================================================================
+
+1. EXECUTIVE TEST SUMMARY:
+   - Timestamp of execution: 2026-08-29T20:23:48.480985
+   - Total test cases run: 87
+   - Passed: 87
+   - Failed: 0
+   - Skipped: 0
+   - Overall system operational status: READY
+
+2. COMPONENT-BY-COMPONENT AUDIT LOG:
+
+   Python Syntax:
+   [PASS] Syntax check: app.py: Valid Python syntax
+   [PASS] Import check: app.py: Module can be imported
+   [PASS] Syntax check: ai_engine.py: Valid Python syntax
+   [PASS] Import check: ai_engine.py: Module can be imported
+   [PASS] Syntax check: train_model.py: Valid Python syntax
+   [PASS] Import check: train_model.py: Module can be imported
+   [PASS] Syntax check: db.py: Valid Python syntax
+   [PASS] Import check: db.py: Module can be imported
+   [PASS] Syntax check: config.py: Valid Python syntax
+   [PASS] Import check: config.py: Module can be imported
+
+   Requirements:
+   [PASS] File format: Found 12 dependencies
+   [PASS] Dependency: Flask: Found in requirements.txt
+   [PASS] Dependency: scikit-learn: Found in requirements.txt
+   [PASS] Dependency: nltk: Found in requirements.txt
+   [PASS] Dependency: joblib: Found in requirements.txt
+   [PASS] Dependency: pandas: Found in requirements.txt
+   [PASS] Dependency: numpy: Found in requirements.txt
+
+   Database:
+   [PASS] Schema initialization: Attempting to initialize schema
+   [PASS] Connection: Successfully connected to database
+   [PASS] Table existence: users: Table exists
+   [PASS] Table existence: tickets: Table exists
+   [PASS] Table existence: ticket_similar_matches: Table exists
+   [PASS] Table existence: ticket_replies: Table exists
+   [PASS] Foreign key constraint: Invalid user ID rejected
+   [PASS] Seed account: admin@compassiq.com: Role: admin, Status: APPROVED
+   [PASS] Seed account: tech.support@compassiq.com: Role: agent, Status: APPROVED
+   [PASS] Seed account: billing.support@compassiq.com: Role: agent, Status: APPROVED
+   [PASS] Seed account: alex.morgan@customer.com: Role: customer, Status: APPROVED
+   [PASS] Seed account: jordan.lee@customer.com: Role: customer, Status: PENDING
+   [PASS] Query helper: query_db: Returns dictionary results
+   [PASS] Transaction rollback: Duplicate insertion rejected and rolled back
+
+   ML Pipeline:
+   [PASS] Text preprocessing: clean_text: Processed text: "system crash error uploading large file"
+   [PASS] Fraud detection: keyword matching: Fraud keywords detected
+   [PASS] AI engine loading: Models loaded successfully
+   [PASS] Prediction structure: All required keys present. Inference time: 35.62ms
+   [PASS] Low confidence flagging: Low confidence flag: False
+   [PASS] Cosine similarity retrieval: Retrieved 3 similar tickets in 19.44ms
+   [PASS] Similarity score format: Scores are percentages (0-100): 42.51
+   [PASS] Hybrid fraud detection: Fraud correctly flagged
+
+   Flask Routes:
+   [PASS] Public route: GET /: Status: 200
+   [PASS] Public route: GET /login: Status: 200
+   [PASS] Public route: GET /register: Status: 200
+   [PASS] Registration flow: User created with PENDING status
+   [PASS] Login guard: PENDING account: PENDING account blocked from login
+   [PASS] Approved user login: Approved user can login
+   [PASS] Protected route guard: /customer/dashboard: Renders login page for unauthorized users
+   [PASS] Protected route guard: /agent/dashboard: Redirects unauthorized users
+   [PASS] Protected route guard: /admin/dashboard: Redirects unauthorized users
+   [PASS] Customer ticket submission: Ticket submission processed
+   [PASS] RBAC: Customer to Admin dashboard: Access denied as expected
+   [PASS] CSAT validation: Invalid rating: Invalid rating rejected
+
+   Frontend:
+   [PASS] Template existence: base.html: Template file exists
+   [PASS] Jinja2 syntax: base.html: Braces balanced
+   [PASS] Template existence: login.html: Template file exists
+   [PASS] Jinja2 syntax: login.html: Braces balanced
+   [PASS] Template existence: register.html: Template file exists
+   [PASS] Jinja2 syntax: register.html: Braces balanced
+   [PASS] Template existence: customer_dashboard.html: Template file exists
+   [PASS] Jinja2 syntax: customer_dashboard.html: Braces balanced
+   [PASS] Template existence: department_dashboard.html: Template file exists
+   [PASS] Jinja2 syntax: department_dashboard.html: Braces balanced
+   [PASS] Template existence: admin_dashboard.html: Template file exists
+   [PASS] Jinja2 syntax: admin_dashboard.html: Braces balanced
+   [PASS] CSS existence: variables.css: CSS file exists
+   [PASS] CSS existence: components.css: CSS file exists
+   [PASS] CSS existence: style.css: CSS file exists
+   [PASS] CSS variables compliance: All required CSS variables present
+   [PASS] Modal high-contrast background: Solid white modal background found
+   [PASS] Modal close button positioning: Top-right close button positioning found
+   [PASS] Template inheritance: base.html: Proper Jinja2 block structure
+
+   Feature Matrix:
+   [PASS] Registration with bill_no_product_id: Feature implementation verified
+   [PASS] Login guard for PENDING accounts: Feature implementation verified
+   [PASS] Admin user approval/rejection: Feature implementation verified
+   [PASS] Approved user login with session assignment: Feature implementation verified
+   [PASS] Route decorators (@login_required, @role_required): Feature implementation verified
+   [PASS] Customer ticket submission with ML categorization: Feature implementation verified
+   [PASS] Customer view active tickets with status tracker: Feature implementation verified
+   [PASS] Customer CSAT feedback (1-5 stars): Feature implementation verified
+   [PASS] Department queue filtering by department: Feature implementation verified
+   [PASS] Agent ticket modal with AI predictions: Feature implementation verified
+   [PASS] Agent reply and status update: Feature implementation verified
+   [PASS] Admin user approval actions: Feature implementation verified
+   [PASS] Admin fraud desk actions: Feature implementation verified
+   [PASS] Admin metrics and telemetry: Feature implementation verified
+
+   Performance:
+   [PASS] Category & Priority inference latency: 35.62ms
+   [PASS] Cosine Similarity retrieval latency: 19.44ms
+   [PASS] Total request-response turnaround: 85.62ms (estimated)
+
+3. FEATURE & WORKFLOW AUDIT MATRIX:
+   [PASS] Registration with bill_no_product_id
+   [PASS] Login guard for PENDING accounts
+   [PASS] Admin user approval/rejection
+   [PASS] Approved user login with session assignment
+   [PASS] Route decorators (@login_required, @role_required)
+   [PASS] Customer ticket submission with ML categorization
+   [PASS] Customer view active tickets with status tracker
+   [PASS] Customer CSAT feedback (1-5 stars)
+   [PASS] Department queue filtering by department
+   [PASS] Agent ticket modal with AI predictions
+   [PASS] Agent reply and status update
+   [PASS] Admin user approval actions
+   [PASS] Admin fraud desk actions
+   [PASS] Admin metrics and telemetry
+
+4. PERFORMANCE & LATENCY BENCHMARKS:
+   - inference_latency: 35.62ms
+   - similarity_latency: 19.44ms
+   - total_response_time: 85.62ms
+
+5. DEFECTS / WARNINGS:
+   No defects detected.
+   No warnings.
+
+6. FINAL VERDICT: READY
+======================================================================

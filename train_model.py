@@ -154,6 +154,12 @@ def train_and_export():
     """
     Main execution workflow for preprocessing, SMOTE balancing,
     model training, evaluation, and artifact serialization.
+    
+    DATA LEAKAGE PREVENTION:
+    - 80/20 train-test split performed BEFORE vectorizer fitting
+    - Vectorizer fitted strictly on training data
+    - SMOTE applied strictly to training TF-IDF matrix
+    - Historical corpus built strictly from training partition
     """
     df = load_dataset()
 
@@ -182,10 +188,45 @@ def train_and_export():
     # EDA Visualizations
     generate_eda_visualizations(df)
 
-    # Feature Extraction with TF-IDF
-    print("[TF-IDF] Extracting TF-IDF features (max_features=5000, ngrams=(1,2))...")
+    # ==========================================================================
+    # DATA LEAKAGE PREVENTION: Train-Test Split BEFORE Vectorization
+    # ==========================================================================
+    print("\n" + "="*70)
+    print(" DATA LEAKAGE PREVENTION: Train-Test Split")
+    print("="*70)
+    
+    # Perform 80/20 train-test split BEFORE any feature extraction
+    train_df, test_df = train_test_split(
+        df, test_size=0.20, stratify=df['Issue_Category'], random_state=42
+    )
+    
+    print(f"[Split] Training set: {len(train_df):,} samples ({len(train_df)/len(df)*100:.1f}%)")
+    print(f"[Split] Test set: {len(test_df):,} samples ({len(test_df)/len(df)*100:.1f}%)")
+    
+    # Display class distributions for imbalance analysis
+    print("\n[Class Distribution] Issue_Category (Training):")
+    cat_dist_train = train_df['Issue_Category'].value_counts(normalize=True) * 100
+    for cat, pct in cat_dist_train.items():
+        print(f"  {cat}: {pct:.2f}%")
+    
+    print("\n[Class Distribution] Priority_Level (Training):")
+    prio_dist_train = train_df['Priority_Level'].value_counts(normalize=True) * 100
+    for prio, pct in prio_dist_train.items():
+        print(f"  {prio}: {pct:.2f}%")
+
+    # ==========================================================================
+    # FEATURE EXTRACTION: Vectorizer fitted STRICTLY on training data
+    # ==========================================================================
+    print("\n" + "="*70)
+    print(" FEATURE EXTRACTION: TF-IDF Vectorization")
+    print("="*70)
+    print("[TF-IDF] Fitting vectorizer strictly on training data (max_features=5000, ngrams=(1,2))...")
     vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1, 2), sublinear_tf=True)
-    X_tfidf = vectorizer.fit_transform(df['cleaned_text'])
+    X_train_tfidf = vectorizer.fit_transform(train_df['cleaned_text'])
+    X_test_tfidf = vectorizer.transform(test_df['cleaned_text'])
+    
+    print(f"[TF-IDF] Training TF-IDF matrix shape: {X_train_tfidf.shape}")
+    print(f"[TF-IDF] Test TF-IDF matrix shape: {X_test_tfidf.shape}")
 
     # -------------------------------------------------------------------------
     # Model 1: Issue Category Classifier
@@ -193,24 +234,41 @@ def train_and_export():
     print("\n" + "="*70)
     print(" TRAINING MODEL 1: Issue Category Classifier")
     print("="*70)
-    y_cat = df['Issue_Category']
-    X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(
-        X_tfidf, y_cat, test_size=0.2, random_state=42, stratify=y_cat
+    y_train_cat = train_df['Issue_Category']
+    y_test_cat = test_df['Issue_Category']
+
+    print(f"[SMOTE] Balancing Category Training Set (Original: {dict(pd.Series(y_train_cat).value_counts())})...")
+    smote_cat = SMOTE(sampling_strategy='auto', random_state=42)
+    X_train_cat_smote, y_train_cat_smote = smote_cat.fit_resample(X_train_tfidf, y_train_cat)
+    print(f"[SMOTE] Balanced Category Shape: {X_train_cat_smote.shape}")
+    print(f"[SMOTE] Balanced Distribution: {dict(pd.Series(y_train_cat_smote).value_counts())}")
+
+    cat_model = LogisticRegression(
+        max_iter=1000, 
+        class_weight='balanced', 
+        C=1.5, 
+        solver='lbfgs',
+        multi_class='multinomial'
     )
-
-    print(f"[SMOTE] Balancing Category Training Set (Original: {dict(pd.Series(y_train_c).value_counts())})...")
-    smote_cat = SMOTE(random_state=42)
-    X_train_c_smote, y_train_c_smote = smote_cat.fit_resample(X_train_c, y_train_c)
-    print(f"[SMOTE] Balanced Category Shape: {X_train_c_smote.shape}")
-
-    cat_model = LogisticRegression(max_iter=1000, class_weight='balanced', C=1.5, solver='lbfgs')
-    cat_model.fit(X_train_c_smote, y_train_c_smote)
+    cat_model.fit(X_train_cat_smote, y_train_cat_smote)
     
-    y_pred_c = cat_model.predict(X_test_c)
+    y_pred_cat = cat_model.predict(X_test_tfidf)
+    
+    # Rigorous Minority Class Evaluation
     print("\n--- Category Classification Report ---")
-    print(classification_report(y_test_c, y_pred_c))
-    cat_f1 = f1_score(y_test_c, y_pred_c, average='weighted')
-    print(f"Overall Category Weighted F1-Score: {cat_f1:.4f}")
+    print(classification_report(y_test_cat, y_pred_cat))
+    
+    cat_macro_f1 = f1_score(y_test_cat, y_pred_cat, average='macro')
+    cat_weighted_f1 = f1_score(y_test_cat, y_pred_cat, average='weighted')
+    print(f"\n[Metrics] Category Macro F1-Score: {cat_macro_f1:.4f}")
+    print(f"[Metrics] Category Weighted F1-Score: {cat_weighted_f1:.4f}")
+    
+    # Explicit minority class metrics
+    cat_report = classification_report(y_test_cat, y_pred_cat, output_dict=True)
+    minority_classes = ['Fraud']  # Add other minority classes as needed
+    for cls in minority_classes:
+        if cls in cat_report:
+            print(f"[Minority Class] {cls} - Precision: {cat_report[cls]['precision']:.4f}, Recall: {cat_report[cls]['recall']:.4f}, F1: {cat_report[cls]['f1-score']:.4f}")
 
     # -------------------------------------------------------------------------
     # Model 2: Priority Level Classifier
@@ -218,56 +276,75 @@ def train_and_export():
     print("\n" + "="*70)
     print(" TRAINING MODEL 2: Priority Level Classifier")
     print("="*70)
-    y_prio = df['Priority_Level']
-    X_train_p, X_test_p, y_train_p, y_test_p = train_test_split(
-        X_tfidf, y_prio, test_size=0.2, random_state=42, stratify=y_prio
+    y_train_prio = train_df['Priority_Level']
+    y_test_prio = test_df['Priority_Level']
+
+    print(f"[SMOTE] Balancing Priority Training Set (Original: {dict(pd.Series(y_train_prio).value_counts())})...")
+    smote_prio = SMOTE(sampling_strategy='auto', random_state=42)
+    X_train_prio_smote, y_train_prio_smote = smote_prio.fit_resample(X_train_tfidf, y_train_prio)
+    print(f"[SMOTE] Balanced Priority Shape: {X_train_prio_smote.shape}")
+    print(f"[SMOTE] Balanced Distribution: {dict(pd.Series(y_train_prio_smote).value_counts())}")
+
+    prio_model = LogisticRegression(
+        max_iter=1000, 
+        class_weight='balanced', 
+        C=1.5, 
+        solver='lbfgs',
+        multi_class='multinomial'
     )
-
-    print(f"[SMOTE] Balancing Priority Training Set (Original: {dict(pd.Series(y_train_p).value_counts())})...")
-    smote_prio = SMOTE(random_state=42)
-    X_train_p_smote, y_train_p_smote = smote_prio.fit_resample(X_train_p, y_train_p)
-    print(f"[SMOTE] Balanced Priority Shape: {X_train_p_smote.shape}")
-
-    prio_model = LogisticRegression(max_iter=1000, class_weight='balanced', C=1.5, solver='lbfgs')
-    prio_model.fit(X_train_p_smote, y_train_p_smote)
+    prio_model.fit(X_train_prio_smote, y_train_prio_smote)
     
-    y_pred_p = prio_model.predict(X_test_p)
+    y_pred_prio = prio_model.predict(X_test_tfidf)
+    
+    # Rigorous Minority Class Evaluation
     print("\n--- Priority Classification Report ---")
-    print(classification_report(y_test_p, y_pred_p))
-    prio_f1 = f1_score(y_test_p, y_pred_p, average='weighted')
-    print(f"Overall Priority Weighted F1-Score: {prio_f1:.4f}")
+    print(classification_report(y_test_prio, y_pred_prio))
+    
+    prio_macro_f1 = f1_score(y_test_prio, y_pred_prio, average='macro')
+    prio_weighted_f1 = f1_score(y_test_prio, y_pred_prio, average='weighted')
+    print(f"\n[Metrics] Priority Macro F1-Score: {prio_macro_f1:.4f}")
+    print(f"[Metrics] Priority Weighted F1-Score: {prio_weighted_f1:.4f}")
+    
+    # Explicit minority class metrics
+    prio_report = classification_report(y_test_prio, y_pred_prio, output_dict=True)
+    minority_classes_prio = ['Critical']  # Critical is minority priority class
+    for cls in minority_classes_prio:
+        if cls in prio_report:
+            print(f"[Minority Class] {cls} - Precision: {prio_report[cls]['precision']:.4f}, Recall: {prio_report[cls]['recall']:.4f}, F1: {prio_report[cls]['f1-score']:.4f}")
 
     # -------------------------------------------------------------------------
     # Historical Corpus Matrix for Cosine Similarity
     # -------------------------------------------------------------------------
     print("\n" + "="*70)
-    print(" BUILDING HISTORICAL SIMILARITY CORPUS")
+    print(" BUILDING HISTORICAL SIMILARITY CORPUS (TRAINING PARTITION ONLY)")
     print("="*70)
     
-    # Store essential metadata in a lightweight dataframe
+    # Store essential metadata from TRAINING partition only to prevent data leakage
     metadata_cols = ['Ticket_ID', 'Ticket_Subject', 'Ticket_Description']
-    if 'Resolution_Time_Hours' in df.columns:
+    if 'Resolution_Time_Hours' in train_df.columns:
         metadata_cols.append('Resolution_Time_Hours')
-    if 'Satisfaction_Score' in df.columns:
+    if 'Satisfaction_Score' in train_df.columns:
         metadata_cols.append('Satisfaction_Score')
-    if 'Issue_Category' in df.columns:
+    if 'Issue_Category' in train_df.columns:
         metadata_cols.append('Issue_Category')
-    if 'Priority_Level' in df.columns:
+    if 'Priority_Level' in train_df.columns:
         metadata_cols.append('Priority_Level')
 
-    # To optimize lookup speed, we can cap historical index if huge, but 20k is very fast (~15MB)
-    historical_df = df[metadata_cols].copy().reset_index(drop=True)
+    # Build historical corpus strictly from training partition
+    historical_df = train_df[metadata_cols].copy().reset_index(drop=True)
     historical_corpus_dict = {
-        'tfidf_matrix': X_tfidf,
-        'metadata': historical_df.to_dict(orient='records')
+        'tfidf_matrix': X_train_tfidf,  # Use training TF-IDF matrix only
+        'metadata': historical_df.to_dict(orient='records'),
+        'vectorizer': vectorizer  # Include vectorizer for consistent transformation
     }
-    print(f"[Corpus] Cached {len(historical_df):,} historical tickets with TF-IDF vectors.")
+    print(f"[Corpus] Cached {len(historical_df):,} historical tickets with TF-IDF vectors (TRAINING PARTITION ONLY)")
+    print(f"[Corpus] Sparse matrix shape: {X_train_tfidf.shape}, Memory: ~{X_train_tfidf.data.nbytes / 1024 / 1024:.1f} MB")
 
     # -------------------------------------------------------------------------
-    # Serialization via Joblib
+    # Serialization via Joblib with Probability Estimation Enabled
     # -------------------------------------------------------------------------
     print("\n" + "="*70)
-    print(" SERIALIZING ARTIFACTS")
+    print(" SERIALIZING ARTIFACTS (WITH PROBABILITY ESTIMATION)")
     print("="*70)
     
     p_vectorizer = os.path.join(MODELS_DIR, 'tfidf_vectorizer.joblib')
@@ -279,15 +356,22 @@ def train_and_export():
     print(f" [OK] Vectorizer saved to {p_vectorizer}")
 
     joblib.dump(cat_model, p_cat, compress=3)
-    print(f" [OK] Category Model saved to {p_cat}")
+    print(f" [OK] Category Model saved to {p_cat} (probability estimation enabled)")
 
     joblib.dump(prio_model, p_prio, compress=3)
-    print(f" [OK] Priority Model saved to {p_prio}")
+    print(f" [OK] Priority Model saved to {p_prio} (probability estimation enabled)")
 
     joblib.dump(historical_corpus_dict, p_corpus, compress=3)
-    print(f" [OK] Historical Corpus saved to {p_corpus}")
+    print(f" [OK] Historical Corpus saved to {p_corpus} (sparse matrix + metadata)")
 
+    print("\n" + "="*70)
+    print(" TRAINING SUMMARY")
+    print("="*70)
+    print(f"Category Model - Macro F1: {cat_macro_f1:.4f}, Weighted F1: {cat_weighted_f1:.4f}")
+    print(f"Priority Model - Macro F1: {prio_macro_f1:.4f}, Weighted F1: {prio_weighted_f1:.4f}")
+    print(f"Historical Corpus - {len(historical_df):,} training samples for similarity retrieval")
     print("\n[SUCCESS] CompassIQ Training & Serialization completed successfully!")
+    print("[NOTE] Data leakage prevention: Test partition remains completely unseen during training.")
 
 
 if __name__ == '__main__':

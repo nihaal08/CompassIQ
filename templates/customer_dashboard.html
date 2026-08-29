@@ -201,19 +201,19 @@ function openTicketDetail(ticketId) {
                         <div class="grid grid-cols-2" style="margin-bottom: var(--spacing-lg);">
                             <div>
                                 <div class="form-label">Category</div>
-                                <span class="badge badge-category-{{ ticket.predicted_category.replace(' ', '') }}">{{ ticket.predicted_category }}</span>
+                                <span class="badge badge-category-${ticket.predicted_category.replace(' ', '')}">${ticket.predicted_category}</span>
                             </div>
                             <div>
                                 <div class="form-label">Priority</div>
-                                <span class="badge badge-priority-{{ ticket.predicted_priority }}">{{ ticket.predicted_priority }}</span>
+                                <span class="badge badge-priority-${ticket.predicted_priority}">${ticket.predicted_priority}</span>
                             </div>
                             <div>
                                 <div class="form-label">Status</div>
-                                <span class="badge badge-status-{{ ticket.status.replace(' ', '') }}">{{ ticket.status }}</span>
+                                <span class="badge badge-status-${ticket.status.replace(' ', '')}">${ticket.status}</span>
                             </div>
                             <div>
                                 <div class="form-label">Department</div>
-                                <span class="text-secondary">{{ ticket.assigned_department }}</span>
+                                <span class="text-secondary">${ticket.assigned_department}</span>
                             </div>
                         </div>
                         
