@@ -50,7 +50,7 @@
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('customer_dashboard') }}#create-ticket-section" class="nav-link">
                                 <i class="bi bi-plus-circle"></i>
                                 <span>Create Ticket</span>
                             </a>
@@ -58,13 +58,13 @@
                         
                         <div class="nav-section-title mt-4">My Activity</div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('customer_dashboard') }}#tickets-section" class="nav-link">
                                 <i class="bi bi-clock-history"></i>
                                 <span>Ticket History</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('customer_dashboard') }}#profile-section" class="nav-link">
                                 <i class="bi bi-person-circle"></i>
                                 <span>Profile</span>
                             </a>
@@ -80,19 +80,19 @@
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('agent_dashboard', status='all') }}" class="nav-link">
                                 <i class="bi bi-inbox"></i>
                                 <span>Assigned Queue</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('agent_dashboard', status='Submitted') }}" class="nav-link">
                                 <i class="bi bi-eye"></i>
                                 <span>Pending Review</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('agent_dashboard', status='Resolved') }}" class="nav-link">
                                 <i class="bi bi-check2-circle"></i>
                                 <span>Resolved</span>
                             </a>
@@ -108,25 +108,25 @@
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#all-tickets-section" class="nav-link">
                                 <i class="bi bi-ticket-perforated"></i>
                                 <span>All Tickets</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#user-approvals-section" class="nav-link">
                                 <i class="bi bi-person-check"></i>
                                 <span>User Approvals</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#fraud-center-section" class="nav-link">
                                 <i class="bi bi-exclamation-diamond"></i>
                                 <span>Fraud Center</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#analytics-section" class="nav-link">
                                 <i class="bi bi-bar-chart"></i>
                                 <span>Analytics</span>
                             </a>
@@ -170,7 +170,9 @@
 
         <!-- ========== MAIN CONTENT ========== -->
         <main class="main-content">
-            {% block content %}{% endblock %}
+            <div class="page-wrapper">
+                {% block content %}{% endblock %}
+            </div>
         </main>
     </div>
 

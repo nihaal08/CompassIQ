@@ -11,7 +11,7 @@
 </div>
 
 <!-- KPI Metric Cards -->
-<div class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div class="kpi-grid">
     <div class="metric-card">
         <div class="metric-icon-wrapper">
             <i class="bi bi-ticket-perforated"></i>
@@ -89,7 +89,7 @@
 </div>
 
 <!-- User Approval Queue -->
-<div class="card mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div class="user-verification-card">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -106,7 +106,7 @@
                 <p class="text-muted">No pending user approvals</p>
             </div>
         {% else %}
-            <div class="table-container">
+            <div class="table-responsive">
                 <table class="enterprise-table">
                     <thead>
                         <tr>
@@ -122,21 +122,21 @@
                         {% for u in pending_users %}
                             <tr>
                                 <td class="no-wrap">
-                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold);">#{{ u.user_id }}</span>
+                                    <span class="no-wrap cell-ticket-id">#{{ u.user_id }}</span>
                                 </td>
-                                <td style="font-weight: var(--font-weight-medium);">{{ u.full_name }}</td>
-                                <td>{{ u.email }}</td>
-                                <td><span class="no-wrap" style="font-family: 'Courier New', monospace; color: var(--text-secondary);">{{ u.bill_no_product_id or 'None Provided' }}</span></td>
-                                <td class="no-wrap" style="color: var(--text-muted); font-size: 0.9rem;">{{ u.created_at[:10] if u.created_at else '' }}</td>
+                                <td class="cell-customer-name">{{ u.full_name }}</td>
+                                <td class="cell-secondary-text">{{ u.email }}</td>
+                                <td><span class="no-wrap cell-secondary-text" style="font-family: 'Courier New', monospace;">{{ u.bill_no_product_id or 'None Provided' }}</span></td>
+                                <td class="no-wrap cell-secondary-text" style="font-size: 0.9rem;">{{ u.created_at[:10] if u.created_at else '' }}</td>
                                 <td>
-                                    <div style="display: flex; gap: var(--spacing-sm);">
+                                    <div class="user-verification-actions">
                                         <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}">
-                                            <button type="submit" class="btn btn-accent" style="padding: 6px 12px; font-size: 0.85rem;">
+                                            <button type="submit" class="btn btn-accent btn-sm">
                                                 <i class="bi bi-check2"></i> Approve
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ url_for('reject_user', user_id=u.user_id) }}">
-                                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.85rem;">
+                                            <button type="submit" class="btn btn-danger btn-sm">
                                                 <i class="bi bi-x"></i> Reject
                                             </button>
                                         </form>
@@ -152,7 +152,7 @@
 </div>
 
 <!-- Fraud Management Center -->
-<div class="card-forest-banner">
+<div class="fraud-escalation-center">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -169,14 +169,20 @@
                 <p class="text-muted" style="color: rgba(255, 255, 255, 0.7);">No active fraud or security incidents detected</p>
             </div>
         {% else %}
-            <div class="table-container">
-                <table class="enterprise-table">
+            <div class="table-responsive">
+                <table class="fraud-management-table">
+                    <colgroup>
+                        <col span="1">
+                        <col span="2">
+                        <col span="3">
+                        <col span="4">
+                        <col span="5">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Ticket ID</th>
                             <th>Customer</th>
-                            <th>Subject</th>
-                            <th>Priority</th>
+                            <th>Trigger/Reason</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -185,27 +191,26 @@
                         {% for ft in fraud_tickets %}
                             <tr>
                                 <td class="no-wrap">
-                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--danger);">{{ ft.ticket_id }}</span>
+                                    <span class="no-wrap cell-ticket-id">{{ ft.ticket_id }}</span>
                                 </td>
                                 <td>
-                                    <div style="font-weight: var(--font-weight-medium);">{{ ft.customer_name }}</div>
-                                    <div style="font-size: 0.85rem; color: var(--text-muted);">{{ ft.customer_email }}</div>
+                                    <div class="cell-customer-name">{{ ft.customer_name }}</div>
+                                    <div class="cell-customer-email">{{ ft.customer_email }}</div>
                                 </td>
                                 <td>
-                                    <div style="font-weight: var(--font-weight-medium);">{{ ft.subject }}</div>
-                                    <div style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">{{ ft.description }}</div>
+                                    <div class="cell-trigger-title">{{ ft.subject }}</div>
+                                    <div class="cell-trigger-description" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">{{ ft.description }}</div>
                                 </td>
-                                <td><span class="badge badge-priority-{{ ft.predicted_priority }}">{{ ft.predicted_priority }}</span></td>
                                 <td><span class="badge badge-status-{{ ft.status|replace(' ', '') }}">{{ ft.status }}</span></td>
                                 <td>
-                                    <div style="display: flex; gap: var(--spacing-sm);">
+                                    <div class="fraud-actions">
                                         <form method="POST" action="{{ url_for('ban_user', user_id=ft.customer_id) }}" onsubmit="return confirm('Ban user {{ ft.customer_name }} permanently?');">
-                                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.85rem;">
+                                            <button type="submit" class="btn btn-danger btn-sm">
                                                 <i class="bi bi-slash-circle"></i> Ban User
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ft.ticket_id) }}">
-                                            <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+                                            <button type="submit" class="btn btn-secondary btn-sm">
                                                 <i class="bi bi-check2-all"></i> Close
                                             </button>
                                         </form>

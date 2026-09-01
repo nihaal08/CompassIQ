@@ -19,6 +19,18 @@
   --primary-hover: #0f2b1f;             /* Darker shade for hover */
   --primary-light: #eefbf3;             /* Light mint background */
 
+  /* High-Contrast Professional Colors for Cards & Tables */
+  --card-bg: #ffffff;                   /* Clean white card background */
+  --card-border: #e5e7eb;               /* Light subtle gray border */
+  --card-text: #111827;                 /* Slate 900 for card titles */
+  --card-subtitle: #4b5563;             /* Slate 600 for card subtitles */
+  --table-header-bg: #f9fafb;           /* Light gray table header background */
+  --table-header-text: #6b7280;         /* Slate 500 for table headers */
+  --table-border: #e5e7eb;              /* Light table borders */
+  --cell-primary: #111827;              /* Slate 900 for primary cell content */
+  --cell-secondary: #64748b;            /* Slate 500 for secondary cell content */
+  --cell-monospace: #0f172a;            /* Slate 900 for monospace text */
+
   /* Vivid Lime / Spring Green Accent */
   --accent-green: #22c55e;              /* Vivid green for active states */
   --accent-lime: #4ade80;               /* Crisp lime for buttons and highlights */

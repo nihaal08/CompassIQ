@@ -373,6 +373,10 @@ css/components.css:
 - Metric cards and step tracker components
 - Demo credentials modal styling
 - Ticket modal and chat bubble components
+- Admin-specific components: .kpi-grid, .fraud-management-table, .table-responsive
+- Form utilities: .btn-sm, .btn-group, .fraud-actions, .user-verification-actions
+- Container utilities: .page-wrapper, .content-section, .section-divider
+- Fraud management components: .fraud-management-card, .fraud-escalation-center, .user-verification-card
 
 css/style.css:
 - Global application styles

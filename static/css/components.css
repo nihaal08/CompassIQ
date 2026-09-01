@@ -97,28 +97,33 @@
 }
 
 .badge-status-Submitted {
-  background-color: var(--status-submitted-bg);
-  color: var(--status-submitted);
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
 .badge-status-UnderReview {
-  background-color: var(--status-review-bg);
-  color: var(--status-review);
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .badge-status-InProgress {
-  background-color: var(--status-progress-bg);
-  color: var(--status-progress);
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .badge-status-Resolved {
-  background-color: var(--status-resolved-bg);
-  color: var(--status-resolved);
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .badge-status-Closed {
-  background-color: var(--status-closed-bg);
-  color: var(--status-closed);
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
 /* ========== BUTTONS ========== */
@@ -139,6 +144,29 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+}
+
+/* Small Button Variant */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  border-radius: 6px;
+}
+
+/* Button Group for Action Buttons */
+.btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Fraud Action Buttons */
+.fraud-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-primary:hover {
@@ -162,21 +190,21 @@
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-strong);
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .btn-secondary:hover {
-  background-color: var(--surface-subtle);
-  border-color: var(--primary);
-  color: var(--primary);
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
 /* Lime Accent Button */
@@ -231,19 +259,19 @@
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: var(--danger);
-  color: white;
+  background-color: #ef4444;
+  color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
-  font-weight: var(--font-weight-semibold);
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .btn-danger:hover {
-  background-color: #b91c1c;
+  background-color: #dc2626;
 }
 
 /* Ghost Button */
@@ -300,7 +328,7 @@
 /* ========== FORM ELEMENTS ========== */
 
 .form-group {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
 }
@@ -308,7 +336,7 @@
 .form-label {
   display: block;
   margin-bottom: 6px;
-  font-weight: var(--font-weight-medium);
+  font-weight: 500;
   font-size: 0.875rem;
   text-align: left;
   color: var(--text-primary);
@@ -364,11 +392,12 @@
 /* ========== CARDS & PANELS ========== */
 
 .card {
-  background-color: var(--surface-white);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-card);
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+  color: var(--card-text) !important;
   transition: all 0.2s ease;
 }
 
@@ -380,19 +409,19 @@
 .card-header {
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .card-title {
   font-size: 1.1rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  font-weight: 600;
+  color: var(--card-text) !important;
   margin: 0;
 }
 
 .card-subtitle {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: var(--card-subtitle) !important;
   margin-top: var(--spacing-sm);
 }
 
@@ -402,7 +431,7 @@
 
 .card-footer {
   padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--card-border);
   display: flex;
   gap: var(--spacing-md);
   justify-content: flex-end;
@@ -414,19 +443,26 @@
   border: 1px solid var(--border-mint);
 }
 
-/* Forest Banner Card */
+/* Forest Banner Card - Replaced with High-Contrast Light Theme */
 .card-forest-banner {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: white;
-  border: none;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--card-text) !important;
 }
 
 .card-forest-banner .card-title,
 .card-forest-banner .card-subtitle {
-  color: white;
+  color: var(--card-text) !important;
 }
 
 /* ========== TABLES ========== */
+
+/* Table Responsive Wrapper */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
 
 .enterprise-table {
   width: 100%;
@@ -435,7 +471,7 @@
 }
 
 .enterprise-table thead {
-  background-color: var(--surface-mint-light);
+  background-color: var(--table-header-bg);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -444,19 +480,23 @@
 .enterprise-table thead th {
   padding: 12px 16px;
   text-align: left;
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-mint);
+  font-weight: 700;
+  color: var(--table-header-text) !important;
+  border-bottom: 2px solid var(--table-border) !important;
   white-space: nowrap;
   vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
 }
 
 .enterprise-table tbody td {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-bottom: 1px solid var(--table-border);
+  color: var(--cell-secondary);
   height: 48px;
   vertical-align: middle;
+  word-break: break-word;
 }
 
 .enterprise-table tbody tr:hover {
@@ -466,6 +506,60 @@
 
 .enterprise-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Fraud Management Table Specifics */
+.fraud-management-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.fraud-management-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--table-header-text) !important;
+  border-bottom: 2px solid var(--table-border) !important;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+.fraud-management-table colgroup col[colspan="1"] {
+  width: 15%; /* Ticket ID */
+}
+
+.fraud-management-table colgroup col[colspan="2"] {
+  width: 20%; /* Customer */
+}
+
+.fraud-management-table colgroup col[colspan="3"] {
+  width: 30%; /* Trigger/Reason */
+}
+
+.fraud-management-table colgroup col[colspan="4"] {
+  width: 15%; /* Status */
+}
+
+.fraud-management-table colgroup col[colspan="5"] {
+  width: 20%; /* Actions */
+}
+
+.fraud-management-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--table-border);
+  color: var(--cell-secondary);
+  vertical-align: middle;
+  align-items: center;
+  word-break: break-word;
+}
+
+.fraud-management-table tbody tr {
+  height: auto;
+  min-height: 48px;
 }
 
 /* ========== MODAL ALERT ========== */
@@ -871,11 +965,19 @@
   background: var(--surface-white);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: 18px 20px;
   box-shadow: var(--shadow-card);
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
+}
+
+/* KPI Grid Layout */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: var(--spacing-2xl);
 }
 
 .metric-icon-wrapper {
@@ -949,4 +1051,108 @@
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+}
+
+/* ========== CONTAINER & SPACING ========== */
+
+.page-wrapper {
+  padding: 24px 32px;
+  margin: 0 auto;
+  max-width: 1400px;
+}
+
+.section-divider {
+  border-top: 1px solid var(--border-subtle);
+  margin: var(--spacing-xl) 0;
+}
+
+.content-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== FRAUD MANAGEMENT SPECIFIC ========== */
+
+.fraud-management-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+  color: var(--card-text) !important;
+  margin-bottom: var(--spacing-xl);
+}
+
+.fraud-management-card .card-header {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.fraud-escalation-center {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--card-text) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.fraud-escalation-center .card-title,
+.fraud-escalation-center .card-subtitle {
+  color: var(--card-text) !important;
+}
+
+/* Table Cell High-Contrast Typography */
+.cell-ticket-id {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.cell-customer-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.cell-customer-email {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.cell-trigger-title {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.cell-trigger-description {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.cell-secondary-text {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+/* ========== USER VERIFICATION QUEUE ========== */
+
+.user-verification-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
+  color: var(--card-text) !important;
+  margin-bottom: var(--spacing-xl);
+}
+
+.user-verification-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }

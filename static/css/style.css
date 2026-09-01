@@ -266,10 +266,16 @@ a:hover {
 .main-content {
   margin-left: var(--sidebar-width);
   margin-top: var(--header-height);
-  padding: var(--spacing-2xl);
+  padding: 0;
   flex: 1;
   min-height: calc(100vh - var(--header-height));
   background-color: var(--bg-canvas);
+}
+
+.page-wrapper {
+  padding: 24px 32px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .page-header {
@@ -286,6 +292,20 @@ a:hover {
 .page-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
+}
+
+/* ========== CONTENT SECTIONS ========== */
+.content-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-divider {
+  border-top: 1px solid var(--border-subtle);
+  margin: var(--spacing-xl) 0;
 }
 
 /* ========== UTILITIES ========== */
@@ -336,7 +356,7 @@ a:hover {
 .rounded { border-radius: var(--radius-md); }
 .shadow { box-shadow: var(--shadow-card); }
 
-/* Table Container for Responsive Scrolling */
+/* Table Container for Responsive Scrolling - DEPRECATED - Use .table-responsive from components.css */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -373,7 +393,10 @@ a:hover {
 
   .main-content {
     margin-left: 0;
-    padding: var(--spacing-lg);
+  }
+
+  .page-wrapper {
+    padding: 24px 32px;
   }
 
   .grid-cols-2,
@@ -387,7 +410,7 @@ a:hover {
   }
 
   /* Mobile Table Scrolling */
-  .table-container {
+  .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
