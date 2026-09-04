@@ -11,7 +11,7 @@
 </div>
 
 <!-- KPI Metric Cards -->
-<div class="kpi-grid">
+<div id="admin-kpi-summary" class="kpi-grid">
     <div class="metric-card">
         <div class="metric-icon-wrapper">
             <i class="bi bi-ticket-perforated"></i>
@@ -55,7 +55,7 @@
 </div>
 
 <!-- Analytics Charts -->
-<div class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div id="admin-analytics-section" class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Department Ticket Volume</h3>
@@ -89,7 +89,7 @@
 </div>
 
 <!-- User Approval Queue -->
-<div class="user-verification-card">
+<div id="user-verification-card" class="user-verification-card">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -152,7 +152,7 @@
 </div>
 
 <!-- Fraud Management Center -->
-<div class="fraud-escalation-center">
+<div id="fraud-escalation-center" class="fraud-escalation-center">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -224,10 +224,36 @@
         {% endif %}
     </div>
 </div>
+
+<!-- All Tickets Section (placeholder for full system ticket registry) -->
+<div id="admin-all-tickets-section" style="margin-top: var(--spacing-3xl);">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">System Ticket Registry</h3>
+            <p class="card-subtitle">Full overview of all tickets across all departments</p>
+        </div>
+        <div class="card-body">
+            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
+                <i class="bi bi-ticket-perforated" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
+                <p>Full ticket registry view - to be implemented</p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    function refreshAdminCharts() {
+        // Trigger chart update animation
+        const charts = document.querySelectorAll('canvas');
+        charts.forEach(canvas => {
+            if (canvas.chart) {
+                canvas.chart.update();
+            }
+        });
+    }
+
     function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData) {
         // Department Volume Chart
         const deptCtx = document.getElementById('deptVolumeChart').getContext('2d');

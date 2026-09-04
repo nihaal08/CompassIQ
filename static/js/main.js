@@ -8,6 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initAlertModals();
     initStarRatings();
+    initSidebarNavigation();
 });
 
 /* ==========================================================================
@@ -363,7 +364,165 @@ function copyHistoricalContext(text) {
 }
 
 /* ==========================================================================
-   5. ADMIN ANALYTICS CHART INITIALIZATION (Chart.js)
+   5. SIDEBAR NAVIGATION HANDLERS
+   ========================================================================== */
+
+function initSidebarNavigation() {
+  // 1. Locate the true scroll container
+  const scrollContainer = document.querySelector('.main-content') ||
+                          document.querySelector('.page-wrapper') ||
+                          document.documentElement;
+
+  // 2. Attach click handlers to all sidebar navigation links
+  const sidebarLinks = document.querySelectorAll('.sidebar-nav-item, .nav-link, [data-nav-action]');
+
+  sidebarLinks.forEach(link => {
+    link.addEventListener('click', function (e) {
+      const action = this.getAttribute('data-nav-action');
+
+      // Handle logout action - let it proceed normally
+      if (action === 'logout') {
+        return;
+      }
+
+      // Get target section ID based on action
+      let targetId = getTargetSectionId(action);
+      if (!targetId) return;
+
+      const targetEl = document.getElementById(targetId);
+      if (!targetEl) return;
+
+      e.preventDefault();
+
+      // Update active menu link styling
+      sidebarLinks.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+
+      // Handle special actions that don't require scrolling
+      if (action === 'profile' && typeof openProfileModal === 'function') {
+        openProfileModal();
+        return;
+      }
+
+      if (action === 'ai-insights') {
+        const modal = document.getElementById('ticketModal');
+        if (modal && modal.classList.contains('show')) {
+          scrollToSection('ai-insights-section', scrollContainer);
+        } else {
+          showCustomAlert('AI Insights', 'Open a ticket to view AI-powered similarity recommendations and confidence scores.', 'info');
+        }
+        return;
+      }
+
+      // Apply queue filters before scrolling
+      if (action === 'assigned-queue' && typeof triggerQueueFilter === 'function') {
+        triggerQueueFilter('all');
+      }
+      if (action === 'pending-submitted' && typeof triggerQueueFilter === 'function') {
+        triggerQueueFilter('Submitted');
+      }
+      if (action === 'in-progress' && typeof triggerQueueFilter === 'function') {
+        triggerQueueFilter('In Progress');
+      }
+      if (action === 'resolved-tickets' && typeof triggerQueueFilter === 'function') {
+        triggerQueueFilter('Resolved');
+      }
+
+      if (action === 'ticket-history' && typeof filterTicketHistory === 'function') {
+        filterTicketHistory();
+      }
+
+      if (action === 'my-tickets' && typeof resetTicketFilter === 'function') {
+        resetTicketFilter();
+      }
+
+      if (action === 'analytics' && typeof refreshAdminCharts === 'function') {
+        refreshAdminCharts();
+      }
+
+      // Perform scrolling
+      scrollToSection(targetId, scrollContainer);
+
+      // Special focus for create ticket
+      if (action === 'create-ticket') {
+        setTimeout(() => {
+          const subjectInput = document.getElementById('subject');
+          if (subjectInput) {
+            subjectInput.focus();
+          }
+        }, 500);
+      }
+    });
+  });
+}
+
+function getTargetSectionId(action) {
+  const actionMap = {
+    'dashboard': 'customer-stats-section',
+    'my-tickets': 'customer-tickets-table',
+    'create-ticket': 'create-ticket-section',
+    'ticket-history': 'customer-tickets-table',
+    'assigned-queue': 'department-ticket-table',
+    'pending-submitted': 'department-ticket-table',
+    'in-progress': 'department-ticket-table',
+    'resolved-tickets': 'department-ticket-table',
+    'ai-insights': 'ai-insights-section',
+    'all-tickets': 'admin-all-tickets-section',
+    'user-approvals': 'user-verification-card',
+    'fraud-center': 'fraud-escalation-center',
+    'analytics': 'admin-analytics-section'
+  };
+
+  // Determine which dashboard we're on
+  const currentPath = window.location.pathname;
+  if (currentPath.includes('/admin')) {
+    return actionMap[action] || null;
+  } else if (currentPath.includes('/agent')) {
+    return actionMap[action] || null;
+  } else if (currentPath.includes('/customer')) {
+    return actionMap[action] || null;
+  }
+
+  return actionMap[action] || null;
+}
+
+function scrollToSection(sectionId, scrollContainer) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+
+  // Top padding/offset so the card is not flush against the top edge
+  const DESIRED_TOP_OFFSET = 24;
+
+  // If scrolling is inside .main-content
+  if (scrollContainer && scrollContainer !== document.documentElement && scrollContainer !== document.body) {
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const targetRect = section.getBoundingClientRect();
+
+    // Calculate position relative to container's current scroll position
+    const targetPosition = targetRect.top - containerRect.top + scrollContainer.scrollTop - DESIRED_TOP_OFFSET;
+
+    scrollContainer.scrollTo({
+      top: Math.max(0, targetPosition),
+      behavior: 'smooth'
+    });
+  } else {
+    // Fallback for standard document window scrolling (no fixed header offset needed)
+    const targetTop = section.getBoundingClientRect().top + window.pageYOffset - DESIRED_TOP_OFFSET;
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: 'smooth'
+    });
+  }
+
+  // Visual focus ring to highlight the targeted card
+  section.classList.remove('section-focus-highlight');
+  void section.offsetWidth; // Force reflow
+  section.classList.add('section-focus-highlight');
+  setTimeout(() => section.classList.remove('section-focus-highlight'), 1200);
+}
+
+/* ==========================================================================
+   6. ADMIN ANALYTICS CHART INITIALIZATION (Chart.js)
    ========================================================================== */
 
 function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData) {

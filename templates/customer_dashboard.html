@@ -11,7 +11,7 @@
 </div>
 
 <!-- Summary Metrics -->
-<div class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div id="customer-stats-section" class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
     <div class="metric-card">
         <div class="metric-icon-wrapper">
             <i class="bi bi-ticket-perforated"></i>
@@ -51,7 +51,7 @@
 </div>
 
 <!-- Create Ticket Section -->
-<div class="card mb-2xl">
+<div id="create-ticket-section" class="card mb-2xl">
     <div class="card-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -67,7 +67,7 @@
         <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm">
             <div class="form-group">
                 <label class="form-label">Subject *</label>
-                <input type="text" name="subject" class="form-input" placeholder="Brief summary of your issue" required>
+                <input type="text" id="subject" name="subject" class="form-input" placeholder="Brief summary of your issue" required>
             </div>
 
             <div class="form-group">
@@ -86,9 +86,9 @@
 </div>
 
 <!-- Tickets List -->
-<div>
+<div id="customer-tickets-table">
     <h2 class="mb-lg" style="font-size: 1.3rem; font-weight: var(--font-weight-bold);">Your Tickets</h2>
-    
+
     {% if tickets|length == 0 %}
         <div class="card" style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg);">
             <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted); margin-bottom: var(--spacing-lg);"></i>
@@ -152,6 +152,73 @@
     {% endif %}
 </div>
 
+<!-- Profile Section (hidden, used for modal display) -->
+<div id="profile-section" style="display: none;"></div>
+
+<!-- User Profile Modal -->
+<div id="userProfileModal" class="alert-modal-backdrop">
+    <div class="alert-modal-box" style="max-width: 500px; text-align: left;">
+        <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="card-title">Account Profile</h3>
+                <button type="button" class="modal-close-btn" onclick="closeProfileModal()">
+                    &times;
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+                <div style="width: 64px; height: 64px; background: var(--surface-mint); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary);">
+                    {{ g.user.full_name[0].upper() }}
+                </div>
+                <div>
+                    <div style="font-size: 1.1rem; font-weight: var(--font-weight-semibold); color: var(--text-primary);">{{ g.user.full_name }}</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">{{ g.user.role|title }}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-md);">
+                <div>
+                    <div class="form-label">Email Address</div>
+                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
+                        <i class="bi bi-envelope me-2"></i>{{ g.user.email }}
+                        <i class="bi bi-check-circle-fill" style="color: var(--success); margin-left: var(--spacing-sm);"></i> Verified
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Bill No / Product ID</div>
+                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
+                        <i class="bi bi-tag me-2"></i>{{ g.user.bill_no_product_id or 'Not provided' }}
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Account Status</div>
+                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem;">
+                        {% if g.user.account_status == 'APPROVED' %}
+                            <span class="badge badge-status-Resolved"><i class="bi bi-check2-circle me-1"></i>Approved</span>
+                        {% elif g.user.account_status == 'PENDING' %}
+                            <span class="badge badge-status-UnderReview"><i class="bi bi-hourglass-split me-1"></i>Pending Verification</span>
+                        {% elif g.user.account_status == 'REJECTED' %}
+                            <span class="badge badge-status-Closed"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                        {% elif g.user.account_status == 'BANNED' %}
+                            <span class="badge badge-status-Closed" style="background: var(--danger-bg); color: var(--danger);"><i class="bi bi-slash-circle me-1"></i>Banned</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Member Since</div>
+                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
+                        <i class="bi bi-calendar me-2"></i>{{ g.user.created_at[:10] if g.user.created_at else 'N/A' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- Ticket Detail Modal -->
 <div id="ticketDetailModal" class="alert-modal-backdrop">
     <div class="alert-modal-box" style="max-width: 700px; text-align: left;">
@@ -168,6 +235,46 @@
 function toggleCreateForm() {
     const form = document.getElementById('createTicketForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function openProfileModal() {
+    const modal = document.getElementById('userProfileModal');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById('userProfileModal');
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function filterTicketHistory() {
+    const table = document.querySelector('#customer-tickets-table table tbody');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        const statusCell = row.querySelector('td:nth-child(5)');
+        if (statusCell) {
+            const statusText = statusCell.textContent.trim();
+            if (statusText === 'Resolved' || statusText === 'Closed') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+
+function resetTicketFilter() {
+    const table = document.querySelector('#customer-tickets-table table tbody');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
 }
 
 function openTicketDetail(ticketId) {
@@ -282,6 +389,20 @@ function closeTicketModal() {
 document.getElementById('ticketDetailModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeTicketModal();
+    }
+});
+
+// Close profile modal on backdrop click
+document.getElementById('userProfileModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeProfileModal();
+    }
+});
+
+// Close profile modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeProfileModal();
     }
 });
 </script>

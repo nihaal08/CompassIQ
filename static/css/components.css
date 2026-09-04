@@ -666,9 +666,9 @@
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   width: 90%;
-  max-width: 520px;
+  max-width: 650px;
   max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 24px;
   position: relative;
   transform: translateY(20px) scale(0.95);
@@ -677,6 +677,12 @@
 
 .modal-backdrop-custom.show .modal-content-custom {
   transform: translateY(0) scale(1);
+}
+
+.demo-credentials-modal-body {
+  max-height: 75vh;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .demo-section {
@@ -688,82 +694,96 @@
 }
 
 .demo-cred-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background-color 0.2s ease;
-  border-radius: 6px;
+  display: grid !important;
+  grid-template-columns: 145px 1fr auto !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  border: 1px solid #f1f5f9 !important;
+  margin-bottom: 8px !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .demo-cred-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0 !important;
 }
 
 .demo-cred-item:hover {
-  background-color: #f9fafb;
+  background: #f1f5f9 !important;
 }
 
-.demo-role-badge {
-  background: #eefbf3;
-  color: #1b4332;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-  font-size: 0.75rem;
-  flex-shrink: 0;
+.demo-cred-item .demo-role-badge {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  height: 28px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  background: #eefbf3 !important;
+  color: #1b4332 !important;
+  padding: 0 8px !important;
 }
 
 .demo-cred-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
 }
 
 .cred-email {
-  font-size: 0.85rem;
-  color: #374151;
-  font-weight: 500;
+  font-size: 0.8125rem !important;
+  color: #1e293b !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .cred-sep {
-  color: #9ca3af;
-  font-size: 0.85rem;
+  color: #9ca3af !important;
+  font-size: 0.8125rem !important;
+  flex-shrink: 0 !important;
 }
 
 .cred-pwd {
-  font-size: 0.85rem;
-  color: #4b5563;
-  font-family: 'Courier New', monospace;
-  background: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 0.75rem !important;
+  color: #0f172a !important;
+  font-family: 'Courier New', monospace !important;
+  background: #e2e8f0 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .demo-autofill-btn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  background: #133829 !important; /* Forest Green */
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  white-space: nowrap !important;
+  width: 110px !important;
+  flex-shrink: 0 !important;
 }
 
 .demo-autofill-btn:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #1e543e !important;
 }
 
 /* ========== TICKET DETAILS MODAL ========== */
@@ -1026,6 +1046,33 @@
 
 .metric-trend.negative {
   color: var(--danger);
+}
+
+/* ========== SECTION FOCUS HIGHLIGHT ========== */
+
+.section-focus-highlight {
+  outline: 2px solid var(--accent-lime, #10b981) !important;
+  outline-offset: 4px;
+  transition: outline 0.3s ease-in-out;
+}
+
+.section-focus-highlight-temp {
+  animation: highlightPulse 1.5s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    outline: 2px solid var(--accent-lime, #10b981);
+    outline-offset: 4px;
+  }
+  50% {
+    outline: 2px solid var(--accent-lime, #10b981);
+    outline-offset: 8px;
+  }
+  100% {
+    outline: 2px solid var(--accent-lime, #10b981);
+    outline-offset: 4px;
+  }
 }
 
 /* ========== LAYOUT GRID UTILITIES ========== */

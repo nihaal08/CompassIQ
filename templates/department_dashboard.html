@@ -11,7 +11,7 @@
 </div>
 
 <!-- Queue Status Tabs -->
-<div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-2xl); overflow-x: auto; padding-bottom: var(--spacing-md);">
+<div class="queue-status-tabs" style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-2xl); overflow-x: auto; padding-bottom: var(--spacing-md);">
     <a href="{{ url_for('agent_dashboard', status='all') }}" class="btn {% if current_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
         All ({{ counts.total or 0 }})
     </a>
@@ -30,10 +30,10 @@
 </div>
 
 <!-- Full-Width Ticket Queue -->
-<div class="card">
+<div id="department-ticket-table" class="card">
     <div style="padding: var(--spacing-lg);">
         <h3 style="margin: 0 0 var(--spacing-lg) 0; font-size: 1.1rem;">Assigned Tickets ({{ tickets|length }})</h3>
-        
+
         {% if tickets|length == 0 %}
             <div style="padding: var(--spacing-3xl) var(--spacing-lg); text-align: center; color: var(--text-muted);">
                 <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
@@ -128,7 +128,7 @@
         </div>
         
         <!-- Section 2: AI Intelligence & Similar Matches -->
-        <div style="margin-bottom: var(--spacing-xl);">
+        <div id="ai-insights-section" style="margin-bottom: var(--spacing-xl);">
             <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">AI Intelligence & Similar Matches</h4>
             <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md);">
                 <span id="modalCategory" class="badge badge-category">Category</span>
@@ -176,6 +176,16 @@
 </div>
 
 <script>
+function triggerQueueFilter(status) {
+    const filterButtons = document.querySelectorAll('.queue-status-tabs a');
+    filterButtons.forEach(btn => {
+        const btnStatus = btn.getAttribute('href').split('status=')[1];
+        if (btnStatus === status) {
+            window.location.href = btn.getAttribute('href');
+        }
+    });
+}
+
 function openTicketModal(ticketId) {
     const modal = document.getElementById('ticketModal');
     const formTicketId = document.getElementById('modalFormTicketId');

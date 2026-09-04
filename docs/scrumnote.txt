@@ -335,3 +335,43 @@ TC-11 | Login guard blocking unapproved pending accounts           | Pass
 TC-12 | Role-Based Access Control (RBAC) route security            | Pass
 TC-13 | Customer CSAT star rating range validation (1–5 stars)     | Pass
 TC-14 | High-contrast centered modal UI & top-right close buttons  | Pass
+
+
+* Demo Credentials & Test Accounts
+
+Administrator:
+- Email: admin@compassiq.com
+- Password: Admin@Compass2026
+- Role: Full system access, user approvals, fraud management
+
+Department Support Agents:
+- Technical Support Agent
+  - Email: tech.support@compassiq.com
+  - Password: Tech@Support2026
+  - Department: Technical
+
+- Billing Support Agent
+  - Email: billing.support@compassiq.com
+  - Password: Billing@Support2026
+  - Department: Billing
+
+- Account Support Agent
+  - Email: account.support@compassiq.com
+  - Password: Account@Support2026
+  - Department: Account
+
+- General Inquiry Support Agent
+  - Email: general.support@compassiq.com
+  - Password: General@Support2026
+  - Department: General Inquiry
+
+Customer Accounts:
+- Approved Customer
+  - Email: alex.morgan@customer.com
+  - Password: Customer@2026
+  - Status: APPROVED (can login immediately)
+
+- Pending Customer
+  - Email: jordan.lee@customer.com
+  - Password: Customer@2026
+  - Status: PENDING (requires admin approval before login)

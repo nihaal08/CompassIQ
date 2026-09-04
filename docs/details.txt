@@ -306,7 +306,7 @@ Constraints:
 
 Seed Data:
 - 1 Administrator account (admin@compassiq.com)
-- 2 Department agents (Technical & Billing support)
+- 4 Department agents (Technical, Billing, Account, General Inquiry support)
 - 2 Customer accounts (1 approved, 1 pending)
 - 12 Sample tickets across all categories
 - 30+ Similar historical ticket matches
@@ -812,6 +812,18 @@ Billing Support Agent:
 - Password: Billing@Support2026
 - Role: Billing department ticket management
 - Department: Billing
+
+Account Support Agent:
+- Email: account.support@compassiq.com
+- Password: Account@Support2026
+- Role: Account department ticket management
+- Department: Account
+
+General Inquiry Support Agent:
+- Email: general.support@compassiq.com
+- Password: General@Support2026
+- Role: General Inquiry department ticket management
+- Department: General Inquiry
 
 Customer (Approved):
 - Email: alex.morgan@customer.com

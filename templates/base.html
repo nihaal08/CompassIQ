@@ -44,27 +44,33 @@
                     {% if g.user.role == 'customer' %}
                         <div class="nav-section-title">Main</div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link {% if request.endpoint == 'customer_dashboard' %}active{% endif %}">
+                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link {% if request.endpoint == 'customer_dashboard' %}active{% endif %}" data-nav-action="dashboard">
                                 <i class="bi bi-grid-3x3-gap"></i>
                                 <span>Dashboard</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}#create-ticket-section" class="nav-link">
+                            <a href="{{ url_for('customer_dashboard') }}#customer-tickets-table" class="nav-link" data-nav-action="my-tickets">
+                                <i class="bi bi-inbox"></i>
+                                <span>My Tickets</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="{{ url_for('customer_dashboard') }}#create-ticket-section" class="nav-link" data-nav-action="create-ticket">
                                 <i class="bi bi-plus-circle"></i>
                                 <span>Create Ticket</span>
                             </a>
                         </div>
-                        
+
                         <div class="nav-section-title mt-4">My Activity</div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}#tickets-section" class="nav-link">
+                            <a href="#" class="nav-link" data-nav-action="ticket-history">
                                 <i class="bi bi-clock-history"></i>
                                 <span>Ticket History</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}#profile-section" class="nav-link">
+                            <a href="#" class="nav-link" data-nav-action="profile">
                                 <i class="bi bi-person-circle"></i>
                                 <span>Profile</span>
                             </a>
@@ -74,27 +80,39 @@
                     {% elif g.user.role == 'agent' %}
                         <div class="nav-section-title">Agent Workspace</div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link {% if request.endpoint == 'agent_dashboard' %}active{% endif %}">
+                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link {% if request.endpoint == 'agent_dashboard' %}active{% endif %}" data-nav-action="dashboard">
                                 <i class="bi bi-grid-3x3-gap"></i>
                                 <span>Dashboard</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard', status='all') }}" class="nav-link">
+                            <a href="{{ url_for('agent_dashboard') }}#department-ticket-table" class="nav-link" data-nav-action="assigned-queue">
                                 <i class="bi bi-inbox"></i>
                                 <span>Assigned Queue</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard', status='Submitted') }}" class="nav-link">
+                            <a href="#" class="nav-link" data-nav-action="pending-submitted">
                                 <i class="bi bi-eye"></i>
-                                <span>Pending Review</span>
+                                <span>Pending / Submitted</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard', status='Resolved') }}" class="nav-link">
+                            <a href="#" class="nav-link" data-nav-action="in-progress">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span>In Progress</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link" data-nav-action="resolved-tickets">
                                 <i class="bi bi-check2-circle"></i>
-                                <span>Resolved</span>
+                                <span>Resolved Tickets</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link" data-nav-action="ai-insights">
+                                <i class="bi bi-cpu"></i>
+                                <span>AI Insights</span>
                             </a>
                         </div>
 
@@ -102,31 +120,31 @@
                     {% elif g.user.role == 'admin' %}
                         <div class="nav-section-title">Administration</div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" data-nav-action="dashboard">
                                 <i class="bi bi-grid-3x3-gap"></i>
                                 <span>Dashboard</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#all-tickets-section" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#admin-all-tickets-section" class="nav-link" data-nav-action="all-tickets">
                                 <i class="bi bi-ticket-perforated"></i>
                                 <span>All Tickets</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#user-approvals-section" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#user-verification-card" class="nav-link" data-nav-action="user-approvals">
                                 <i class="bi bi-person-check"></i>
                                 <span>User Approvals</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#fraud-center-section" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#fraud-escalation-center" class="nav-link" data-nav-action="fraud-center">
                                 <i class="bi bi-exclamation-diamond"></i>
                                 <span>Fraud Center</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#analytics-section" class="nav-link">
+                            <a href="{{ url_for('admin_dashboard') }}#admin-analytics-section" class="nav-link" data-nav-action="analytics">
                                 <i class="bi bi-bar-chart"></i>
                                 <span>Analytics</span>
                             </a>
@@ -138,38 +156,38 @@
             <!-- Sidebar Footer -->
             <div class="sidebar-footer">
                 {% if g.user %}
-                    <a href="{{ url_for('logout') }}" class="sign-out-link">
+                    <a href="{{ url_for('logout') }}" class="sign-out-link" data-nav-action="logout">
                         <i class="bi bi-box-arrow-right me-2"></i>Sign Out
                     </a>
                 {% endif %}
             </div>
         </aside>
 
-        <!-- ========== HEADER ========== -->
-        <header class="header">
-            <div class="header-left">
-                <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
-                    <i class="bi bi-list"></i>
-                </button>
-                <div class="header-breadcrumb">
-                    {% block breadcrumb %}Dashboard{% endblock %}
-                </div>
-            </div>
-            <div class="header-actions">
-                {% if g.user %}
-                    <a href="#" class="user-profile-pill">
-                        <div class="user-avatar">{{ g.user.full_name[0].upper() }}</div>
-                        <span>{{ g.user.role|title }}</span>
-                        {% if g.user.department and g.user.department != 'None' %}
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
-                        {% endif %}
-                    </a>
-                {% endif %}
-            </div>
-        </header>
-
         <!-- ========== MAIN CONTENT ========== -->
         <main class="main-content">
+            <!-- Scrolling Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="header-breadcrumb">
+                        {% block breadcrumb %}Dashboard{% endblock %}
+                    </div>
+                </div>
+                <div class="header-actions">
+                    {% if g.user %}
+                        <a href="#" class="user-profile-pill">
+                            <div class="user-avatar">{{ g.user.full_name[0].upper() }}</div>
+                            <span>{{ g.user.role|title }}</span>
+                            {% if g.user.department and g.user.department != 'None' %}
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
+                            {% endif %}
+                        </a>
+                    {% endif %}
+                </div>
+            </header>
+
             <div class="page-wrapper">
                 {% block content %}{% endblock %}
             </div>

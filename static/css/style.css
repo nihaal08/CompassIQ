@@ -172,10 +172,11 @@ a:hover {
 
 /* ========== HEADER / TOP BAR ========== */
 .header {
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width);
-  right: 0;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
   height: var(--header-height);
   background-color: var(--surface-white);
   border-bottom: 1px solid var(--border-subtle);
@@ -183,7 +184,7 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--spacing-lg);
-  z-index: var(--z-sticky);
+  z-index: 10;
   box-shadow: var(--shadow-sm);
 }
 
@@ -265,10 +266,10 @@ a:hover {
 /* ========== MAIN CONTENT AREA ========== */
 .main-content {
   margin-left: var(--sidebar-width);
-  margin-top: var(--header-height);
+  margin-top: 0;
   padding: 0;
   flex: 1;
-  min-height: calc(100vh - var(--header-height));
+  min-height: 100vh;
   background-color: var(--bg-canvas);
 }
 
@@ -389,6 +390,7 @@ a:hover {
 
   .header {
     left: 0;
+    position: relative;
   }
 
   .main-content {
@@ -427,7 +429,8 @@ a:hover {
   }
 
   .header {
-    left: 220px;
+    left: 0;
+    position: relative;
   }
 
   .main-content {
