@@ -7,6 +7,7 @@ zero-config schema initialization using Python's built-in sqlite3 module.
 
 import os
 import sqlite3
+from pathlib import Path
 from config import Config
 
 
@@ -82,12 +83,13 @@ def init_db_schema(schema_path: str = None):
     executes schema.sql via executescript() to create tables and seed data.
     """
     if schema_path is None:
-        schema_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'schema.sql')
+        schema_path = Config.SCHEMA_PATH
 
     print(f"[CompassIQ DB] Database path: {Config.DATABASE_PATH}")
+    print(f"[CompassIQ DB] Schema path: {schema_path}")
 
     # 1. Check if database file exists
-    db_exists = os.path.exists(Config.DATABASE_PATH)
+    db_exists = Path(Config.DATABASE_PATH).exists()
     
     # 2. If database doesn't exist, create it and initialize schema
     if not db_exists:
@@ -118,7 +120,7 @@ def init_db_schema(schema_path: str = None):
 
         # 4. If users table does not exist, execute schema.sql
         print(f"[CompassIQ DB] Initializing tables & seed data from {schema_path}...")
-        if not os.path.exists(schema_path):
+        if not Path(schema_path).exists():
             raise FileNotFoundError(f"Schema file not found at {schema_path}")
 
         with open(schema_path, 'r', encoding='utf-8') as f:
