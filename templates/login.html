@@ -271,11 +271,11 @@
                             Login to CompassIQ
                         </button>
                     </form>
-                    
+
                     <div class="auth-links">
-                        <a href="#">Forgot Password?</a>
+                        <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
                     </div>
-                    
+
                     <div class="auth-divider">
                         <span>or</span>
                     </div>
@@ -417,6 +417,34 @@
         </div>
     </div>
 
+    <!-- Forgot Password Info Modal -->
+    <div class="alert-modal-backdrop" id="forgotPasswordModal">
+        <div class="alert-modal-box" style="max-width: 400px;">
+            <button type="button" class="modal-close-btn" id="closeForgotPasswordModal">
+                &times;
+            </button>
+
+            <h3 class="alert-modal-title">
+                <i class="bi bi-info-circle" style="color: var(--info);"></i> Password Reset
+            </h3>
+
+            <p class="alert-modal-message">
+                For academic demo purposes, please contact the system administrator to reset credentials.
+            </p>
+
+            <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); margin: var(--spacing-md) 0;">
+                <strong style="color: var(--text-primary);">Admin Contact:</strong><br>
+                <span style="color: var(--text-secondary);">admin@compassiq.local</span>
+            </div>
+
+            <div class="alert-modal-buttons">
+                <button type="button" class="btn btn-primary" id="closeForgotPasswordBtn">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Flash Messages Modal -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -515,6 +543,42 @@
                     document.body.style.overflow = '';
                 }
             });
+
+            // Forgot Password Modal
+            const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+            const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+            const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+            const closeForgotPasswordBtn = document.getElementById('closeForgotPasswordBtn');
+
+            if (forgotPasswordBtn && forgotPasswordModal) {
+                forgotPasswordBtn.addEventListener('click', function() {
+                    forgotPasswordModal.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (closeForgotPasswordModal && forgotPasswordModal) {
+                closeForgotPasswordModal.addEventListener('click', function() {
+                    forgotPasswordModal.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (closeForgotPasswordBtn && forgotPasswordModal) {
+                closeForgotPasswordBtn.addEventListener('click', function() {
+                    forgotPasswordModal.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (forgotPasswordModal) {
+                forgotPasswordModal.addEventListener('click', function(e) {
+                    if (e.target === forgotPasswordModal) {
+                        forgotPasswordModal.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
 
             // Auto-fill functionality
             const autofillButtons = document.querySelectorAll('.demo-autofill-btn');

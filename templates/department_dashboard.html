@@ -151,6 +151,7 @@
         <div>
             <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">Agent Response & Actions</h4>
             <form method="POST" id="modalReplyForm" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="ticket_id" id="modalFormTicketId">
                 <textarea name="message" class="form-textarea" placeholder="Reply to customer..." required style="min-height: 80px;"></textarea>
                 <div style="display: flex; gap: var(--spacing-md); align-items: center;">
@@ -194,7 +195,12 @@ function openTicketModal(ticketId) {
     
     // Load ticket details
     fetch(`/agent/tickets/${ticketId}/details`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load ticket details');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 const ticket = data.ticket;
@@ -278,6 +284,8 @@ function openTicketModal(ticketId) {
         })
         .catch(error => {
             console.error('Error loading ticket details:', error);
+            alert('Failed to load ticket details. Please try again or refresh the page.');
+            closeTicketModal();
         });
 }
 
@@ -309,18 +317,34 @@ document.getElementById('modalReplyForm').addEventListener('submit', function(e)
     e.preventDefault();
     const form = this;
     const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
     
     fetch(form.action, {
         method: 'POST',
         body: formData
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to submit response');
+        }
+        return response.text();
+    })
     .then(() => {
         closeTicketModal();
+        // Show success message and reload
+        alert('Response submitted successfully!');
         window.location.reload();
     })
     .catch(error => {
         console.error('Error submitting response:', error);
+        alert('Failed to submit response. Please try again.');
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Response & Update Status';
     });
 });
 </script>

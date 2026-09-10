@@ -18,6 +18,7 @@ from flask import (
     Flask, render_template, request, redirect,
     url_for, session, flash, jsonify, g
 )
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import Config
@@ -26,6 +27,10 @@ from ai_engine import predict_and_retrieve, load_ai_engine
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['SECRET_KEY'] = Config.SECRET_KEY
+
+# Initialize CSRF protection for demo purposes
+csrf = CSRFProtect(app)
 
 # Initialize AI engine on startup (if models are already present)
 try:
@@ -249,6 +254,7 @@ def customer_dashboard():
     return render_template('customer_dashboard.html', tickets=tickets)
 
 
+@app.route('/create_ticket', methods=['POST'])
 @app.route('/customer/tickets/create', methods=['POST'])
 @customer_required
 def create_ticket():
@@ -324,8 +330,10 @@ def view_customer_ticket(ticket_id):
         one=True
     )
     if not ticket:
-        flash("Ticket not found or unauthorized.", "danger")
-        return redirect(url_for('customer_dashboard'))
+        return jsonify({
+            'success': False,
+            'message': 'Ticket not found or unauthorized'
+        }), 404
 
     # Fetch conversation replies
     replies = query_db(
@@ -338,6 +346,7 @@ def view_customer_ticket(ticket_id):
     )
 
     return jsonify({
+        'success': True,
         'status': 'success',
         'ticket': ticket,
         'replies': replies
@@ -349,8 +358,7 @@ def view_customer_ticket(ticket_id):
 def customer_ticket_reply(ticket_id):
     message = request.form.get('message', '').strip()
     if not message:
-        flash("Reply message cannot be empty.", "warning")
-        return redirect(url_for('customer_dashboard'))
+        return jsonify({'success': False, 'message': 'Reply message cannot be empty.'}), 400
 
     # Verify ownership
     ticket = query_db(
@@ -359,19 +367,32 @@ def customer_ticket_reply(ticket_id):
         one=True
     )
     if not ticket:
-        flash("Unauthorized or invalid ticket.", "danger")
-        return redirect(url_for('customer_dashboard'))
+        return jsonify({'success': False, 'message': 'Unauthorized or invalid ticket.'}), 403
 
     if ticket['status'] in ['Resolved', 'Closed']:
-        flash("This ticket is resolved or closed. Replies are locked.", "warning")
-        return redirect(url_for('customer_dashboard'))
+        return jsonify({'success': False, 'message': 'This ticket is resolved or closed. Replies are locked.'}), 403
 
     modify_db(
         "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
         (ticket_id, g.user['user_id'], message)
     )
-    flash("Reply sent successfully.", "success")
-    return redirect(url_for('customer_dashboard'))
+    
+    # Fetch the newly created reply for immediate UI update
+    new_reply = query_db(
+        """SELECT r.*, u.full_name as sender_name, u.role as sender_role
+           FROM ticket_replies r
+           JOIN users u ON r.sender_id = u.user_id
+           WHERE r.ticket_id = ? 
+           ORDER BY r.created_at DESC LIMIT 1""",
+        (ticket_id,),
+        one=True
+    )
+    
+    return jsonify({
+        'success': True,
+        'message': 'Reply sent successfully.',
+        'reply': new_reply
+    })
 
 
 @app.route('/customer/tickets/<ticket_id>/feedback', methods=['POST'])
@@ -562,6 +583,7 @@ def admin_dashboard():
     # 1. Metric Cards
     total_tickets = query_db("SELECT COUNT(*) as count FROM tickets", one=True)['count']
     pending_users = query_db("SELECT COUNT(*) as count FROM users WHERE account_status = 'PENDING'", one=True)['count']
+    critical_tickets = query_db("SELECT COUNT(*) as count FROM tickets WHERE predicted_priority IN ('Critical', 'High')", one=True)['count']
     resolved_tickets = query_db("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", one=True)['count']
     resolve_rate = round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0.0
 
@@ -628,6 +650,7 @@ def admin_dashboard():
         metrics={
             'total_tickets': total_tickets,
             'pending_users': pending_users,
+            'critical_count': critical_tickets,
             'resolve_rate': resolve_rate,
             'avg_resolution_hours': avg_resolution_hours
         },
@@ -645,8 +668,18 @@ def admin_dashboard():
 @app.route('/admin/users/<int:user_id>/approve', methods=['POST'])
 @admin_required
 def approve_user(user_id):
-    modify_db("UPDATE users SET account_status = 'APPROVED' WHERE user_id = ?", (user_id,))
-    flash(f"User ID #{user_id} approved successfully.", "success")
+    # Get user info to check role and assign default department if needed
+    user = query_db("SELECT role, department FROM users WHERE user_id = ?", (user_id,), one=True)
+    
+    if user and user['role'] == 'agent' and (not user['department'] or user['department'] == 'None'):
+        # Assign default department for new agents
+        default_dept = request.form.get('department', 'Technical')
+        modify_db("UPDATE users SET account_status = 'APPROVED', department = ? WHERE user_id = ?", (default_dept, user_id))
+        flash(f"User ID #{user_id} approved successfully and assigned to {default_dept} department.", "success")
+    else:
+        modify_db("UPDATE users SET account_status = 'APPROVED' WHERE user_id = ?", (user_id,))
+        flash(f"User ID #{user_id} approved successfully.", "success")
+    
     return redirect(url_for('admin_dashboard'))
 
 

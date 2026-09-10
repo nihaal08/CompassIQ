@@ -157,124 +157,165 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
     3. Detects Fraud / predicts Category & Priority with confidence scores.
     4. Computes fast sparse cosine similarity against historical corpus.
     5. Returns prediction dictionary with confidence metrics and top-3 historical matches.
-    
+
     ENHANCED FEATURES:
     - Prediction confidence percentages using predict_proba()
     - Low confidence flag for manual review (< 45% confidence)
     - Hybrid fraud arbitration (rule-based + ML)
     - Fast sparse matrix operations for similarity retrieval
+    - Safe fallbacks for model failures
     """
     global vectorizer, category_model, priority_model, historical_corpus, _is_initialized
-    
-    if not _is_initialized:
-        load_ai_engine()
 
-    raw_combined = f"{subject} {description}"
-    cleaned = clean_text(raw_combined)
+    # Safe fallback for empty or invalid input
+    if not subject or not description or not isinstance(subject, str) or not isinstance(description, str):
+        print("[AI Engine] Warning: Empty or invalid input, using safe fallback")
+        return {
+            'predicted_category': 'General Inquiry',
+            'predicted_priority': 'Medium',
+            'assigned_department': 'Technical',
+            'category_confidence': '50.0%',
+            'priority_confidence': '50.0%',
+            'low_confidence': True,
+            'fraud_flagged': False,
+            'similar_tickets': []
+        }
 
-    # Check for direct security/fraud triggers first (Hybrid Fraud Arbitration)
-    text_lower = raw_combined.lower()
-    is_fraud_trigger = any(indicator in text_lower for indicator in FRAUD_INDICATORS)
+    try:
+        if not _is_initialized:
+            load_ai_engine()
 
-    if not _is_initialized or vectorizer is None:
-        result = _heuristic_fallback(subject, description)
+        raw_combined = f"{subject} {description}"
+        cleaned = clean_text(raw_combined)
+
+        # Check for direct security/fraud triggers first (Hybrid Fraud Arbitration)
+        text_lower = raw_combined.lower()
+        is_fraud_trigger = any(indicator in text_lower for indicator in FRAUD_INDICATORS)
+
+        if not _is_initialized or vectorizer is None:
+            result = _heuristic_fallback(subject, description)
+            if is_fraud_trigger:
+                result['predicted_category'] = 'Fraud'
+                result['predicted_priority'] = 'Critical'
+                result['assigned_department'] = 'Admin_Fraud'
+                result['fraud_flagged'] = True
+            return result
+
+        # 1. Transform text using fitted vectorizer
+        input_tfidf = vectorizer.transform([cleaned])
+
+        # 2. Predict Category & Priority with Confidence Scoring
+        category_confidence = 0.0
+        priority_confidence = 0.0
+        low_confidence_flag = False
+
         if is_fraud_trigger:
-            result['predicted_category'] = 'Fraud'
-            result['predicted_priority'] = 'Critical'
-            result['assigned_department'] = 'Admin_Fraud'
-            result['fraud_flagged'] = True
-        return result
-
-    # 1. Transform text using fitted vectorizer
-    input_tfidf = vectorizer.transform([cleaned])
-
-    # 2. Predict Category & Priority with Confidence Scoring
-    category_confidence = 0.0
-    priority_confidence = 0.0
-    low_confidence_flag = False
-    
-    if is_fraud_trigger:
-        # Hybrid Fraud Arbitration: Rule-based override
-        predicted_category = 'Fraud'
-        predicted_priority = 'Critical'
-        assigned_dept = 'Admin_Fraud'
-        category_confidence = 95.0  # High confidence for rule-based fraud detection
-        priority_confidence = 95.0
-        fraud_flagged = True
-    else:
-        # ML-based predictions with probability estimation
-        predicted_category = category_model.predict(input_tfidf)[0]
-        predicted_priority = priority_model.predict(input_tfidf)[0]
-        
-        # Calculate confidence scores using predict_proba
-        cat_proba = category_model.predict_proba(input_tfidf)[0]
-        cat_classes = category_model.classes_
-        cat_max_idx = np.argmax(cat_proba)
-        category_confidence = float(cat_proba[cat_max_idx]) * 100.0
-        
-        prio_proba = priority_model.predict_proba(input_tfidf)[0]
-        prio_classes = priority_model.classes_
-        prio_max_idx = np.argmax(prio_proba)
-        priority_confidence = float(prio_proba[prio_max_idx]) * 100.0
-        
-        # Low confidence flag for manual review
-        if category_confidence < 45.0:
-            low_confidence_flag = True
-        
-        # Hybrid Fraud Arbitration: ML-based fraud detection
-        fraud_flagged = (predicted_category == 'Fraud')
-        
-        # Map Category to Department
-        if predicted_category in ['Technical', 'Billing', 'Account', 'General Inquiry']:
-            assigned_dept = predicted_category
-        elif predicted_category == 'Fraud':
-            assigned_dept = 'Admin_Fraud'
+            # Hybrid Fraud Arbitration: Rule-based override
+            predicted_category = 'Fraud'
             predicted_priority = 'Critical'
+            assigned_dept = 'Admin_Fraud'
+            category_confidence = 95.0  # High confidence for rule-based fraud detection
+            priority_confidence = 95.0
             fraud_flagged = True
         else:
-            assigned_dept = 'General Inquiry'
+            try:
+                # ML-based predictions with probability estimation
+                predicted_category = category_model.predict(input_tfidf)[0]
+                predicted_priority = priority_model.predict(input_tfidf)[0]
 
-    # 3. Fast Sparse Cosine Similarity Retrieval (sub-2ms)
-    similar_matches = []
-    if historical_corpus and 'tfidf_matrix' in historical_corpus and 'metadata' in historical_corpus:
-        try:
-            corpus_matrix = historical_corpus['tfidf_matrix']
-            metadata_list = historical_corpus['metadata']
-            
-            # Use linear_kernel for faster sparse matrix operations
-            # This is equivalent to cosine similarity for normalized TF-IDF vectors
-            cos_sims = linear_kernel(input_tfidf, corpus_matrix).flatten()
-            
-            # Get top indices (sorted descending)
-            top_indices = np.argsort(cos_sims)[::-1][:top_k]
-            
-            for idx in top_indices:
-                score = float(cos_sims[idx]) * 100.0  # Percentage
-                item = metadata_list[idx]
-                
-                similar_matches.append({
-                    'similar_ticket_ref_id': str(item.get('Ticket_ID', f"HIST-{idx}")),
-                    'similarity_score': round(score, 2),
-                    'similar_subject': str(item.get('Ticket_Subject', 'Historical Ticket')),
-                    'similar_description': str(item.get('Ticket_Description', 'No description available.')),
-                    'historical_resolution_hours': int(item.get('Resolution_Time_Hours', 24)) if pd.notna(item.get('Resolution_Time_Hours')) else None,
-                    'satisfaction_score': int(item.get('Satisfaction_Score', 5)) if pd.notna(item.get('Satisfaction_Score')) else None,
-                    'category': str(item.get('Issue_Category', 'General Inquiry')),
-                    'priority': str(item.get('Priority_Level', 'Medium'))
-                })
-        except Exception as e:
-            print(f"[AI Engine] Error computing cosine similarities: {e}")
+                # Calculate confidence scores using predict_proba
+                cat_proba = category_model.predict_proba(input_tfidf)[0]
+                cat_classes = category_model.classes_
+                cat_max_idx = np.argmax(cat_proba)
+                category_confidence = float(cat_proba[cat_max_idx]) * 100.0
 
-    return {
-        'predicted_category': predicted_category,
-        'predicted_priority': predicted_priority,
-        'assigned_department': assigned_dept,
-        'category_confidence': f"{category_confidence:.1f}%",
-        'priority_confidence': f"{priority_confidence:.1f}%",
-        'low_confidence': low_confidence_flag,
-        'fraud_flagged': fraud_flagged,
-        'similar_tickets': similar_matches
-    }
+                prio_proba = priority_model.predict_proba(input_tfidf)[0]
+                prio_classes = priority_model.classes_
+                prio_max_idx = np.argmax(prio_proba)
+                priority_confidence = float(prio_proba[prio_max_idx]) * 100.0
+
+                # Low confidence flag for manual review
+                if category_confidence < 45.0:
+                    low_confidence_flag = True
+
+                # Hybrid Fraud Arbitration: ML-based fraud detection
+                fraud_flagged = (predicted_category == 'Fraud')
+
+                # Map Category to Department
+                if predicted_category in ['Technical', 'Billing', 'Account', 'General Inquiry']:
+                    assigned_dept = predicted_category
+                elif predicted_category == 'Fraud':
+                    assigned_dept = 'Admin_Fraud'
+                    predicted_priority = 'Critical'
+                    fraud_flagged = True
+                else:
+                    assigned_dept = 'General Inquiry'
+
+            except Exception as e:
+                print(f"[AI Engine] ML prediction error: {e}, using safe fallback")
+                # Safe fallback on ML errors
+                predicted_category = 'General Inquiry'
+                predicted_priority = 'Medium'
+                assigned_dept = 'Technical'
+                category_confidence = 50.0
+                priority_confidence = 50.0
+                low_confidence_flag = True
+                fraud_flagged = False
+
+        # 3. Fast Sparse Cosine Similarity Retrieval (sub-2ms)
+        similar_matches = []
+        if historical_corpus and 'tfidf_matrix' in historical_corpus and 'metadata' in historical_corpus:
+            try:
+                corpus_matrix = historical_corpus['tfidf_matrix']
+                metadata_list = historical_corpus['metadata']
+
+                # Use linear_kernel for faster sparse matrix operations
+                # This is equivalent to cosine similarity for normalized TF-IDF vectors
+                cos_sims = linear_kernel(input_tfidf, corpus_matrix).flatten()
+
+                # Get top indices (sorted descending)
+                top_indices = np.argsort(cos_sims)[::-1][:top_k]
+
+                for idx in top_indices:
+                    score = float(cos_sims[idx]) * 100.0  # Percentage
+                    item = metadata_list[idx]
+
+                    similar_matches.append({
+                        'similar_ticket_ref_id': str(item.get('Ticket_ID', f"HIST-{idx}")),
+                        'similarity_score': round(score, 2),
+                        'similar_subject': str(item.get('Ticket_Subject', 'Historical Ticket')),
+                        'similar_description': str(item.get('Ticket_Description', 'No description available.')),
+                        'historical_resolution_hours': int(item.get('Resolution_Time_Hours', 24)) if pd.notna(item.get('Resolution_Time_Hours')) else None,
+                        'satisfaction_score': int(item.get('Satisfaction_Score', 5)) if pd.notna(item.get('Satisfaction_Score')) else None,
+                        'category': str(item.get('Issue_Category', 'General Inquiry')),
+                        'priority': str(item.get('Priority_Level', 'Medium'))
+                    })
+            except Exception as e:
+                print(f"[AI Engine] Error computing cosine similarities: {e}")
+
+        return {
+            'predicted_category': predicted_category,
+            'predicted_priority': predicted_priority,
+            'assigned_department': assigned_dept,
+            'category_confidence': f"{category_confidence:.1f}%",
+            'priority_confidence': f"{priority_confidence:.1f}%",
+            'low_confidence': low_confidence_flag,
+            'fraud_flagged': fraud_flagged,
+            'similar_tickets': similar_matches
+        }
+
+    except Exception as e:
+        print(f"[AI Engine] Unexpected error in predict_and_retrieve: {e}, using safe fallback")
+        return {
+            'predicted_category': 'General Inquiry',
+            'predicted_priority': 'Medium',
+            'assigned_department': 'Technical',
+            'category_confidence': '50.0%',
+            'priority_confidence': '50.0%',
+            'low_confidence': True,
+            'fraud_flagged': False,
+            'similar_tickets': []
+        }
 
 
 # Attempt initial load upon import

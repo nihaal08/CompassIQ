@@ -16,12 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
    ========================================================================== */
 
 function initAlertModals() {
-    // Top-left close buttons
-    const closeBtns = document.querySelectorAll('.modal-close-top-left');
+    // Top-right close buttons (updated class)
+    const closeBtns = document.querySelectorAll('.modal-close-btn');
     closeBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const modalBackdrop = btn.closest('.alert-modal-backdrop') || btn.closest('.custom-modal-backdrop');
+            const modalBackdrop = btn.closest('.alert-modal-backdrop') || btn.closest('.custom-modal-backdrop') || btn.closest('.ticket-modal-backdrop');
             if (modalBackdrop) {
                 closeModal(modalBackdrop);
             }
@@ -78,8 +78,8 @@ function showCustomAlert(title, message, type = 'info') {
         modal.className = 'alert-modal-backdrop';
         modal.innerHTML = `
             <div class="alert-modal-box">
-                <button type="button" class="modal-close-top-left" title="Close">
-                    <i class="bi bi-x-lg">&times;</i>
+                <button type="button" class="modal-close-btn" title="Close">
+                    &times;
                 </button>
                 <div class="alert-icon-wrap alert-icon-${type}">
                     <i class="bi ${getIconForType(type)}"></i>
@@ -484,6 +484,58 @@ function getTargetSectionId(action) {
   }
 
   return actionMap[action] || null;
+}
+
+// Add missing triggerQueueFilter function for sidebar navigation
+function triggerQueueFilter(status) {
+    const filterButtons = document.querySelectorAll('.queue-status-tabs a');
+    filterButtons.forEach(btn => {
+        const btnStatus = btn.getAttribute('href').split('status=')[1];
+        if (btnStatus === status) {
+            window.location.href = btn.getAttribute('href');
+        }
+    });
+}
+
+// Add missing filterTicketHistory function for customer dashboard
+function filterTicketHistory() {
+    const table = document.querySelector('#customer-tickets-table table tbody');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        const statusCell = row.querySelector('td:nth-child(5)');
+        if (statusCell) {
+            const statusText = statusCell.textContent.trim();
+            if (statusText === 'Resolved' || statusText === 'Closed') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Add missing resetTicketFilter function for customer dashboard
+function resetTicketFilter() {
+    const table = document.querySelector('#customer-tickets-table table tbody');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+}
+
+// Add missing refreshAdminCharts function for admin dashboard
+function refreshAdminCharts() {
+    // Trigger chart update animation
+    const charts = document.querySelectorAll('canvas');
+    charts.forEach(canvas => {
+        if (canvas.chart) {
+            canvas.chart.update();
+        }
+    });
 }
 
 function scrollToSection(sectionId, scrollContainer) {

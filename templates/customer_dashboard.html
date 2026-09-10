@@ -64,7 +64,8 @@
         </div>
     </div>
     <div class="card-body">
-        <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm">
+        <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm" onsubmit="return validateTicketForm(this)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="form-label">Subject *</label>
                 <input type="text" id="subject" name="subject" class="form-input" placeholder="Brief summary of your issue" required>
@@ -237,6 +238,18 @@ function toggleCreateForm() {
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
+function validateTicketForm(form) {
+    const subject = form.querySelector('input[name="subject"]').value.trim();
+    const description = form.querySelector('textarea[name="description"]').value.trim();
+    
+    if (!subject || !description) {
+        alert('Please fill in both subject and description fields.');
+        return false;
+    }
+    
+    return true;
+}
+
 function openProfileModal() {
     const modal = document.getElementById('userProfileModal');
     modal.classList.add('show');
@@ -285,7 +298,12 @@ function openTicketDetail(ticketId) {
     modal.classList.add('show');
     
     fetch(`/customer/tickets/${ticketId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load ticket details');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.status === 'success') {
                 const ticket = data.ticket;
@@ -335,7 +353,8 @@ function openTicketDetail(ticketId) {
                         ${ticket.status === 'Resolved' && !ticket.satisfaction_score ? `
                             <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
                                 <h4 class="card-title" style="font-size: 1rem;">Rate Your Experience</h4>
-                                <form method="POST" action="/customer/tickets/${ticket.ticket_id}/feedback" style="margin-top: var(--spacing-md);">
+                                <form method="POST" action="/customer/tickets/${ticket.ticket_id}/feedback" style="margin-top: var(--spacing-md);" onsubmit="handleFeedbackSubmit(event, this)">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <div class="form-group">
                                         <label class="form-label">Satisfaction Score (1-5)</label>
                                         <select name="satisfaction_score" class="form-select">
@@ -352,6 +371,20 @@ function openTicketDetail(ticketId) {
                                         <textarea name="customer_feedback" class="form-textarea" placeholder="Share your experience with this support request"></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-accent">Submit Feedback</button>
+                                </form>
+                            </div>
+                        ` : ''}
+
+                        ${ticket.status !== 'Resolved' && ticket.status !== 'Closed' ? `
+                            <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
+                                <h4 class="card-title" style="font-size: 1rem;">Add Reply</h4>
+                                <form method="POST" action="/customer/tickets/${ticket.ticket_id}/reply" style="margin-top: var(--spacing-md);" onsubmit="handleCustomerReply(event, this)">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div class="form-group">
+                                        <label class="form-label">Your Message</label>
+                                        <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-accent">Send Reply</button>
                                 </form>
                             </div>
                         ` : ''}
@@ -376,13 +409,81 @@ function openTicketDetail(ticketId) {
             }
         })
         .catch(error => {
-            content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">Error loading ticket details</p></div>';
+            console.error('Error loading ticket details:', error);
+            content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">Error loading ticket details. Please try again.</p></div>';
         });
 }
 
 function closeTicketModal() {
     const modal = document.getElementById('ticketDetailModal');
     modal.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function handleFeedbackSubmit(event, form) {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to submit feedback');
+        }
+        return response.text();
+    })
+    .then(() => {
+        alert('Thank you! Your feedback has been recorded.');
+        closeTicketModal();
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Error submitting feedback:', error);
+        alert('Failed to submit feedback. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Feedback';
+    });
+}
+
+function handleCustomerReply(event, form) {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload ticket details to show new reply
+            const ticketId = form.action.split('/').pop();
+            openTicketDetail(ticketId);
+            alert('Reply sent successfully!');
+        } else {
+            alert(data.message || 'Failed to send reply. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Reply';
+        }
+    })
+    .catch(error => {
+        console.error('Error sending reply:', error);
+        alert('Failed to send reply. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Reply';
+    });
 }
 
 // Close modal on backdrop click
@@ -402,7 +503,15 @@ document.getElementById('userProfileModal').addEventListener('click', function(e
 // Close profile modal on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        closeProfileModal();
+        const profileModal = document.getElementById('userProfileModal');
+        const ticketModal = document.getElementById('ticketDetailModal');
+        
+        if (profileModal && profileModal.classList.contains('show')) {
+            closeProfileModal();
+        }
+        if (ticketModal && ticketModal.classList.contains('show')) {
+            closeTicketModal();
+        }
     }
 });
 </script>

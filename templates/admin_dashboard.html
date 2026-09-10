@@ -130,12 +130,29 @@
                                 <td class="no-wrap cell-secondary-text" style="font-size: 0.9rem;">{{ u.created_at[:10] if u.created_at else '' }}</td>
                                 <td>
                                     <div class="user-verification-actions">
-                                        <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}">
-                                            <button type="submit" class="btn btn-accent btn-sm">
-                                                <i class="bi bi-check2"></i> Approve
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('reject_user', user_id=u.user_id) }}">
+                                        {% if u.role == 'agent' %}
+                                            <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'approve', '{{ u.full_name }}')" style="display: flex; gap: 4px; align-items: center;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <select name="department" class="form-select" style="padding: 4px 8px; font-size: 0.85rem; min-width: 120px;">
+                                                    <option value="Technical">Technical</option>
+                                                    <option value="Billing">Billing</option>
+                                                    <option value="Account">Account</option>
+                                                    <option value="General Inquiry">General Inquiry</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-accent btn-sm">
+                                                    <i class="bi bi-check2"></i> Approve
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'approve', '{{ u.full_name }}')">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-accent btn-sm">
+                                                    <i class="bi bi-check2"></i> Approve
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        <form method="POST" action="{{ url_for('reject_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'reject', '{{ u.full_name }}')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-danger btn-sm">
                                                 <i class="bi bi-x"></i> Reject
                                             </button>
@@ -204,12 +221,14 @@
                                 <td><span class="badge badge-status-{{ ft.status|replace(' ', '') }}">{{ ft.status }}</span></td>
                                 <td>
                                     <div class="fraud-actions">
-                                        <form method="POST" action="{{ url_for('ban_user', user_id=ft.customer_id) }}" onsubmit="return confirm('Ban user {{ ft.customer_name }} permanently?');">
+                                        <form method="POST" action="{{ url_for('ban_user', user_id=ft.customer_id) }}" onsubmit="return handleFraudAction(event, 'ban', '{{ ft.customer_name }}')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-danger btn-sm">
                                                 <i class="bi bi-slash-circle"></i> Ban User
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ft.ticket_id) }}">
+                                        <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ft.ticket_id) }}" onsubmit="return handleFraudAction(event, 'close', '{{ ft.ticket_id }}')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-secondary btn-sm">
                                                 <i class="bi bi-check2-all"></i> Close
                                             </button>
@@ -243,9 +262,67 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Chart data stored as JSON in hidden script -->
+<script type="application/json" id="chartData">
+{
+    "deptLabels": {{ dept_labels | tojson }},
+    "deptData": {{ dept_data | tojson }},
+    "prioLabels": {{ prio_labels | tojson }},
+    "prioData": {{ prio_data | tojson }},
+    "satLabels": {{ sat_labels | tojson }},
+    "satData": {{ sat_data | tojson }}
+}
+</script>
 <script>
+    // Parse chart data from hidden JSON script
+    var CHART_DATA = JSON.parse(document.getElementById('chartData').textContent);
+    var deptLabels = CHART_DATA.deptLabels;
+    var deptData = CHART_DATA.deptData;
+    var prioLabels = CHART_DATA.prioLabels;
+    var prioData = CHART_DATA.prioData;
+    var satLabels = CHART_DATA.satLabels;
+    var satData = CHART_DATA.satData;
+    
+    function handleAdminAction(event, action, userName) {
+        const actionText = action === 'approve' ? 'approve' : 'reject';
+        const confirmation = confirm('Are you sure you want to ' + actionText + ' user "' + userName + '"?');
+        
+        if (!confirmation) {
+            event.preventDefault();
+            return false;
+        }
+        
+        const form = event.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = action === 'approve' ? 'Approving...' : 'Rejecting...';
+        
+        return true;
+    }
+
+    function handleFraudAction(event, action, targetName) {
+        let confirmation = false;
+        
+        if (action === 'ban') {
+            confirmation = confirm('⚠️ WARNING: Are you sure you want to PERMANENTLY BAN user "' + targetName + '"? This action cannot be undone.');
+        } else if (action === 'close') {
+            confirmation = confirm('Are you sure you want to close fraud ticket "' + targetName + '"?');
+        }
+        
+        if (!confirmation) {
+            event.preventDefault();
+            return false;
+        }
+        
+        const form = event.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = action === 'ban' ? 'Banning...' : 'Closing...';
+        
+        return true;
+    }
+
     function refreshAdminCharts() {
-        // Trigger chart update animation
         const charts = document.querySelectorAll('canvas');
         charts.forEach(canvas => {
             if (canvas.chart) {
@@ -255,91 +332,101 @@
     }
 
     function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData) {
-        // Department Volume Chart
-        const deptCtx = document.getElementById('deptVolumeChart').getContext('2d');
-        new Chart(deptCtx, {
-            type: 'bar',
-            data: {
-                labels: deptLabels,
-                datasets: [{
-                    label: 'Ticket Volume',
-                    data: deptData,
-                    backgroundColor: 'rgba(27, 67, 50, 0.8)',
-                    borderColor: '#1b4332',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+        const deptCtx = document.getElementById('deptVolumeChart');
+        if (deptCtx) {
+            new Chart(deptCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: deptLabels,
+                    datasets: [{
+                        label: 'Ticket Volume',
+                        data: deptData,
+                        backgroundColor: 'rgba(27, 67, 50, 0.8)',
+                        borderColor: '#1b4332',
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    y: { beginAtZero: true }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
-            }
-        });
+            });
+        }
 
-        // Priority Distribution Chart
-        const prioCtx = document.getElementById('priorityDoughnutChart').getContext('2d');
-        new Chart(prioCtx, {
-            type: 'doughnut',
-            data: {
-                labels: prioLabels,
-                datasets: [{
-                    data: prioData,
-                    backgroundColor: ['#16a34a', '#d97706', '#ea580c', '#dc2626'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
-
-        // Satisfaction Chart
-        const satCtx = document.getElementById('satisfactionChart').getContext('2d');
-        new Chart(satCtx, {
-            type: 'bar',
-            data: {
-                labels: satLabels,
-                datasets: [{
-                    label: 'Count',
-                    data: satData,
-                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                    borderColor: '#22c55e',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
+        const prioCtx = document.getElementById('priorityDoughnutChart');
+        if (prioCtx) {
+            new Chart(prioCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: prioLabels,
+                    datasets: [{
+                        data: prioData,
+                        backgroundColor: ['#16a34a', '#d97706', '#ea580c', '#dc2626'],
+                        borderWidth: 0
+                    }]
                 },
-                scales: {
-                    y: { beginAtZero: true }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        const satCtx = document.getElementById('satisfactionChart');
+        if (satCtx) {
+            new Chart(satCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: satLabels,
+                    datasets: [{
+                        label: 'Count',
+                        data: satData,
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const deptLabels = {{ dept_labels | tojson }};
-        const deptData = {{ dept_data | tojson }};
-
-        const prioLabels = {{ prio_labels | tojson }};
-        const prioData = {{ prio_data | tojson }};
-
-        const satLabels = {{ sat_labels | tojson }};
-        const satData = {{ sat_data | tojson }};
-
-        initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData);
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Ensure CHART_DATA is available
+            if (typeof CHART_DATA !== 'undefined' && CHART_DATA) {
+                deptLabels = CHART_DATA.deptLabels;
+                deptData = CHART_DATA.deptData;
+                prioLabels = CHART_DATA.prioLabels;
+                prioData = CHART_DATA.prioData;
+                satLabels = CHART_DATA.satLabels;
+                satData = CHART_DATA.satData;
+                
+                if (deptLabels && deptData && prioLabels && prioData && satLabels && satData) {
+                    initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData);
+                }
+            }
+        } catch (error) {
+            console.error('Error initializing admin charts:', error);
+        }
     });
 </script>
 {% endblock %}
