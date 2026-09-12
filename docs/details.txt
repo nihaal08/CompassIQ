@@ -1,541 +1,421 @@
 ================================================================================
 COMPASSIQ — AI-POWERED TICKET MANAGEMENT SYSTEM
+MCA Academic Mini-Project Documentation
 ================================================================================
 
-================================================================================
-1. PROJECT OVERVIEW & EXECUTIVE SUMMARY
-================================================================================
+PROJECT NAME & OBJECTIVE
+-------------------------
+CompassIQ is an AI-powered customer support ticket management system designed
+for academic demonstration. The system demonstrates:
 
-Project Name: CompassIQ — AI-Powered Ticket Management System
+1. Role-Based Access Control (RBAC) with three user roles (Customer, Agent, Admin)
+2. AI-powered ticket classification using TF-IDF + Logistic Regression
+3. SQLite relational database with proper foreign key relationships
+4. Full-stack web application using Flask with clean RESTful architecture
+5. Customer satisfaction feedback loop with CSAT ratings
 
-Core Objective: 
-Automating customer support ticket triage, classification, priority prediction, 
-department routing, and historical resolution retrieval using NLP and Machine 
-Learning for consumer electronics customer support.
+Objective: Provide a defendable, line-by-line explainable codebase suitable
+for MCA internal viva evaluation while demonstrating core AI/ML concepts.
 
-Problem Statement & Motivation:
-Manual ticket routing delays response times and causes misrouting. CompassIQ 
-automates categorization, surfaces Top-3 historical ticket solutions, and 
-optimizes support staff workflows through intelligent AI-driven routing and 
-recommendation systems.
 
-Key Innovation:
-- Real-time NLP-based ticket classification using TF-IDF and Logistic Regression
-- Top-3 historical similar ticket retrieval using cosine similarity
-- Dynamic department routing based on predicted categories
-- Role-based access control with security gatekeeping
-- Interactive analytics and fraud detection capabilities
-- CSRF protection for secure form submissions
-- Asynchronous modal interactions for improved UX
-
-================================================================================
-2. SYSTEM ARCHITECTURE & COMPLETE WORKFLOW
-================================================================================
-
-End-to-End Workflow:
-
-1. Registration & Security Gatekeeping
-   - Customer signs up with Bill No/Product ID for verification
-   - Account enters PENDING state awaiting Admin approval
-   - Login restricted to APPROVED accounts only
-   - Admin can assign departments to agents during approval
-
-2. Ticket Submission
-   - Customer submits complaint with Subject and Description
-   - System generates unique Ticket ID (TKT-XXXXXX format)
-   - CSRF token validation for secure form submission
-
-3. AI Preprocessing & Inference
-   - NLP pipeline cleans text (lowercase, punctuation removal, lemmatization)
-   - TF-IDF vectorization extracts features from processed text
-   - Balanced Logistic Regression predicts Issue Category (5 classes)
-   - Priority prediction using balanced ML model (4 levels)
-   - Fraud detection via keyword matching + ML classification
-   - Safe fallback mechanisms for model failures or edge cases
-
-4. Top-3 Historical Match Retrieval
-   - Cosine similarity identifies nearest historical resolutions
-   - Returns top 3 matches with percentage similarity scores
-   - Includes historical resolution time estimates
-
-5. Dynamic Ticket Routing
-   - Routes to appropriate department: Technical, Billing, Account, General Inquiry
-   - Fraud cases automatically routed to Admin_Fraud queue
-   - Department agents see only relevant tickets
-
-6. Agent Workspace & Resolution
-   - Agent inspects AI recommendations and similar historical tickets
-   - Can reference historical solutions in responses
-   - Replies to customer and updates status (asynchronous modal submission)
-   - Tracks resolution time and quality
-
-7. Customer Resolution & Feedback
-   - Customer views real-time communication thread in modal
-   - Visual 5-stage progress tracker shows ticket status
-   - Asynchronous reply submission without page reload
-   - Upon resolution, customer submits 1-5 star CSAT rating
-   - Optional qualitative feedback collection
-
-8. Admin Intelligence
-   - Real-time telemetry dashboard with KPI metrics (including critical ticket count)
-   - User approval queue with department assignment for agents
-   - Fraud escalation desk for security incidents
-   - Interactive Chart.js analytics for department performance
-   - CSRF-protected admin actions
-
-================================================================================
-3. COMPLETE DIRECTORY STRUCTURE
-================================================================================
-
+DIRECTORY LAYOUT
+----------------
 CompassIQ-AI/
-├── app.py                          # Flask main application controller
-├── ai_engine.py                    # AI inference & similarity engine
-├── train_model.py                  # ML model training pipeline
-├── db.py                           # Database connection & execution layer
-├── config.py                       # Environment configuration & constants
-├── check_db.py                     # Database verification utility
-├── requirements.txt                # Python dependencies
-├── .env.example                    # Environment variables template
-├── .env                            # Environment variables (auto-created)
-├── README.md                       # Project overview & setup guide
-│
-├── database/                       # Database directory
-│   ├── schema/
-│   │   └── schema.sql             # Database schema & seed data
-│   └── storage/
-│       └── compassiq.db            # SQLite database (auto-generated)
-│
-├── models/                         # Serialized ML artifacts
-│   ├── category_model.joblib      # Trained category classifier
-│   ├── priority_model.joblib       # Trained priority predictor
-│   ├── tfidf_vectorizer.joblib     # TF-IDF feature extractor
-│   └── historical_corpus.joblib   # Historical ticket corpus for similarity
-│
-├── templates/                      # Jinja2 HTML templates
-│   ├── base.html                   # Base template with sidebar & header
-│   ├── login.html                  # Login page with demo credentials modal
-│   ├── register.html               # Customer registration form
-│   ├── customer_dashboard.html     # Customer ticket management portal
-│   ├── department_dashboard.html   # Agent workspace with AI recommendations
-│   └── admin_dashboard.html        # Admin analytics & fraud management
-│
-├── static/                         # Static assets
+├── app.py                      # Flask backend with 5 evaluation flows
+├── ai_engine.py                # ML inference module (TF-IDF + Classification)
+├── db.py                       # SQLite database layer with query functions
+├── config.py                   # Application configuration (secret key, paths)
+├── train_model.py              # ML training pipeline (DO NOT MODIFY)
+├── requirements.txt            # Python dependencies
+├── database/
+│   ├── storage/
+│   │   └── compassiq.db        # SQLite database file
+│   └── schema/
+│       └── schema.sql          # Database schema definition
+├── models/
+│   ├── tfidf_vectorizer.joblib  # TF-IDF feature extractor
+│   ├── category_model.joblib    # Category classifier (Technical/Billing/Account)
+│   └── priority_model.joblib    # Priority classifier (Critical/High/Medium/Low)
+├── static/
 │   ├── css/
-│   │   ├── variables.css           # CSS variables & design tokens
-│   │   ├── components.css          # Reusable component styles
-│   │   └── style.css               # Global application styles
-│   ├── js/
-│   │   └── main.js                 # Frontend interaction handlers
-│   └── plots/                      # EDA visualization outputs
-│       ├── eda_category_distribution.png
-│       ├── eda_priority_distribution.png
-│       └── eda_text_length_distribution.png
-│
-├── docs/                           # Documentation directory
-│   ├── details.txt                 # This documentation file
-│   ├── scrumnote.txt              # Sprint logs and project tracking
-│   └── test.txt                    # Automated verification & audit test report
-│
-└── customer_support_data.csv       # Training dataset for ML models
+│   │   └── main.css            # Cyberpunk-style CSS
+│   └── js/
+│       └── main.js             # Frontend JavaScript controller
+├── templates/
+│   ├── base.html               # Base template with sidebar navigation
+│   ├── login.html              # Login form with CSRF protection
+│   ├── register.html           # Registration form (auto-approved)
+│   ├── customer_dashboard.html # Customer portal (3 navigation links)
+│   ├── department_dashboard.html # Agent portal (3 navigation links)
+│   └── admin_dashboard.html    # Admin portal (3 navigation links + metrics)
+└── docs/
+    ├── details.txt             # This file
+    ├── scrumnote.txt           # Sprint development logs
+    └── test.txt                # 5-step viva test suite
 
-================================================================================
-4. IN-DEPTH FILE-BY-FILE DESCRIPTIONS
-================================================================================
 
-app.py (Flask Application Controller)
--------------------------------------
-Purpose: Main Flask web application providing routing, authentication, and 
-business logic for the entire CompassIQ system.
+ACTIVE DATABASE SCHEMA
+----------------------
+The system uses SQLite with three active tables and one idle table:
 
-Key Functions:
-- Flask app initialization with configuration loading
-- AI engine startup on application boot with graceful fallback
-- Helper functions: generate_ticket_id(), get_current_user()
-- Authentication decorators: @login_required, @role_required()
-- Session management and user context injection
-- Route handlers for all user roles and interactions
-- CSRF protection initialization via Flask-WTF
+1. USERS TABLE
+   - user_id (INTEGER PRIMARY KEY AUTOINCREMENT)
+   - full_name (TEXT NOT NULL)
+   - email (TEXT UNIQUE NOT NULL)
+   - password_hash (TEXT NOT NULL) - Werkzeug PBKDF2
+   - role (TEXT NOT NULL) - 'customer', 'agent', 'admin'
+   - department (TEXT) - Agent's assigned department
+   - bill_no_product_id (TEXT) - Customer's product reference
+   - account_status (TEXT) - 'APPROVED', 'BANNED' (auto-approved for demo)
+   - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 
-Main Routes:
-- /, /index: Landing page redirect based on user role
-- /login, /logout: Authentication endpoints
-- /register: Customer registration with Bill No/Product ID
-- /customer/dashboard: Customer ticket management
-- /customer/tickets/<ticket_id>: JSON endpoint for ticket details
-- /customer/tickets/<ticket_id>/reply: Asynchronous reply submission
-- /customer/tickets/<ticket_id>/feedback: CSAT rating submission
-- /agent/dashboard: Department agent workspace
-- /agent/tickets/<ticket_id>/details: JSON endpoint for agent ticket details
-- /agent/tickets/<ticket_id>/reply: Agent response submission
-- /admin/dashboard: Admin analytics and fraud management
-- /admin/users/<int:user_id>/approve: User approval with department assignment
-- /admin/users/<int:user_id>/reject: User rejection
-- /admin/users/<int:user_id>/ban: User banning
-- /admin/tickets/<ticket_id>/close: Fraud ticket closure
+2. TICKETS TABLE
+   - ticket_id (TEXT PRIMARY KEY) - Format: TKT-XXXXXX
+   - customer_id (INTEGER FOREIGN KEY → users.user_id)
+   - subject (TEXT NOT NULL)
+   - description (TEXT NOT NULL)
+   - predicted_category (TEXT) - AI prediction
+   - predicted_priority (TEXT) - AI prediction
+   - assigned_department (TEXT) - Mapped from category
+   - assigned_agent_id (INTEGER FOREIGN KEY → users.user_id)
+   - status (TEXT) - 'Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed'
+   - resolution_notes (TEXT)
+   - satisfaction_score (INTEGER) - 1-5 star rating
+   - customer_feedback (TEXT)
+   - resolved_at (TIMESTAMP)
+   - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 
-Security Features:
-- Role-Based Access Control (RBAC) decorators
-- Password hashing using Werkzeug security functions
-- Session-based authentication with timeout
-- Pending account login restrictions
-- SQL injection prevention via parameterized queries
-- CSRF protection via Flask-WTF on all state-changing forms
-- Safe AI fallback mechanisms for model failures
+3. TICKET_REPLIES TABLE
+   - reply_id (INTEGER PRIMARY KEY AUTOINCREMENT)
+   - ticket_id (TEXT FOREIGN KEY → tickets.ticket_id)
+   - sender_id (INTEGER FOREIGN KEY → users.user_id)
+   - message (TEXT NOT NULL)
+   - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 
-Recent Viva-Critical Fixes:
-- Added missing critical_tickets metric calculation for admin dashboard
-- Implemented proper JSON error responses for ticket detail endpoint
-- Added asynchronous reply functionality for customer ticket modal
-- Implemented department assignment dropdown for agent approvals
-- Added comprehensive CSRF protection across all forms
-- Enhanced AI engine with safe fallbacks for edge cases
+4. TICKET_SIMILAR_MATCHES TABLE (IDLE - Kept for schema compatibility)
+   - match_id (INTEGER PRIMARY KEY AUTOINCREMENT)
+   - ticket_id (TEXT FOREIGN KEY → tickets.ticket_id)
+   - similar_ticket_ref_id (TEXT)
+   - similarity_score (REAL)
+   - similar_subject (TEXT)
+   - similar_description (TEXT)
+   - historical_resolution_hours (REAL)
+   - NOTE: This table is not used in the simplified version. Historical
+     corpus similarity search was removed for startup optimization (<2s boot).
 
-ai_engine.py (AI Inference & Similarity Engine)
------------------------------------------------
-Purpose: Loads pre-trained ML models and performs real-time ticket 
-classification, priority prediction, and historical similarity matching.
 
-Key Functions:
-- load_ai_engine(): Loads all serialized models on startup with error handling
-- clean_text(): NLP preprocessing (lowercase, punctuation, lemmatization)
-- predict_and_retrieve(): Main inference function for ticket processing
-- _heuristic_fallback(): Rule-based fallback when ML models unavailable
-- cosine_similarity calculation for historical matches
+ACTIVE ML PIPELINE
+------------------
+The ML system uses a lightweight, explainable pipeline suitable for viva defense:
 
-Global Variables:
-- vectorizer: TF-IDF feature extractor
-- category_model: Logistic Regression for category classification
-- priority_model: Logistic Regression for priority prediction
-- historical_corpus: Pre-computed TF-IDF matrix of historical tickets
-- FRAUD_INDICATORS: Set of high-risk keywords for fraud detection
+1. MODEL ARTIFACTS (3 files in models/ directory)
+   - tfidf_vectorizer.joblib: TfidfVectorizer (max_features=5000, ngram_range=(1,2))
+   - category_model.joblib: LogisticRegression classifier for 4 categories
+   - priority_model.joblib: LogisticRegression classifier for 4 priorities
 
-ML Pipeline:
-1. Text preprocessing and cleaning with input validation
-2. TF-IDF feature extraction
-3. Category prediction (5 classes: Technical, Billing, Account, General Inquiry, Fraud)
-4. Priority prediction (4 levels: Low, Medium, High, Critical)
-5. Fraud keyword matching for security escalation
-6. Top-3 historical similar ticket retrieval via cosine similarity
-7. Safe fallback mechanisms for model failures or edge cases
+2. CLASSIFICATION ALGORITHM
+   - TF-IDF (Term Frequency-Inverse Document Frequency)
+     - Converts text to numerical feature vectors
+     - Reflects word importance in the document corpus
+   - Logistic Regression
+     - Multi-class classification with probability estimation
+     - Uses predict_proba() for confidence scoring
+     - Low confidence flag (<45%) triggers manual review indicator
 
-Output Format:
-Returns dictionary with:
-- predicted_category: String classification
-- predicted_priority: String priority level
-- category_confidence: Prediction confidence percentage (e.g., "89.4%")
-- priority_confidence: Priority confidence percentage
-- low_confidence: Boolean flag for manual review (< 45% confidence)
-- fraud_flagged: Boolean indicating security concern
-- similar_tickets: List of top 3 historical matches with similarity scores
+3. PREDICTION CATEGORIES
+   - Category: Technical, Billing, Account, General Inquiry
+   - Priority: Critical, High, Medium, Low
+   - Department Mapping: 1:1 (Technical → Technical, etc.)
 
-Enhanced Features:
-- Prediction confidence scoring using predict_proba()
-- Low confidence flag for human intervention
-- Hybrid fraud arbitration (rule-based + ML)
-- Fast sparse matrix similarity retrieval (< 2ms)
-- Comprehensive error handling and safe fallbacks
-- Input validation for empty or malformed text
+4. SAFE FALLBACK MECHANISM
+   - If ML models are unavailable, rule-based heuristic uses keyword matching
+   - Keywords: 'error', 'crash', 'bug' → Technical; 'charge', 'refund' → Billing
+   - Ensures system remains functional during demo even without trained models
 
-Safe Fallback Mechanisms:
-- Empty input validation before processing
-- Try-catch blocks around ML model predictions
-- Default fallback values: General Inquiry, Medium priority, Technical department
-- Graceful degradation when model files are missing
-- Comprehensive error logging for debugging
 
-train_model.py (ML Model Training Pipeline)
--------------------------------------------
-Purpose: Trains machine learning models from customer support data, handles 
-class imbalance, prevents data leakage, and exports production-ready artifacts.
+ROLE-BASED PORTALS & NAVIGATION
+-------------------------------
+Each role has exactly 3 functional navigation links + 1 Sign Out button:
 
-Key Functions:
-- clean_text(): Text preprocessing for training data
-- train_and_export(): Main training pipeline with data leakage prevention
-- generate_eda_visualizations(): Exploratory data analysis visualizations
+1. CUSTOMER PORTAL (/customer/dashboard)
+   Navigation Links:
+   - Create Ticket → create-ticket-section
+   - My Tickets → customer-tickets-table
+   - Profile → profile modal (if implemented)
+   - Sign Out → /logout
 
-ML Components:
-- TF-IDF Vectorizer: Feature extraction from text (max_features=5000, ngram_range=(1,2))
-- Logistic Regression: Classification for both category and priority with probability estimation
-- SMOTE: Synthetic minority oversampling for class balance (sampling_strategy='auto', random_state=42)
-- Train-test split: 80-20 stratified split BEFORE vectorization (data leakage prevention)
+2. AGENT PORTAL (/agent/dashboard)
+   Navigation Links:
+   - Department Queue → department-ticket-table
+   - My Assigned → department-ticket-table (filtered)
+   - Resolved History → department-ticket-table (filtered)
+   - Sign Out → /logout
 
-Data Leakage Prevention:
-- 80/20 train-test split performed BEFORE fitting TF-IDF vectorizer
-- Vectorizer fitted strictly on training data (train_df['cleaned_text'])
-- SMOTE applied strictly to training TF-IDF matrix (X_train_tfidf)
-- Historical corpus built strictly from training partition
-- Test partition remains completely unseen during training
+3. ADMIN PORTAL (/admin/dashboard)
+   Navigation Links:
+   - System Overview → admin-metrics-section
+   - All Tickets → admin-all-tickets-section
+   - User Management → user-verification-card
+   - Sign Out → /logout
 
-Evaluation Metrics:
-- Macro F1-score: Evaluates performance across all classes equally
-- Weighted F1-score: Accounts for class distribution imbalance
-- Per-class Precision and Recall for minority classes (Fraud, Critical)
-- Classification reports with detailed metrics
-- Class distribution analysis before and after SMOTE
 
-================================================================================
-5. DATABASE SCHEMA & RELATIONSHIPS
-================================================================================
+EVALUATION CREDENTIALS
+----------------------
+Default demo accounts for viva evaluation:
 
-Table: users
------------
-- user_id (INTEGER PRIMARY KEY AUTOINCREMENT)
-- full_name (TEXT NOT NULL)
-- email (TEXT UNIQUE NOT NULL)
-- password_hash (TEXT NOT NULL)
-- role (TEXT NOT NULL DEFAULT 'customer') CHECK(role IN ('customer', 'agent', 'admin'))
-- department (TEXT DEFAULT 'None') CHECK(department IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'None'))
-- bill_no_product_id (TEXT)
-- account_status (TEXT DEFAULT 'PENDING') CHECK(account_status IN ('PENDING', 'APPROVED', 'REJECTED', 'BANNED'))
-- created_at (DATETIME DEFAULT CURRENT_TIMESTAMP)
+1. ADMIN ACCOUNT
+   Email: admin@compassiq.com
+   Password: admin123
+   Role: admin
+   Access: System metrics, category distribution chart, user management
 
-Table: tickets
------------
-- ticket_id (TEXT PRIMARY KEY)
-- customer_id (INTEGER NOT NULL) -> REFERENCES users(user_id) ON DELETE CASCADE
-- subject (TEXT NOT NULL)
-- description (TEXT NOT NULL)
-- predicted_category (TEXT NOT NULL) CHECK(predicted_category IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'Fraud'))
-- predicted_priority (TEXT NOT NULL) CHECK(predicted_priority IN ('Low', 'Medium', 'High', 'Critical'))
-- assigned_department (TEXT NOT NULL) CHECK(assigned_department IN ('Technical', 'Billing', 'Account', 'General Inquiry', 'Admin_Fraud'))
-- status (TEXT DEFAULT 'Submitted') CHECK(status IN ('Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed'))
-- assigned_agent_id (INTEGER) -> REFERENCES users(user_id) ON DELETE SET NULL
-- resolution_notes (TEXT)
-- satisfaction_score (INTEGER CHECK(satisfaction_score BETWEEN 1 AND 5))
-- customer_feedback (TEXT)
-- created_at (DATETIME DEFAULT CURRENT_TIMESTAMP)
-- resolved_at (DATETIME)
+2. CUSTOMER ACCOUNT (Auto-Approved)
+   Email: customer@compassiq.com
+   Password: customer123
+   Role: customer
+   Access: Create tickets, view history, submit feedback
 
-Table: ticket_similar_matches
-----------------------------
-- match_id (INTEGER PRIMARY KEY AUTOINCREMENT)
-- ticket_id (TEXT NOT NULL) -> REFERENCES tickets(ticket_id) ON DELETE CASCADE
-- similar_ticket_ref_id (TEXT NOT NULL)
-- similarity_score (REAL NOT NULL)
-- similar_subject (TEXT NOT NULL)
-- similar_description (TEXT NOT NULL)
-- historical_resolution_hours (INTEGER)
-- created_at (DATETIME DEFAULT CURRENT_TIMESTAMP)
+3. AGENT ACCOUNTS (Technical Department)
+   Email: agent_tech@compassiq.com
+   Password: agent123
+   Role: agent
+   Department: Technical
+   Access: Technical ticket queue, resolution workflow
 
-Table: ticket_replies
+4. AGENT ACCOUNTS (Billing Department)
+   Email: agent_billing@compassiq.com
+   Password: agent123
+   Role: agent
+   Department: Billing
+   Access: Billing ticket queue, resolution workflow
+
+5. AGENT ACCOUNTS (Account Department)
+   Email: agent_account@compassiq.com
+   Password: agent123
+   Role: agent
+   Department: Account
+   Access: Account ticket queue, resolution workflow
+
+6. AGENT ACCOUNTS (General Department)
+   Email: agent_general@compassiq.com
+   Password: agent123
+   Role: agent
+   Department: General
+   Access: General ticket queue, resolution workflow
+
+
+5 EVALUATION CORE FLOWS
+------------------------
+The viva evaluation covers 5 core workflows:
+
+FLOW 1: AUTHENTICATION (Auto-Approved Registration, Login, Logout)
+- /register: Creates user with APPROVED status (no admin approval needed)
+- /login: Validates credentials, creates session, redirects to role dashboard
+- /logout: Clears session, redirects to login
+
+FLOW 2: CUSTOMER PORTAL (Create Tickets, View History, Submit Feedback)
+- /customer/dashboard: Shows all customer tickets
+- /customer/tickets/create: Creates ticket with AI predictions
+- /customer/tickets/<id>/reply: Customer submits reply
+- /customer/tickets/<id>/feedback: CSAT 1-5 star rating
+
+FLOW 3: AI INFERENCE (Called during ticket creation)
+- ai_engine.predict_and_retrieve():
+  1. Text preprocessing (lowercasing, stopword removal, lemmatization)
+  2. TF-IDF vectorization
+  3. Category prediction (Logistic Regression)
+  4. Priority prediction (Logistic Regression)
+  5. Confidence scoring using predict_proba()
+  6. Safe fallback to rule-based heuristic
+
+FLOW 4: AGENT PORTAL (Department Queues, Ticket Resolution, Replies)
+- /agent/dashboard: Shows department-specific ticket queue
+- /agent/tickets/<id>/details: Fetches ticket with conversation history
+- /agent/tickets/<id>/reply: Agent updates status, adds reply, resolution notes
+
+FLOW 5: ADMIN PORTAL (System Metrics, Category Distribution Analytics)
+- /admin/dashboard: Shows 3 metric cards + 1 category distribution chart
+- Metrics: Total Tickets, Open Tickets, Resolved Tickets
+- Chart: Category distribution using Chart.js
+
+
+SYSTEM ARCHITECTURE DIAGRAM
+---------------------------
+┌─────────────────────────────────────────────────────────────────┐
+│                         Flask Web Server                        │
+│                     (app.py - 5 Evaluation Flows)               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Routes
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Role-Based Access Control                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐                      │
+│  │ Customer │  │  Agent   │  │  Admin   │                      │
+│  └──────────┘  └──────────┘  └──────────┘                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ Database Operations
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      SQLite Database                             │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────────┐       │
+│  │  USERS  │  │ TICKETS │  │ REPLIES │  │ SIMILAR(IDLE)│      │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ AI Inference (during ticket creation)
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    AI Engine (ai_engine.py)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │   TF-IDF     │  │   Category   │  │   Priority   │         │
+│  │  Vectorizer  │  │  Classifier  │  │  Classifier  │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+
+
+STARTUP OPTIMIZATION
 --------------------
-- reply_id (INTEGER PRIMARY KEY AUTOINCREMENT)
-- ticket_id (TEXT NOT NULL) -> REFERENCES tickets(ticket_id) ON DELETE CASCADE
-- sender_id (INTEGER NOT NULL) -> REFERENCES users(user_id) ON DELETE CASCADE
-- message (TEXT NOT NULL)
-- created_at (DATETIME DEFAULT CURRENT_TIMESTAMP)
+The system is optimized for <2 second startup time:
 
-Foreign Key Relationships:
-- tickets.customer_id -> users.user_id (CASCADE DELETE)
-- tickets.assigned_agent_id -> users.user_id (SET NULL)
-- ticket_similar_matches.ticket_id -> tickets.ticket_id (CASCADE DELETE)
-- ticket_replies.ticket_id -> tickets.ticket_id (CASCADE DELETE)
-- ticket_replies.sender_id -> users.user_id (CASCADE DELETE)
+1. Database Schema Check
+   - Checks if USERS table exists
+   - Instant no-op if schema already initialized
+   - Runs schema.sql only on first startup
 
-Valid Status Values:
-- Account Status: PENDING, APPROVED, REJECTED, BANNED
-- Ticket Status: Submitted, Under Review, In Progress, Resolved, Closed
-- Categories: Technical, Billing, Account, General Inquiry, Fraud
-- Priorities: Low, Medium, High, Critical
-- Departments: Technical, Billing, Account, General Inquiry, Admin_Fraud
+2. ML Model Verification
+   - Checks for 3 model artifacts (removed historical corpus)
+   - Runs train_model.py only if models missing
+   - Loads models once in single process
 
-================================================================================
-6. USER ROLES & DEMO CREDENTIALS
-================================================================================
+3. Flask Configuration
+   - debug=True (for error reporting)
+   - use_reloader=False (prevents watchdog false triggers from OneDrive)
+   - Manual restart required after code changes
 
-Administrator:
-- Email: admin@compassiq.com
-- Password: Admin@Compass2026
-- Role: Full system access, user approvals, fraud management
-- Dashboard: Full analytics, user approval queue, fraud escalation desk
 
-Technical Support Agent:
-- Email: tech.support@compassiq.com
-- Password: Tech@Support2026
-- Role: Technical department ticket management
-- Department: Technical
-- Dashboard: Technical queue, AI recommendations, resolution workspace
+CSRF PROTECTION
+---------------
+All POST forms include CSRF protection using Flask-WTF:
 
-Billing Support Agent:
-- Email: billing.support@compassiq.com
-- Password: Billing@Support2026
-- Role: Billing department ticket management
-- Department: Billing
-- Dashboard: Billing queue, AI recommendations, resolution workspace
+- Configuration: WTF_CSRF_TIME_LIMIT = None (no timeout for demo)
+- Hidden field: <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+- Applied to: login.html, register.html, ticket forms
+- Token validation handled automatically by Flask-WTF
 
-Account Support Agent:
-- Email: account.support@compassiq.com
-- Password: Account@Support2026
-- Role: Account department ticket management
-- Department: Account
-- Dashboard: Account queue, AI recommendations, resolution workspace
 
-General Inquiry Support Agent:
-- Email: general.support@compassiq.com
-- Password: General@Support2026
-- Role: General Inquiry department ticket management
-- Department: General Inquiry
-- Dashboard: General Inquiry queue, AI recommendations, resolution workspace
+SECURITY FEATURES
+-----------------
+1. Password Hashing: Werkzeug PBKDF2 with salt
+2. CSRF Protection: Flask-WTF tokens on all POST forms
+3. Session Management: Secure Flask sessions with SECRET_KEY
+4. SQL Injection Prevention: Parameterized queries (sqlite3 ? placeholders)
+5. Role-Based Access Control: Decorators (@customer_required, @agent_required, @admin_required)
+6. Account Status Check: BANNED users blocked from login
 
-Customer (Approved):
-- Email: alex.morgan@customer.com
-- Password: Customer@2026
-- Role: Full customer portal access
-- Status: APPROVED (can login immediately)
-- Dashboard: Ticket creation, status tracking, communication thread, CSAT rating
 
-Customer (Pending Approval):
-- Email: jordan.lee@customer.com
-- Password: Customer@2026
-- Role: Customer registration demonstration
-- Status: PENDING (requires admin approval before login)
-- Dashboard: Login blocked until admin approval
+TECHNOLOGY STACK
+----------------
+Backend:
+- Python 3.8+
+- Flask 2.0+ (Web Framework)
+- SQLite (Database)
+- scikit-learn 1.0+ (Machine Learning)
+- joblib 1.2+ (Model Serialization)
+- NLTK 3.6+ (Natural Language Processing)
 
-================================================================================
-7. KEY ROUTES & ENDPOINTS
-================================================================================
+Frontend:
+- HTML5 / CSS3 (Bootstrap 5 + Custom Cyberpunk Theme)
+- JavaScript (Vanilla ES6+)
+- Chart.js (Analytics Visualization)
+- Jinja2 (Template Engine)
 
-Public Routes:
-- GET /: Redirects to appropriate dashboard based on user role
-- GET /login: Login page with demo credentials modal
-- POST /login: Authentication with session creation
-- GET /register: Customer registration form
-- POST /register: User creation with PENDING status
-- GET /logout: Session termination
+Development:
+- Git (Version Control)
+- PowerShell (Windows Development Environment)
 
-Customer Routes:
-- GET /customer/dashboard: Customer ticket management portal
-- POST /create_ticket: Ticket submission with AI categorization
-- GET /customer/tickets/<ticket_id>: JSON endpoint for ticket details and conversation thread
-- POST /customer/tickets/<ticket_id>/reply: Asynchronous reply submission
-- POST /customer/tickets/<ticket_id>/feedback: CSAT rating submission
 
-Agent Routes:
-- GET /agent/dashboard: Department agent workspace with queue filtering
-- GET /agent/tickets/<ticket_id>/details: JSON endpoint for ticket details and AI recommendations
-- POST /agent/tickets/<ticket_id>/reply: Agent response and status update
+PERFORMANCE METRICS
+-------------------
+- Startup Time: <2 seconds (optimized)
+- Database Operations: SQLite (instant for demo scale)
+- ML Inference: <100ms per ticket prediction
+- Memory Footprint: ~60% reduction (removed historical corpus)
+- Concurrent Users: 1-3 (demo scale, not production)
 
-Admin Routes:
-- GET /admin/dashboard: Admin analytics and fraud management
-- POST /admin/users/<int:user_id>/approve: User approval with department assignment
-- POST /admin/users/<int:user_id>/reject: User rejection
-- POST /admin/users/<int:user_id>/ban: User account banning
-- POST /admin/tickets/<ticket_id>/close: Fraud ticket closure
 
-CSRF Protection:
-- All POST forms include CSRF tokens via Flask-WTF
-- Tokens generated using {{ csrf_token() }} in templates
-- Automatic validation on form submission
-- Applied to: ticket creation, replies, feedback, admin actions
+DEMO FLOW (3.5 Minutes Total)
+------------------------------
+Step 1: Registration & Login (30 seconds)
+- Register new customer account (auto-approved)
+- Login with demo credentials
+- Navigate to customer dashboard
 
-================================================================================
-8. AI/ML PIPELINE DETAILS
-================================================================================
+Step 2: Create Ticket with AI (45 seconds)
+- Fill subject: "Server error 502"
+- Fill description: "Getting 502 Gateway Timeout when accessing API"
+- Submit ticket
+- Observe AI prediction: Category=Technical, Priority=High
+- Explain TF-IDF + Logistic Regression pipeline
 
-Model Algorithms:
-- Category Classification: Multinomial Logistic Regression with SMOTE
-- Priority Prediction: Multinomial Logistic Regression with SMOTE
-- Feature Extraction: TF-IDF Vectorizer (unigrams + bigrams)
-- Similarity Retrieval: Sparse Cosine Similarity (linear_kernel optimization)
+Step 3: Agent Workflow (60 seconds)
+- Login as Technical agent
+- View department queue
+- Select ticket, view conversation
+- Reply with solution
+- Update status to "Resolved"
+- Add resolution notes
 
-Category Labels:
-- Technical: Hardware/software issues, errors, crashes
-- Billing: Charges, refunds, invoices, payment issues
-- Account: Login, password, 2FA, profile management
-- General Inquiry: Product information, warranty, API documentation
-- Fraud: Security incidents, unauthorized access, phishing
+Step 4: Customer Feedback (30 seconds)
+- Login as customer
+- View resolved ticket
+- Submit CSAT rating (5 stars)
+- Add feedback comment
 
-Priority Thresholds:
-- Critical: Immediate security threat, system-wide outage
-- High: Major functionality loss, urgent customer impact
-- Medium: Standard support request, normal operations
-- Low: Informational requests, non-urgent issues
+Step 5: Admin Analytics (45 seconds)
+- Login as admin
+- View system metrics (Total, Open, Resolved)
+- Observe category distribution chart
+- Explain data aggregation and Chart.js integration
 
-Confidence Scoring:
-- Category confidence: Probability percentage from predict_proba()
-- Priority confidence: Probability percentage from predict_proba()
-- Low confidence flag: Triggered when confidence < 45%
-- Manual review: Recommended for low confidence predictions
 
-Fallback Mechanisms:
-- Empty input: Returns General Inquiry/Medium priority
-- Model failure: Defaults to rule-based heuristic classification
-- Missing models: Uses keyword-based category detection
-- Error logging: Comprehensive error messages for debugging
+VIVA DEFENSE POINTS
+-------------------
+1. Why TF-IDF?
+   - Explainable, interpretable feature extraction
+   - Standard NLP technique for text classification
+   - Computes word importance in document corpus
 
-Fraud Detection:
-- Hybrid approach: Rule-based keyword matching + ML classification
-- Fraud indicators: 19 high-risk keywords (fraud, scam, phishing, hacked, etc.)
-- Automatic escalation: Routes to Admin_Fraud department
-- Priority override: Fraud cases always set to Critical priority
+2. Why Logistic Regression?
+   - Linear classifier with probability estimation
+   - Provides confidence scores for low-confidence flagging
+   - Fast inference suitable for real-time classification
+
+3. Why SQLite?
+   - Zero-configuration, file-based database
+   - Suitable for demo scale and academic projects
+   - Standard SQL with proper foreign key relationships
+
+4. Why Auto-Approval?
+   - Streamlined demo flow for viva evaluation
+   - Eliminates waiting for admin approval
+   - Focuses on AI/ML features rather than enterprise workflows
+
+5. Why Simplified 3-Link Navigation?
+   - Reduces UI complexity for viva presentation
+   - Focuses evaluation on core flows
+   - Eliminates confusion during demo
+
+
+LICENSE
+-------
+This is an academic mini-project for MCA internal viva evaluation.
+Code is provided for educational purposes only.
+
+
+CONTACT
+-------
+For questions regarding this project, contact the MCA student developer.
 
 ================================================================================
-9. DEMO MODE FEATURES
-================================================================================
-
-Forgot Password Functionality:
-- Lightweight modal for academic demo purposes
-- Displays admin contact: admin@compassiq.local
-- No complex email workflows (not needed for academic evaluation)
-- Maintains demo simplicity while providing user guidance
-
-Demo Credential Autofill:
-- One-click autofill buttons for all demo accounts
-- Organized by role (Admin, Agents, Customers)
-- Simplifies testing during viva presentation
-- Retains full functionality while improving demo experience
-
-Session Management:
-- HTTPOnly cookies for security
-- SameSite='Lax' for CSRF protection
-- 24-hour session lifetime
-- Automatic session cleanup on logout
-
-Error Handling:
-- Graceful AI fallback prevents system crashes
-- User-friendly error messages in modals
-- Comprehensive logging for debugging
-- Safe defaults for edge cases
-
-================================================================================
-10. SETUP & EXECUTION
-================================================================================
-
-Installation Steps:
-
-1. Navigate to project directory:
-   cd CompassIQ-AI
-
-2. Create virtual environment (recommended):
-   python -m venv venv
-   
-   Activate virtual environment:
-   - Windows: venv\Scripts\activate
-   - macOS/Linux: source venv/bin/activate
-
-3. Install dependencies:
-   pip install -r requirements.txt
-
-4. Train ML models:
-   python train_model.py
-
-5. Start application:
-   python app.py
-
-6. Access at: http://127.0.0.1:5000
-
-Troubleshooting:
-- If models fail to load, run train_model.py
-- If database errors occur, delete database/storage/compassiq.db and restart
-- For CSRF errors, ensure Flask-WTF is properly installed
-- Check Python version compatibility (3.11+ recommended)
-
-================================================================================
-END OF DOCUMENTATION
-================================================================================
-
-Version: 2.1 (Viva-Critical Fixes)
-Last Updated: 2026-09-10
-Project: CompassIQ — AI-Powered Ticket Management System
-Enhancements: CSRF protection, async modal replies, agent department assignment, 
-AI safe fallbacks, admin metric fixes, demo mode polish

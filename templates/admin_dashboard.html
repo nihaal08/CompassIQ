@@ -7,7 +7,7 @@
 <!-- Page Header -->
 <div class="page-header">
     <h1 class="page-title">Administrator Dashboard</h1>
-    <p class="page-subtitle">System metrics, user approvals, and fraud management</p>
+    <p class="page-subtitle">System overview and ticket management</p>
 </div>
 
 <!-- KPI Metric Cards -->
@@ -24,225 +24,53 @@
     </div>
     <div class="metric-card">
         <div class="metric-icon-wrapper" style="background-color: var(--warning-bg); color: var(--warning);">
-            <i class="bi bi-person-check"></i>
+            <i class="bi bi-inbox"></i>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Pending Approvals</div>
-            <div class="metric-value">{{ metrics.pending_users }}</div>
-            <div class="metric-trend text-muted">Awaiting verification</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper" style="background-color: var(--danger-bg); color: var(--danger);">
-            <i class="bi bi-exclamation-diamond"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Critical Tickets</div>
-            <div class="metric-value">{{ metrics.critical_count }}</div>
-            <div class="metric-trend text-muted">High priority issues</div>
+            <div class="metric-label">Open Tickets</div>
+            <div class="metric-value">{{ metrics.total_tickets - metrics.resolved_tickets }}</div>
+            <div class="metric-trend text-muted">Awaiting resolution</div>
         </div>
     </div>
     <div class="metric-card">
         <div class="metric-icon-wrapper">
-            <i class="bi bi-graph-up-arrow"></i>
+            <i class="bi bi-check2-circle"></i>
         </div>
         <div class="metric-content">
-            <div class="metric-label">Resolution Rate</div>
-            <div class="metric-value">{{ metrics.resolve_rate }}%</div>
-            <div class="metric-trend text-muted">Closed & resolved ratio</div>
+            <div class="metric-label">Resolved Tickets</div>
+            <div class="metric-value">{{ metrics.resolved_tickets }}</div>
+            <div class="metric-trend text-muted">Successfully completed</div>
         </div>
     </div>
 </div>
 
-<!-- Analytics Charts -->
-<div id="admin-analytics-section" class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Department Ticket Volume</h3>
-        </div>
-        <div class="card-body">
-            <div class="chart-container">
-                <canvas id="deptVolumeChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Priority Distribution</h3>
-        </div>
-        <div class="card-body">
-            <div class="chart-container">
-                <canvas id="priorityDoughnutChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Customer Satisfaction</h3>
-        </div>
-        <div class="card-body">
-            <div class="chart-container">
-                <canvas id="satisfactionChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- User Approval Queue -->
-<div id="user-verification-card" class="user-verification-card">
+<!-- Analytics Chart -->
+<div id="admin-analytics-section" class="card mb-2xl" style="margin-bottom: var(--spacing-3xl);">
     <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h3 class="card-title">User Approval Queue ({{ pending_users|length }})</h3>
-                <p class="card-subtitle">Review and approve pending customer account registrations</p>
-            </div>
-        </div>
+        <h3 class="card-title">Category Distribution</h3>
     </div>
     <div class="card-body">
-        {% if pending_users|length == 0 %}
-            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg);">
-                <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--success); display: block; margin-bottom: var(--spacing-lg);"></i>
-                <h4 class="text-secondary">All accounts verified</h4>
-                <p class="text-muted">No pending user approvals</p>
-            </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="enterprise-table">
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Bill No / Product ID</th>
-                            <th>Registered At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for u in pending_users %}
-                            <tr>
-                                <td class="no-wrap">
-                                    <span class="no-wrap cell-ticket-id">#{{ u.user_id }}</span>
-                                </td>
-                                <td class="cell-customer-name">{{ u.full_name }}</td>
-                                <td class="cell-secondary-text">{{ u.email }}</td>
-                                <td><span class="no-wrap cell-secondary-text" style="font-family: 'Courier New', monospace;">{{ u.bill_no_product_id or 'None Provided' }}</span></td>
-                                <td class="no-wrap cell-secondary-text" style="font-size: 0.9rem;">{{ u.created_at[:10] if u.created_at else '' }}</td>
-                                <td>
-                                    <div class="user-verification-actions">
-                                        {% if u.role == 'agent' %}
-                                            <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'approve', '{{ u.full_name }}')" style="display: flex; gap: 4px; align-items: center;">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <select name="department" class="form-select" style="padding: 4px 8px; font-size: 0.85rem; min-width: 120px;">
-                                                    <option value="Technical">Technical</option>
-                                                    <option value="Billing">Billing</option>
-                                                    <option value="Account">Account</option>
-                                                    <option value="General Inquiry">General Inquiry</option>
-                                                </select>
-                                                <button type="submit" class="btn btn-accent btn-sm">
-                                                    <i class="bi bi-check2"></i> Approve
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <form method="POST" action="{{ url_for('approve_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'approve', '{{ u.full_name }}')">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button type="submit" class="btn btn-accent btn-sm">
-                                                    <i class="bi bi-check2"></i> Approve
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                        <form method="POST" action="{{ url_for('reject_user', user_id=u.user_id) }}" onsubmit="return handleAdminAction(event, 'reject', '{{ u.full_name }}')">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="bi bi-x"></i> Reject
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
+        <div class="chart-container">
+            <canvas id="deptVolumeChart"></canvas>
+        </div>
     </div>
 </div>
 
-<!-- Fraud Management Center -->
-<div id="fraud-escalation-center" class="fraud-escalation-center">
+<!-- User Management -->
+<div id="user-verification-card" class="card mb-2xl" style="margin-bottom: var(--spacing-3xl);">
     <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h3 class="card-title" style="color: white;">Fraud Management Center ({{ fraud_tickets|length }})</h3>
-                <p class="card-subtitle" style="color: rgba(255, 255, 255, 0.8);">Tickets flagged for potential fraud or security violations</p>
-            </div>
-        </div>
+        <h3 class="card-title">User Management</h3>
+        <p class="card-subtitle">Manage system users and permissions</p>
     </div>
     <div class="card-body">
-        {% if fraud_tickets|length == 0 %}
-            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg);">
-                <i class="bi bi-shield-check" style="font-size: 2rem; color: var(--accent-lime); display: block; margin-bottom: var(--spacing-lg);"></i>
-                <h4 class="text-secondary" style="color: white;">No fraud incidents</h4>
-                <p class="text-muted" style="color: rgba(255, 255, 255, 0.7);">No active fraud or security incidents detected</p>
-            </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="fraud-management-table">
-                    <colgroup>
-                        <col span="1">
-                        <col span="2">
-                        <col span="3">
-                        <col span="4">
-                        <col span="5">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>Ticket ID</th>
-                            <th>Customer</th>
-                            <th>Trigger/Reason</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ft in fraud_tickets %}
-                            <tr>
-                                <td class="no-wrap">
-                                    <span class="no-wrap cell-ticket-id">{{ ft.ticket_id }}</span>
-                                </td>
-                                <td>
-                                    <div class="cell-customer-name">{{ ft.customer_name }}</div>
-                                    <div class="cell-customer-email">{{ ft.customer_email }}</div>
-                                </td>
-                                <td>
-                                    <div class="cell-trigger-title">{{ ft.subject }}</div>
-                                    <div class="cell-trigger-description" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">{{ ft.description }}</div>
-                                </td>
-                                <td><span class="badge badge-status-{{ ft.status|replace(' ', '') }}">{{ ft.status }}</span></td>
-                                <td>
-                                    <div class="fraud-actions">
-                                        <form method="POST" action="{{ url_for('ban_user', user_id=ft.customer_id) }}" onsubmit="return handleFraudAction(event, 'ban', '{{ ft.customer_name }}')">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="bi bi-slash-circle"></i> Ban User
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ft.ticket_id) }}" onsubmit="return handleFraudAction(event, 'close', '{{ ft.ticket_id }}')">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-secondary btn-sm">
-                                                <i class="bi bi-check2-all"></i> Close
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
+        <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
+            <i class="bi bi-people" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
+            <p>User management interface - Auto-approval enabled for streamlined demo flow</p>
+        </div>
     </div>
 </div>
+
+
 
 <!-- All Tickets Section (placeholder for full system ticket registry) -->
 <div id="admin-all-tickets-section" style="margin-top: var(--spacing-3xl);">
@@ -266,11 +94,7 @@
 <script type="application/json" id="chartData">
 {
     "deptLabels": {{ dept_labels | tojson }},
-    "deptData": {{ dept_data | tojson }},
-    "prioLabels": {{ prio_labels | tojson }},
-    "prioData": {{ prio_data | tojson }},
-    "satLabels": {{ sat_labels | tojson }},
-    "satData": {{ sat_data | tojson }}
+    "deptData": {{ dept_data | tojson }}
 }
 </script>
 <script>
@@ -278,60 +102,10 @@
     var CHART_DATA = JSON.parse(document.getElementById('chartData').textContent);
     var deptLabels = CHART_DATA.deptLabels;
     var deptData = CHART_DATA.deptData;
-    var prioLabels = CHART_DATA.prioLabels;
-    var prioData = CHART_DATA.prioData;
-    var satLabels = CHART_DATA.satLabels;
-    var satData = CHART_DATA.satData;
     
-    function handleAdminAction(event, action, userName) {
-        const actionText = action === 'approve' ? 'approve' : 'reject';
-        const confirmation = confirm('Are you sure you want to ' + actionText + ' user "' + userName + '"?');
-        
-        if (!confirmation) {
-            event.preventDefault();
-            return false;
-        }
-        
-        const form = event.target;
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = action === 'approve' ? 'Approving...' : 'Rejecting...';
-        
-        return true;
-    }
 
-    function handleFraudAction(event, action, targetName) {
-        let confirmation = false;
-        
-        if (action === 'ban') {
-            confirmation = confirm('⚠️ WARNING: Are you sure you want to PERMANENTLY BAN user "' + targetName + '"? This action cannot be undone.');
-        } else if (action === 'close') {
-            confirmation = confirm('Are you sure you want to close fraud ticket "' + targetName + '"?');
-        }
-        
-        if (!confirmation) {
-            event.preventDefault();
-            return false;
-        }
-        
-        const form = event.target;
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = action === 'ban' ? 'Banning...' : 'Closing...';
-        
-        return true;
-    }
 
-    function refreshAdminCharts() {
-        const charts = document.querySelectorAll('canvas');
-        charts.forEach(canvas => {
-            if (canvas.chart) {
-                canvas.chart.update();
-            }
-        });
-    }
-
-    function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData) {
+    function initAdminCharts(deptLabels, deptData) {
         const deptCtx = document.getElementById('deptVolumeChart');
         if (deptCtx) {
             new Chart(deptCtx.getContext('2d'), {
@@ -358,55 +132,6 @@
                 }
             });
         }
-
-        const prioCtx = document.getElementById('priorityDoughnutChart');
-        if (prioCtx) {
-            new Chart(prioCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: prioLabels,
-                    datasets: [{
-                        data: prioData,
-                        backgroundColor: ['#16a34a', '#d97706', '#ea580c', '#dc2626'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-        }
-
-        const satCtx = document.getElementById('satisfactionChart');
-        if (satCtx) {
-            new Chart(satCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: satLabels,
-                    datasets: [{
-                        label: 'Count',
-                        data: satData,
-                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                        borderColor: '#22c55e',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -415,13 +140,9 @@
             if (typeof CHART_DATA !== 'undefined' && CHART_DATA) {
                 deptLabels = CHART_DATA.deptLabels;
                 deptData = CHART_DATA.deptData;
-                prioLabels = CHART_DATA.prioLabels;
-                prioData = CHART_DATA.prioData;
-                satLabels = CHART_DATA.satLabels;
-                satData = CHART_DATA.satData;
                 
-                if (deptLabels && deptData && prioLabels && prioData && satLabels && satData) {
-                    initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData);
+                if (deptLabels && deptData) {
+                    initAdminCharts(deptLabels, deptData);
                 }
             }
         } catch (error) {

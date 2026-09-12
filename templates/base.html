@@ -42,31 +42,16 @@
                 {% if g.user %}
                     <!-- CUSTOMER NAVIGATION -->
                     {% if g.user.role == 'customer' %}
-                        <div class="nav-section-title">Main</div>
-                        <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link {% if request.endpoint == 'customer_dashboard' %}active{% endif %}" data-nav-action="dashboard">
-                                <i class="bi bi-grid-3x3-gap"></i>
-                                <span>Dashboard</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a href="{{ url_for('customer_dashboard') }}#customer-tickets-table" class="nav-link" data-nav-action="my-tickets">
-                                <i class="bi bi-inbox"></i>
-                                <span>My Tickets</span>
-                            </a>
-                        </div>
                         <div class="nav-item">
                             <a href="{{ url_for('customer_dashboard') }}#create-ticket-section" class="nav-link" data-nav-action="create-ticket">
                                 <i class="bi bi-plus-circle"></i>
                                 <span>Create Ticket</span>
                             </a>
                         </div>
-
-                        <div class="nav-section-title mt-4">My Activity</div>
                         <div class="nav-item">
-                            <a href="#" class="nav-link" data-nav-action="ticket-history">
-                                <i class="bi bi-clock-history"></i>
-                                <span>Ticket History</span>
+                            <a href="{{ url_for('customer_dashboard') }}#customer-tickets-table" class="nav-link" data-nav-action="my-tickets">
+                                <i class="bi bi-inbox"></i>
+                                <span>My Tickets</span>
                             </a>
                         </div>
                         <div class="nav-item">
@@ -78,51 +63,31 @@
 
                     <!-- AGENT NAVIGATION -->
                     {% elif g.user.role == 'agent' %}
-                        <div class="nav-section-title">Agent Workspace</div>
-                        <div class="nav-item">
-                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link {% if request.endpoint == 'agent_dashboard' %}active{% endif %}" data-nav-action="dashboard">
-                                <i class="bi bi-grid-3x3-gap"></i>
-                                <span>Dashboard</span>
-                            </a>
-                        </div>
                         <div class="nav-item">
                             <a href="{{ url_for('agent_dashboard') }}#department-ticket-table" class="nav-link" data-nav-action="assigned-queue">
                                 <i class="bi bi-inbox"></i>
-                                <span>Assigned Queue</span>
+                                <span>Department Queue</span>
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="#" class="nav-link" data-nav-action="pending-submitted">
-                                <i class="bi bi-eye"></i>
-                                <span>Pending / Submitted</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link" data-nav-action="in-progress">
-                                <i class="bi bi-arrow-repeat"></i>
-                                <span>In Progress</span>
+                            <a href="#" class="nav-link" data-nav-action="my-assigned">
+                                <i class="bi bi-person-check"></i>
+                                <span>My Assigned</span>
                             </a>
                         </div>
                         <div class="nav-item">
                             <a href="#" class="nav-link" data-nav-action="resolved-tickets">
                                 <i class="bi bi-check2-circle"></i>
-                                <span>Resolved Tickets</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a href="#" class="nav-link" data-nav-action="ai-insights">
-                                <i class="bi bi-cpu"></i>
-                                <span>AI Insights</span>
+                                <span>Resolved History</span>
                             </a>
                         </div>
 
                     <!-- ADMIN NAVIGATION -->
                     {% elif g.user.role == 'admin' %}
-                        <div class="nav-section-title">Administration</div>
                         <div class="nav-item">
                             <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" data-nav-action="dashboard">
                                 <i class="bi bi-grid-3x3-gap"></i>
-                                <span>Dashboard</span>
+                                <span>System Overview</span>
                             </a>
                         </div>
                         <div class="nav-item">
@@ -132,21 +97,9 @@
                             </a>
                         </div>
                         <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#user-verification-card" class="nav-link" data-nav-action="user-approvals">
-                                <i class="bi bi-person-check"></i>
-                                <span>User Approvals</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#fraud-escalation-center" class="nav-link" data-nav-action="fraud-center">
-                                <i class="bi bi-exclamation-diamond"></i>
-                                <span>Fraud Center</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a href="{{ url_for('admin_dashboard') }}#admin-analytics-section" class="nav-link" data-nav-action="analytics">
-                                <i class="bi bi-bar-chart"></i>
-                                <span>Analytics</span>
+                            <a href="{{ url_for('admin_dashboard') }}#user-verification-card" class="nav-link" data-nav-action="user-management">
+                                <i class="bi bi-people"></i>
+                                <span>User Management</span>
                             </a>
                         </div>
                     {% endif %}
@@ -205,9 +158,7 @@
                         </button>
 
                         <h3 class="alert-modal-title">
-                            {% if category == 'pending_approval' %}
-                                <i class="bi bi-hourglass-split" style="color: var(--warning);"></i> Account Pending
-                            {% elif category == 'danger' %}
+                            {% if category == 'danger' %}
                                 <i class="bi bi-shield-x" style="color: var(--danger);"></i> Access Denied
                             {% elif category == 'success' %}
                                 <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
@@ -222,7 +173,7 @@
 
                         <div class="alert-modal-buttons">
                             <button type="button" class="btn btn-primary" onclick="closeFlashModal(this)">
-                                Acknowledge
+                                OK
                             </button>
                         </div>
                     </div>

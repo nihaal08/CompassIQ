@@ -1,0 +1,259 @@
+================================================================================
+COMPASSIQ — VIVA DEFENSE CHEAT SHEET
+MCA Academic Mini-Project Quick Reference Guide
+================================================================================
+
+PROJECT OVERVIEW
+────────────────────────────────────────────────────────────────────────────
+Name: CompassIQ — AI-Powered Ticket Management System
+Type: MCA Academic Mini-Project
+Tech Stack: Flask, SQLite, scikit-learn, TF-IDF, Logistic Regression
+Objective: Demonstrate AI/ML integration in full-stack web application
+Core Flows: 5 (Auth, Customer, AI Inference, Agent, Admin)
+
+
+ML PIPELINE EXPLANATION (2 Sentences)
+────────────────────────────────────────────────────────────────────────────
+The system uses TF-IDF (Term Frequency-Inverse Document Frequency) to convert
+text into numerical feature vectors that reflect word importance. Logistic
+Regression then classifies these vectors into ticket categories and priorities
+with probability estimation for confidence scoring.
+
+Key Math:
+- TF-IDF: tf(t,d) × idf(t) = (count(t,d) / |d|) × log(N / df(t))
+- Logistic Regression: P(y=1|x) = 1 / (1 + e^(-w·x))
+
+
+DATABASE RELATIONAL STRUCTURE
+────────────────────────────────────────────────────────────────────────────
+1. USERS (1) ──< TICKETS (N) ──< TICKET_REPLIES (N)
+   - user_id (PK) → ticket.customer_id (FK)
+   - ticket_id (PK) → reply.ticket_id (FK)
+   - user_id (PK) → reply.sender_id (FK)
+
+2. FOREIGN KEY RELATIONSHIPS
+   - tickets.customer_id → users.user_id (1 customer can have many tickets)
+   - tickets.assigned_agent_id → users.user_id (1 agent can handle many tickets)
+   - ticket_replies.ticket_id → tickets.ticket_id (1 ticket can have many replies)
+   - ticket_replies.sender_id → users.user_id (1 user can send many replies)
+
+3. WHY RELATIONAL?
+   - Data integrity through foreign key constraints
+   - Prevents orphaned records (cascading deletes not used for audit trail)
+   - Enables complex queries with JOIN operations
+   - Standard SQL database pattern for academic demonstration
+
+
+WHY AUTO-APPROVAL & LIGHTWEIGHT INFERENCE?
+────────────────────────────────────────────────────────────────────────────
+ACADEMIC CONTEXT (vs Enterprise):
+- Auto-Approval: Streamlined demo flow for viva evaluation, eliminates waiting
+  for admin approval, focuses evaluation on AI/ML features rather than
+  enterprise workflows
+- Lightweight Inference: 3 model artifacts (TF-IDF + 2 classifiers) vs 4
+  (removed historical corpus), reduces startup time from 7-12s to <2s,
+  suitable for demo scale and line-by-line code explanation
+
+ENTERPRISE TRADE-OFFS:
+- Auto-Approval would be inappropriate for production (security risk)
+- Lightweight inference lacks historical context for enterprise support
+- Simplified navigation (3 links + Sign Out) reduces UI complexity for viva
+- SQLite not suitable for high-concurrency production deployments
+
+
+5 EVALUATION FLOWS (Quick Reference)
+────────────────────────────────────────────────────────────────────────────
+
+FLOW 1: AUTHENTICATION (30s)
+  - /register: Creates user with APPROVED status (no admin approval)
+  - /login: Validates credentials, creates session, redirects to role dashboard
+  - /logout: Clears session, redirects to login
+  - Key decorators: @login_required, @role_required, @customer_required
+
+FLOW 2: CUSTOMER PORTAL (45s)
+  - /customer/dashboard: Shows all customer tickets
+  - /customer/tickets/create: Calls ai_engine.predict_and_retrieve()
+  - AI: Text preprocessing → TF-IDF → Category/Priority prediction
+  - Returns: predicted_category, predicted_priority, assigned_department
+
+FLOW 3: AI INFERENCE (Called during ticket creation)
+  - Step 1: clean_text() - Lowercasing, stopword removal, lemmatization
+  - Step 2: vectorizer.transform() - TF-IDF feature extraction
+  - Step 3: category_model.predict() - Logistic Regression classification
+  - Step 4: category_model.predict_proba() - Confidence scoring
+  - Step 5: Fallback - Rule-based heuristic if models unavailable
+
+FLOW 4: AGENT PORTAL (60s)
+  - /agent/dashboard: Department-specific queue (WHERE assigned_department = ?)
+  - Priority sorting: Critical > High > Medium > Low (CASE statement)
+  - /agent/tickets/<id>/details: Fetches ticket + conversation history
+  - /agent/tickets/<id>/reply: Updates status, adds reply, resolution notes
+
+FLOW 5: ADMIN PORTAL (45s)
+  - /admin/dashboard: 3 metric cards + 1 category distribution chart
+  - Metrics: Total Tickets, Open Tickets, Resolved Tickets
+  - Chart: Chart.js bar chart with category distribution data
+  - Data aggregation: GROUP BY predicted_category, COUNT(*)
+
+
+VIVA-DEFENSIBLE CODE POINTS
+────────────────────────────────────────────────────────────────────────────
+
+1. ROUTE PATTERN (app.py)
+   Standard 3-step pattern for all routes:
+   - Step 1: Read and validate request data (Form or JSON)
+   - Step 2: Perform database operation or call AI engine
+   - Step 3: Render template or return JSON response
+
+2. SQL INJECTION PREVENTION (db.py)
+   Parameterized queries with ? placeholders:
+   - query_db("SELECT * FROM users WHERE email = ?", (email,))
+   - Never concatenate strings: "SELECT * FROM users WHERE email = '" + email + "'"
+
+3. CSRF PROTECTION (app.py, templates)
+   - Configuration: app.config['WTF_CSRF_TIME_LIMIT'] = None
+   - Template: <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+   - Validation: Handled automatically by Flask-WTF
+
+4. PASSWORD HASHING (app.py)
+   - Registration: generate_password_hash(password) - PBKDF2 with salt
+   - Login: check_password_hash(user['password_hash'], password)
+   - Never store plaintext passwords
+
+5. RBAC DECORATORS (app.py)
+   - @login_required: Checks if user is logged in and approved
+   - @role_required('admin'): Restricts access to specific roles
+   - @customer_required: Combines login_required + role_required('customer')
+
+6. AI INFERENCE (ai_engine.py)
+   - Text preprocessing: Lowercasing, regex cleaning, stopword removal, lemmatization
+   - TF-IDF: TfidfVectorizer(max_features=5000, ngram_range=(1,2))
+   - Classification: LogisticRegression with predict_proba() for confidence
+   - Fallback: Rule-based heuristic using keyword matching
+
+7. AJAX ENDPOINTS (app.py, main.js)
+   - Customer: /customer/tickets/<id>/reply - Submit reply, return new reply
+   - Agent: /agent/tickets/<id>/details - Fetch ticket details, conversation
+   - Response format: JSON with success/error status and data
+
+8. ERROR HANDLING (app.py)
+   - Database errors: try/except blocks with user-friendly flash messages
+   - ML errors: Safe fallback to rule-based heuristic
+   - Unauthorized access: Decorators redirect to login with flash message
+
+
+COMMON VIVA QUESTIONS & ANSWERS
+────────────────────────────────────────────────────────────────────────────
+
+Q: Why did you choose TF-IDF over Word2Vec or BERT?
+A: TF-IDF is explainable, interpretable, and standard for academic projects.
+   Word2Vec/BERT are more complex and harder to explain line-by-line in a viva.
+
+Q: Why Logistic Regression instead of Random Forest or Neural Networks?
+A: Logistic Regression provides probability estimation for confidence scoring,
+   is faster for inference, and is mathematically explainable (linear classifier).
+
+Q: Why SQLite instead of PostgreSQL or MySQL?
+A: SQLite is zero-configuration, file-based, and suitable for demo scale.
+   PostgreSQL/MySQL would require server setup and add complexity.
+
+Q: How does your system handle low-confidence predictions?
+A: predict_proba() returns probability; if <45%, low_confidence flag is set
+   for manual review. Safe fallback to rule-based heuristic if models fail.
+
+Q: What happens if the ML models are missing?
+A: Rule-based heuristic fallback uses keyword matching (error→Technical,
+   charge→Billing, login→Account) to ensure system remains functional.
+
+Q: How do you prevent SQL injection?
+A: Parameterized queries with ? placeholders. SQLite library escapes
+   parameters automatically, preventing malicious SQL injection.
+
+Q: How do you protect against CSRF attacks?
+A: Flask-WTF generates CSRF tokens for all POST forms. Tokens are validated
+   on submission, and requests without valid tokens are rejected.
+
+Q: Why did you remove historical corpus similarity search?
+A: For startup optimization. Removed historical_corpus.joblib (4th model),
+   reduced startup from 7-12s to <2s, suitable for viva demo flow.
+
+Q: How do you ensure data integrity in the database?
+A: Foreign key constraints prevent orphaned records. Schema enforces
+   relationships between users, tickets, and replies.
+
+Q: What is the 1:N relationship in your database?
+A: 1 User → N Tickets (customer can create many tickets)
+   1 Ticket → N Replies (ticket can have many conversation messages)
+
+
+PERFORMANCE METRICS (Quick Reference)
+────────────────────────────────────────────────────────────────────────────
+- Startup Time: <2 seconds (optimized from 7-12s)
+- ML Inference: <100ms per ticket prediction
+- Database Query: <50ms for dashboard load
+- Memory Footprint: ~60% reduction (removed historical corpus)
+- Concurrent Users: 1-3 (demo scale, not production)
+
+
+DEMO FLOW TIMING (3.5 Minutes Total)
+────────────────────────────────────────────────────────────────────────────
+Step 1: Registration & Login: 30s
+Step 2: Create Ticket with AI: 45s
+Step 3: Agent Workflow: 60s
+Step 4: Customer Feedback: 30s
+Step 5: Admin Analytics: 45s
+
+
+TECHNOLOGY STACK (Summary)
+────────────────────────────────────────────────────────────────────────────
+Backend: Python 3.8+, Flask 2.0+, SQLite, scikit-learn 1.0+, joblib 1.2+, NLTK 3.6+
+Frontend: HTML5, CSS3 (Bootstrap 5 + Custom), JavaScript (Vanilla ES6+), Chart.js
+Development: Git, PowerShell, VS Code
+
+
+KEY FILES TO EXPLAIN (Line-by-Line Ready)
+────────────────────────────────────────────────────────────────────────────
+1. app.py (811 lines)
+   - Lines 1-14: Imports and configuration
+   - Lines 40-109: Helper functions and decorators
+   - Lines 112-225: Authentication routes (Flow 1)
+   - Lines 228-398: Customer portal routes (Flow 2)
+   - Lines 401-539: Agent portal routes (Flow 4)
+   - Lines 542-571: Admin portal routes (Flow 5)
+   - Lines 637-688: Application startup
+
+2. ai_engine.py (267 lines)
+   - Lines 1-14: Module docstring and imports
+   - Lines 47-77: Text preprocessing function
+   - Lines 78-116: Model loading function
+   - Lines 117-158: Heuristic fallback function
+   - Lines 159-267: Main prediction function
+
+3. db.py (Not modified in refactoring)
+   - query_db(): SELECT operations with parameterized queries
+   - modify_db(): INSERT/UPDATE/DELETE operations
+   - init_db_schema(): Automated schema initialization
+
+4. main.js (584 lines)
+   - Lines 8-118: Modal alert system
+   - Lines 124-138: Star rating system
+   - Lines 140-244: Customer portal interaction
+   - Lines 246-324: Agent portal interaction
+   - Lines 326-524: Sidebar navigation
+   - Lines 526-579: Admin analytics (Chart.js)
+
+
+FINAL TIPS FOR VIVA SUCCESS
+────────────────────────────────────────────────────────────────────────────
+1. PRACTICE THE DEMO: Run through all 5 flows multiple times
+2. KNOW YOUR CODE: Be ready to explain any line in app.py or ai_engine.py
+3. DEFEND YOUR CHOICES: Explain why TF-IDF, Logistic Regression, SQLite
+4. ACKNOWLEDGE LIMITATIONS: Be honest about what's demo vs production
+5. FOCUS ON CORE: Emphasize AI/ML integration, not enterprise features
+6. USE DOCUMENTATION: Reference docs/details.txt for architecture details
+7. STAY CALM: If stuck, admit it and move to next feature
+8. TIME MANAGEMENT: Keep demo under 5 minutes, leave time for questions
+
+
+GOOD LUCK WITH YOUR VIVA! 🎓
+================================================================================

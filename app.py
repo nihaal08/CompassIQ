@@ -1,9 +1,18 @@
 """
 CompassIQ — AI-Powered Customer Support Ticket Management System
 ================================================================
-Flask Web Application Backend providing Role-Based Access Control,
-Customer Ticket Lifecycle Management, Department Agent Workspace with
-AI recommendations, and Administrator Fraud & Analytics Controls.
+MCA Academic Mini-Project demonstrating:
+- Role-Based Access Control (Customer, Agent, Admin)
+- AI-Powered Ticket Classification using TF-IDF + Logistic Regression
+- SQLite Database with Relational Schema
+- Flask Web Application with Clean RESTful Routes
+
+Core Evaluation Flows:
+1. Authentication (Auto-approved registration, login, logout)
+2. Customer Portal (Create tickets, view history, submit feedback)
+3. AI Inference (TF-IDF text classification for category & priority)
+4. Agent Portal (Department queues, ticket resolution, replies)
+5. Admin Portal (System metrics, category distribution analytics)
 """
 
 import os
@@ -25,29 +34,32 @@ from config import Config
 from db import query_db, modify_db, init_db_schema
 from ai_engine import predict_and_retrieve, load_ai_engine
 
+# Initialize Flask application
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config['SECRET_KEY'] = Config.SECRET_KEY
 
-# Initialize CSRF protection for demo purposes
+# Initialize CSRF protection for form security
 csrf = CSRFProtect(app)
 
-# Note: AI engine loading is deferred to main() to prevent premature loading
-# and to allow for error handling during the startup sequence
-
-
 # ============================================================================
-# HELPER FUNCTIONS & DECORATORS
+# FLOW 1: AUTHENTICATION (Auto-Approved Registration, Login, Logout)
 # ============================================================================
 
 def generate_ticket_id():
-    """Generates unique alphanumeric ticket ID (e.g. TKT-748921)."""
+    """
+    Generates unique alphanumeric ticket ID (e.g. TKT-748921).
+    Used for creating identifiable ticket references.
+    """
     random_num = ''.join(random.choices(string.digits, k=6))
     return f"TKT-{random_num}"
 
 
 def get_current_user():
-    """Retrieves current logged in user from database using session user_id."""
+    """
+    Retrieves current logged in user from database using session user_id.
+    Returns user dictionary or None if not logged in.
+    """
     if 'user_id' not in session:
         return None
     try:
@@ -64,10 +76,18 @@ def get_current_user():
 
 @app.before_request
 def load_logged_in_user():
+    """
+    Flask before_request hook to load current user into Flask's g object.
+    This makes user information available across all routes.
+    """
     g.user = get_current_user()
 
 
 def login_required(f):
+    """
+    Decorator to protect routes that require user authentication.
+    Redirects to login page if user is not logged in or not approved.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if g.user is None:
@@ -82,6 +102,10 @@ def login_required(f):
 
 
 def role_required(*roles):
+    """
+    Decorator to restrict route access to specific user roles.
+    Used for RBAC (Role-Based Access Control) implementation.
+    """
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -97,23 +121,29 @@ def role_required(*roles):
 
 
 def customer_required(f):
+    """Decorator requiring customer role."""
     return login_required(role_required('customer')(f))
 
 
 def agent_required(f):
+    """Decorator requiring agent role."""
     return login_required(role_required('agent')(f))
 
 
 def admin_required(f):
+    """Decorator requiring admin role."""
     return login_required(role_required('admin')(f))
 
 
-# ============================================================================
-# PUBLIC & AUTHENTICATION ROUTES
-# ============================================================================
-
 @app.route('/')
 def index():
+    """
+    Root route that redirects users to their appropriate dashboard based on role.
+    - Customer → Customer Dashboard
+    - Agent → Agent Dashboard  
+    - Admin → Admin Dashboard
+    - Not logged in → Login page
+    """
     if g.user:
         if g.user['role'] == 'customer':
             return redirect(url_for('customer_dashboard'))
@@ -126,16 +156,24 @@ def index():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """
+    User registration route with auto-approval for streamlined demo flow.
+    - GET: Renders registration form
+    - POST: Creates new user with APPROVED status (no admin approval needed)
+    - Validates input, checks for existing email, hashes password
+    """
     if g.user:
         return redirect(url_for('index'))
 
     if request.method == 'POST':
+        # Step 1: Read and validate form data
         full_name = request.form.get('full_name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         bill_no_product_id = request.form.get('bill_no_product_id', '').strip()
 
+        # Form validation
         if not full_name or not email or not password:
             flash("Please fill in all required fields.", "danger")
             return render_template('register.html')
@@ -148,24 +186,24 @@ def register():
             flash("Password must be at least 6 characters long.", "danger")
             return render_template('register.html')
 
-        # Check existing user
+        # Step 2: Check for existing user
         existing_user = query_db("SELECT user_id FROM users WHERE email = ?", (email,), one=True)
         if existing_user:
             flash("An account with this email address already exists.", "danger")
             return render_template('register.html')
 
+        # Step 3: Create user with auto-approval
         hashed_password = generate_password_hash(password)
 
         try:
-            # Customers are created with account_status = 'PENDING'
             modify_db(
                 """INSERT INTO users (full_name, email, password_hash, role, department, bill_no_product_id, account_status)
-                   VALUES (?, ?, ?, 'customer', 'None', ?, 'PENDING')""",
+                   VALUES (?, ?, ?, 'customer', 'None', ?, 'APPROVED')""",
                 (full_name, email, hashed_password, bill_no_product_id)
             )
             flash(
-                "Registration submitted successfully! Your account is pending admin approval. Please wait for verification.",
-                "pending_approval"
+                "Registration successful! Your account has been automatically approved.",
+                "success"
             )
             return redirect(url_for('login'))
         except Exception as e:
@@ -177,10 +215,17 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    User authentication route.
+    - GET: Renders login form
+    - POST: Validates credentials, creates session, redirects to role-specific dashboard
+    - Checks account status (BANNED users are blocked)
+    """
     if g.user:
         return redirect(url_for('index'))
 
     if request.method == 'POST':
+        # Step 1: Read and validate credentials
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
 
@@ -188,26 +233,19 @@ def login():
             flash("Please enter both email and password.", "warning")
             return render_template('login.html')
 
+        # Step 2: Authenticate user
         user = query_db("SELECT * FROM users WHERE email = ?", (email,), one=True)
 
         if not user or not check_password_hash(user['password_hash'], password):
             flash("Invalid email or password. Please verify your credentials.", "danger")
             return render_template('login.html')
 
-        # Account Status Check Guard
-        if user['account_status'] == 'PENDING':
-            flash("Your account is pending admin approval. Please wait for verification.", "pending_approval")
-            return render_template('login.html')
-
+        # Step 3: Check account status
         if user['account_status'] == 'BANNED':
             flash("Your account has been suspended by administration. Please contact support.", "danger")
             return render_template('login.html')
 
-        if user['account_status'] == 'REJECTED':
-            flash("Your account registration was declined by administration.", "danger")
-            return render_template('login.html')
-
-        # Login Approved User
+        # Step 4: Create session and redirect
         session.clear()
         session['user_id'] = user['user_id']
         session['role'] = user['role']
@@ -215,6 +253,7 @@ def login():
 
         flash(f"Welcome back, {user['full_name']}!", "success")
 
+        # Role-based redirect
         if user['role'] == 'customer':
             return redirect(url_for('customer_dashboard'))
         elif user['role'] == 'agent':
@@ -227,19 +266,27 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """
+    User logout route.
+    Clears session and redirects to login page.
+    """
     session.clear()
     flash("You have been signed out successfully.", "info")
     return redirect(url_for('login'))
 
 
 # ============================================================================
-# CUSTOMER PORTAL
+# FLOW 2: CUSTOMER PORTAL (Create Tickets, View History, Submit Feedback)
 # ============================================================================
 
 @app.route('/customer/dashboard')
 @customer_required
 def customer_dashboard():
-    # Fetch all tickets created by customer
+    """
+    Customer dashboard showing all tickets created by the current customer.
+    Displays ticket list with agent assignment and status information.
+    """
+    # Fetch all tickets created by customer with agent details
     tickets = query_db(
         """SELECT t.*, u.full_name as agent_name
            FROM tickets t
@@ -255,6 +302,14 @@ def customer_dashboard():
 @app.route('/customer/tickets/create', methods=['POST'])
 @customer_required
 def create_ticket():
+    """
+    Ticket creation route with AI-powered classification.
+    - Step 1: Read and validate form data (subject, description)
+    - Step 2: Call AI engine for category and priority prediction
+    - Step 3: Insert ticket with AI predictions into database
+    - Step 4: Create initial reply message
+    """
+    # Step 1: Read and validate form data
     subject = request.form.get('subject', '').strip()
     description = request.form.get('description', '').strip()
 
@@ -262,18 +317,17 @@ def create_ticket():
         flash("Subject and Description cannot be empty.", "warning")
         return redirect(url_for('customer_dashboard'))
 
-    # Run AI inference and cosine similarity retrieval
+    # Step 2: AI Inference for category and priority prediction
     ai_result = predict_and_retrieve(subject, description, top_k=3)
     
     predicted_category = ai_result['predicted_category']
     predicted_priority = ai_result['predicted_priority']
     assigned_dept = ai_result['assigned_department']
-    similar_matches = ai_result.get('similar_tickets', [])
 
     ticket_id = generate_ticket_id()
 
     try:
-        # 1. Insert ticket
+        # Step 3: Insert ticket with AI predictions
         modify_db(
             """INSERT INTO tickets (ticket_id, customer_id, subject, description,
                                    predicted_category, predicted_priority,
@@ -283,31 +337,14 @@ def create_ticket():
              predicted_category, predicted_priority, assigned_dept)
         )
 
-        # 2. Insert initial ticket reply message
+        # Step 4: Insert initial ticket reply message
         modify_db(
             """INSERT INTO ticket_replies (ticket_id, sender_id, message)
                VALUES (?, ?, ?)""",
             (ticket_id, g.user['user_id'], description)
         )
 
-        # 3. Store Top-3 similar matches in DB (for agent recommendation workspace)
-        for match in similar_matches:
-            modify_db(
-                """INSERT INTO ticket_similar_matches
-                   (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (ticket_id,
-                 match['similar_ticket_ref_id'],
-                 match['similarity_score'],
-                 match['similar_subject'],
-                 match['similar_description'],
-                 match.get('historical_resolution_hours'))
-            )
-
-        if predicted_category == 'Fraud':
-            flash("Your ticket has been submitted and escalated for administrative review.", "info")
-        else:
-            flash(f"Ticket {ticket_id} created successfully! Routed to {assigned_dept} team.", "success")
+        flash(f"Ticket {ticket_id} created successfully! Routed to {assigned_dept} team.", "success")
 
     except Exception as e:
         flash(f"Failed to submit ticket: {e}", "danger")
@@ -318,6 +355,12 @@ def create_ticket():
 @app.route('/customer/tickets/<ticket_id>')
 @customer_required
 def view_customer_ticket(ticket_id):
+    """
+    Customer ticket details endpoint (AJAX).
+    Returns ticket information and conversation history in JSON format.
+    Used for populating ticket detail modals.
+    """
+    # Step 1: Fetch ticket with ownership verification
     ticket = query_db(
         """SELECT t.*, u.full_name as agent_name
            FROM tickets t
@@ -332,7 +375,7 @@ def view_customer_ticket(ticket_id):
             'message': 'Ticket not found or unauthorized'
         }), 404
 
-    # Fetch conversation replies
+    # Step 2: Fetch conversation replies
     replies = query_db(
         """SELECT r.*, u.full_name as sender_name, u.role as sender_role
            FROM ticket_replies r
@@ -346,18 +389,27 @@ def view_customer_ticket(ticket_id):
         'success': True,
         'status': 'success',
         'ticket': ticket,
-        'replies': replies
+        'replies': replies,
+        'similar_matches': []  # Empty array for API compatibility
     })
 
 
 @app.route('/customer/tickets/<ticket_id>/reply', methods=['POST'])
 @customer_required
 def customer_ticket_reply(ticket_id):
+    """
+    Customer reply submission endpoint (AJAX).
+    - Step 1: Validate reply message
+    - Step 2: Verify ticket ownership and status
+    - Step 3: Insert reply into database
+    - Step 4: Return new reply for immediate UI update
+    """
+    # Step 1: Read and validate message
     message = request.form.get('message', '').strip()
     if not message:
         return jsonify({'success': False, 'message': 'Reply message cannot be empty.'}), 400
 
-    # Verify ownership
+    # Step 2: Verify ownership and status
     ticket = query_db(
         "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
         (ticket_id, g.user['user_id']),
@@ -369,12 +421,13 @@ def customer_ticket_reply(ticket_id):
     if ticket['status'] in ['Resolved', 'Closed']:
         return jsonify({'success': False, 'message': 'This ticket is resolved or closed. Replies are locked.'}), 403
 
+    # Step 3: Insert reply
     modify_db(
         "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
         (ticket_id, g.user['user_id'], message)
     )
     
-    # Fetch the newly created reply for immediate UI update
+    # Step 4: Fetch new reply for UI update
     new_reply = query_db(
         """SELECT r.*, u.full_name as sender_name, u.role as sender_role
            FROM ticket_replies r
@@ -395,6 +448,13 @@ def customer_ticket_reply(ticket_id):
 @app.route('/customer/tickets/<ticket_id>/feedback', methods=['POST'])
 @customer_required
 def submit_feedback(ticket_id):
+    """
+    Customer satisfaction feedback submission.
+    - Step 1: Validate rating (1-5 stars)
+    - Step 2: Verify ticket is resolved
+    - Step 3: Update ticket with satisfaction score and feedback
+    """
+    # Step 1: Read and validate rating
     score = request.form.get('satisfaction_score', type=int)
     feedback = request.form.get('customer_feedback', '').strip()
 
@@ -402,6 +462,7 @@ def submit_feedback(ticket_id):
         flash("Please provide a rating between 1 and 5 stars.", "warning")
         return redirect(url_for('customer_dashboard'))
 
+    # Step 2: Verify ticket status
     ticket = query_db(
         "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
         (ticket_id, g.user['user_id']),
@@ -411,6 +472,7 @@ def submit_feedback(ticket_id):
         flash("Feedback can only be submitted for resolved tickets.", "danger")
         return redirect(url_for('customer_dashboard'))
 
+    # Step 3: Update ticket with feedback
     modify_db(
         """UPDATE tickets
            SET satisfaction_score = ?, customer_feedback = ?, status = 'Closed'
@@ -422,15 +484,30 @@ def submit_feedback(ticket_id):
 
 
 # ============================================================================
-# DEPARTMENT AGENT PORTAL
+# FLOW 3: AI INFERENCE (Called during ticket creation)
+# ============================================================================
+
+# AI inference is handled in ai_engine.py predict_and_retrieve() function
+# Called from create_ticket() route above
+
+
+# ============================================================================
+# FLOW 4: AGENT PORTAL (Department Queues, Ticket Resolution, Replies)
 # ============================================================================
 
 @app.route('/agent/dashboard')
 @agent_required
 def agent_dashboard():
+    """
+    Agent dashboard showing department-specific ticket queue.
+    - Filters tickets by department and status
+    - Shows summary statistics (total, submitted, in progress, resolved)
+    - Prioritizes tickets by predicted priority (Critical > High > Medium > Low)
+    """
     agent_dept = g.user['department']
     status_filter = request.args.get('status', 'all')
 
+    # Build dynamic SQL query with optional status filter
     sql = """
         SELECT t.*, u.full_name as customer_name, u.email as customer_email,
                a.full_name as agent_name
@@ -445,11 +522,12 @@ def agent_dashboard():
         sql += " AND t.status = ?"
         params.append(status_filter)
 
+    # Order by priority (Critical first) then by creation date
     sql += " ORDER BY CASE t.predicted_priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 WHEN 'Low' THEN 4 ELSE 5 END, t.created_at DESC"
 
     tickets = query_db(sql, tuple(params))
     
-    # Summary stats for agent badge counters
+    # Fetch summary statistics for dashboard counters
     counts = query_db(
         """SELECT
             COUNT(*) as total,
@@ -475,8 +553,14 @@ def agent_dashboard():
 @app.route('/agent/tickets/<ticket_id>/details')
 @agent_required
 def agent_ticket_details(ticket_id):
+    """
+    Agent ticket details endpoint (AJAX).
+    Returns ticket information, conversation history, and AI predictions.
+    Used for populating agent workspace modal.
+    """
     agent_dept = g.user['department']
     
+    # Step 1: Fetch ticket with department verification
     ticket = query_db(
         """SELECT t.*, u.full_name as customer_name, u.email as customer_email,
                   u.bill_no_product_id as customer_product_id,
@@ -491,7 +575,7 @@ def agent_ticket_details(ticket_id):
     if not ticket:
         return jsonify({'status': 'error', 'message': 'Ticket not found or unauthorized.'}), 404
 
-    # Fetch conversation replies
+    # Step 2: Fetch conversation replies
     replies = query_db(
         """SELECT r.*, u.full_name as sender_name, u.role as sender_role
            FROM ticket_replies r
@@ -501,25 +585,25 @@ def agent_ticket_details(ticket_id):
         (ticket_id,)
     )
 
-    # Fetch AI Similar Matches
-    similar_matches = query_db(
-        """SELECT * FROM ticket_similar_matches
-           WHERE ticket_id = ?
-           ORDER BY similarity_score DESC LIMIT 3""",
-        (ticket_id,)
-    )
-
     return jsonify({
         'status': 'success',
         'ticket': ticket,
         'replies': replies,
-        'similar_matches': similar_matches
+        'similar_matches': []  # Empty array for API compatibility
     })
 
 
 @app.route('/agent/tickets/<ticket_id>/reply', methods=['POST'])
 @agent_required
 def agent_ticket_reply(ticket_id):
+    """
+    Agent ticket update endpoint.
+    - Step 1: Read reply message, status update, and resolution notes
+    - Step 2: Verify ticket belongs to agent's department
+    - Step 3: Insert reply if provided
+    - Step 4: Update ticket status, assign agent, add resolution notes
+    """
+    # Step 1: Read form data
     agent_dept = g.user['department']
     message = request.form.get('message', '').strip()
     new_status = request.form.get('status', '').strip()
@@ -529,7 +613,7 @@ def agent_ticket_reply(ticket_id):
         flash("No update provided.", "warning")
         return redirect(url_for('agent_dashboard'))
 
-    # Verify ticket scope
+    # Step 2: Verify ticket scope
     ticket = query_db(
         "SELECT * FROM tickets WHERE ticket_id = ? AND assigned_department = ?",
         (ticket_id, agent_dept),
@@ -539,14 +623,14 @@ def agent_ticket_reply(ticket_id):
         flash("Ticket not found in your department scope.", "danger")
         return redirect(url_for('agent_dashboard'))
 
-    # Insert reply if given
+    # Step 3: Insert reply if provided
     if message:
         modify_db(
             "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
             (ticket_id, g.user['user_id'], message)
         )
 
-    # Update ticket status and resolution notes
+    # Step 4: Update ticket status and metadata
     update_fields = ["assigned_agent_id = ?"]
     params = [g.user['user_id']]
 
@@ -571,105 +655,52 @@ def agent_ticket_reply(ticket_id):
 
 
 # ============================================================================
-# ADMINISTRATOR PORTAL
+# FLOW 5: ADMIN PORTAL (System Metrics, Category Distribution Analytics)
 # ============================================================================
 
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    # 1. Metric Cards
+    """
+    Admin dashboard with system metrics and category distribution analytics.
+    - Step 1: Calculate core metrics (Total Tickets, Open Tickets, Resolved Tickets)
+    - Step 2: Fetch category distribution data for Chart.js visualization
+    - Returns simplified 3-card metrics + 1 category chart
+    """
+    # Step 1: Calculate core metrics
     total_tickets = query_db("SELECT COUNT(*) as count FROM tickets", one=True)['count']
-    pending_users = query_db("SELECT COUNT(*) as count FROM users WHERE account_status = 'PENDING'", one=True)['count']
-    critical_tickets = query_db("SELECT COUNT(*) as count FROM tickets WHERE predicted_priority IN ('Critical', 'High')", one=True)['count']
     resolved_tickets = query_db("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", one=True)['count']
-    resolve_rate = round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0.0
 
-    # Calculate average resolution time in hours
-    avg_res_row = query_db(
-        """SELECT AVG((julianday(resolved_at) - julianday(created_at)) * 24) as avg_hrs
-           FROM tickets
-           WHERE status IN ('Resolved', 'Closed') AND resolved_at IS NOT NULL""",
-        one=True
-    )
-    avg_resolution_hours = round(avg_res_row['avg_hrs'], 1) if avg_res_row and avg_res_row['avg_hrs'] else 18.5
-
-    # 2. User Verification Queue
-    pending_users_list = query_db(
-        "SELECT * FROM users WHERE account_status = 'PENDING' ORDER BY created_at DESC"
-    )
-
-    # 3. Fraud Center Tickets
-    fraud_tickets = query_db(
-        """SELECT t.*, u.full_name as customer_name, u.email as customer_email,
-                  u.bill_no_product_id, u.account_status as user_status
-           FROM tickets t
-           JOIN users u ON t.customer_id = u.user_id
-           WHERE t.predicted_category = 'Fraud' OR t.assigned_department = 'Admin_Fraud'
-           ORDER BY t.created_at DESC"""
-    )
-
-    # 4. Department Distribution Analytics
+    # Step 2: Fetch category distribution for analytics
     dept_stats = query_db(
-        """SELECT assigned_department, COUNT(*) as count
+        """SELECT predicted_category as assigned_department, COUNT(*) as count
            FROM tickets
-           GROUP BY assigned_department"""
-    )
-
-    # 5. Priority Distribution Analytics
-    prio_stats = query_db(
-        """SELECT predicted_priority, COUNT(*) as count
-           FROM tickets
-           GROUP BY predicted_priority"""
-    )
-
-    # 6. Satisfaction Distribution Analytics
-    sat_stats = query_db(
-        """SELECT satisfaction_score, COUNT(*) as count
-           FROM tickets
-           WHERE satisfaction_score IS NOT NULL
-           GROUP BY satisfaction_score
-           ORDER BY satisfaction_score ASC"""
+           GROUP BY predicted_category"""
     )
 
     # Convert chart data for JSON rendering in Chart.js
     dept_labels = [row['assigned_department'] for row in dept_stats]
     dept_data = [row['count'] for row in dept_stats]
 
-    prio_labels = [row['predicted_priority'] for row in prio_stats]
-    prio_data = [row['count'] for row in prio_stats]
-
-    sat_dict = {row['satisfaction_score']: row['count'] for row in sat_stats}
-    sat_labels = ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars']
-    sat_data = [sat_dict.get(i, 0) for i in range(1, 6)]
-
     return render_template(
         'admin_dashboard.html',
         metrics={
             'total_tickets': total_tickets,
-            'pending_users': pending_users,
-            'critical_count': critical_tickets,
-            'resolve_rate': resolve_rate,
-            'avg_resolution_hours': avg_resolution_hours
+            'resolved_tickets': resolved_tickets
         },
-        pending_users=pending_users_list,
-        fraud_tickets=fraud_tickets,
         dept_labels=dept_labels,
-        dept_data=dept_data,
-        prio_labels=prio_labels,
-        prio_data=prio_data,
-        sat_labels=sat_labels,
-        sat_data=sat_data
+        dept_data=dept_data
     )
 
 
+# Legacy admin routes (kept for API compatibility but not used in simplified UI)
 @app.route('/admin/users/<int:user_id>/approve', methods=['POST'])
 @admin_required
 def approve_user(user_id):
-    # Get user info to check role and assign default department if needed
+    """Legacy user approval route (not used with auto-approval)."""
     user = query_db("SELECT role, department FROM users WHERE user_id = ?", (user_id,), one=True)
     
     if user and user['role'] == 'agent' and (not user['department'] or user['department'] == 'None'):
-        # Assign default department for new agents
         default_dept = request.form.get('department', 'Technical')
         modify_db("UPDATE users SET account_status = 'APPROVED', department = ? WHERE user_id = ?", (default_dept, user_id))
         flash(f"User ID #{user_id} approved successfully and assigned to {default_dept} department.", "success")
@@ -683,6 +714,7 @@ def approve_user(user_id):
 @app.route('/admin/users/<int:user_id>/reject', methods=['POST'])
 @admin_required
 def reject_user(user_id):
+    """Legacy user rejection route (not used with auto-approval)."""
     modify_db("UPDATE users SET account_status = 'REJECTED' WHERE user_id = ?", (user_id,))
     flash(f"User ID #{user_id} registration rejected.", "warning")
     return redirect(url_for('admin_dashboard'))
@@ -691,6 +723,7 @@ def reject_user(user_id):
 @app.route('/admin/users/<int:user_id>/ban', methods=['POST'])
 @admin_required
 def ban_user(user_id):
+    """Legacy user ban route (not used in simplified UI)."""
     modify_db("UPDATE users SET account_status = 'BANNED' WHERE user_id = ?", (user_id,))
     flash(f"User ID #{user_id} has been banned from the system.", "danger")
     return redirect(url_for('admin_dashboard'))
@@ -699,6 +732,7 @@ def ban_user(user_id):
 @app.route('/admin/tickets/<ticket_id>/close', methods=['POST'])
 @admin_required
 def admin_close_ticket(ticket_id):
+    """Legacy admin ticket closure route (not used in simplified UI)."""
     modify_db(
         "UPDATE tickets SET status = 'Closed', resolved_at = CURRENT_TIMESTAMP, resolution_notes = 'Closed by Administrator security audit.' WHERE ticket_id = ?",
         (ticket_id,)
@@ -708,12 +742,15 @@ def admin_close_ticket(ticket_id):
 
 
 # ============================================================================
-# CLI COMMAND FOR DATABASE INITIALIZATION
+# CLI COMMANDS
 # ============================================================================
 
 @app.cli.command("init-db")
 def init_db_command():
-    """Initializes MySQL schema and seed data."""
+    """
+    CLI command to initialize database schema.
+    Usage: flask init-db
+    """
     try:
         init_db_schema()
         print("CompassIQ database initialized successfully.")
@@ -722,7 +759,7 @@ def init_db_command():
 
 
 # ============================================================================
-# AUTOMATED STARTUP HOOK & MAIN ENTRY POINT
+# APPLICATION STARTUP
 # ============================================================================
 
 if __name__ == '__main__':
@@ -730,16 +767,13 @@ if __name__ == '__main__':
     print(" COMPASSIQ — AI-POWERED SUPPORT INTELLIGENCE PLATFORM")
     print("=" * 70)
 
-    # 1. Automatic Database & Schema Initialization Hook
-    # With use_reloader=False, this runs once in the single process
+    # Step 1: Initialize database schema
     try:
         init_db_schema()
     except Exception as e:
-        print(f"[CompassIQ DB Warning] Automated database check/initialization encountered error: {e}")
-        print("Please ensure MySQL is running and credentials in .env or config.py are correct.")
+        print(f"[CompassIQ DB Warning] Database initialization error: {e}")
 
-    # 2. Check for the 4 Required Machine Learning Model Files
-    # Since use_reloader=False, we always run this check in the single process
+    # Step 2: Verify ML model artifacts (3 models for fast startup)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     models_dir = os.path.join(base_dir, 'models')
     os.makedirs(models_dir, exist_ok=True)
@@ -747,34 +781,31 @@ if __name__ == '__main__':
     required_models = [
         'tfidf_vectorizer.joblib',
         'category_model.joblib',
-        'priority_model.joblib',
-        'historical_corpus.joblib'
+        'priority_model.joblib'
     ]
 
     missing_models = [m for m in required_models if not os.path.exists(os.path.join(models_dir, m))]
 
     if missing_models:
         print(f"[CompassIQ ML] Missing model artifacts: {missing_models}")
-        print("[CompassIQ ML] Automatically launching training pipeline via train_model.py...")
+        print("[CompassIQ ML] Launching training pipeline via train_model.py...")
         train_script = os.path.join(base_dir, 'train_model.py')
-        
+
         try:
             result = subprocess.run([sys.executable, train_script], check=True)
             print("[CompassIQ ML] Model training completed successfully.")
         except Exception as e:
-            print(f"[CompassIQ ML Error] Failed to run automated training pipeline: {e}")
+            print(f"[CompassIQ ML Error] Training pipeline failed: {e}")
     else:
-        print("[CompassIQ ML] All 4 serialized model artifacts verified in models/ directory.")
+        print("[CompassIQ ML] All 3 serialized model artifacts verified.")
 
-    # 3. Load AI Engine models (only once, after all checks)
+    # Step 3: Load AI engine models
     try:
         load_ai_engine()
     except Exception as e:
         print(f"[AI Engine Startup] Warning: {e}")
 
-    # 4. Boot Flask Web Server
-    # Note: use_reloader=False to prevent watchdog false-positive triggers from OneDrive sync
-    # while keeping debug=True for error reporting and auto-restart on errors
+    # Step 4: Start Flask server with optimized settings
     print("\n[CompassIQ] Booting server on http://127.0.0.1:5000 (debug=True, use_reloader=False)...")
-    print("[CompassIQ] File watcher disabled to prevent OneDrive sync conflicts. Manually restart after code changes.")
+    print("[CompassIQ] File watcher disabled to prevent OneDrive sync conflicts.")
     app.run(host='127.0.0.1', port=5000, debug=True, use_reloader=False)

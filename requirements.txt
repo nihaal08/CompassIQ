@@ -1,13 +1,22 @@
-Flask>=3.0.0
+# CompassIQ — AI-Powered Ticket Management System
+# Python Dependencies for MCA Academic Mini-Project
+# ============================================================
+
+# Web Framework
+Flask>=2.0.0
+Werkzeug>=2.0.0
+
+# Form Security
 Flask-WTF>=1.2.0
-cryptography>=41.0.0
-scikit-learn>=1.3.0
-imbalanced-learn>=0.11.0
-nltk>=3.8.1
-joblib>=1.3.2
-pandas>=2.0.0
-numpy>=1.24.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
-python-dotenv>=1.0.0
-Werkzeug>=3.0.0
+
+# Machine Learning & NLP
+scikit-learn>=1.0.0
+joblib>=1.2.0
+numpy>=1.20.0
+pandas>=1.3.0
+
+# Natural Language Processing
+nltk>=3.6.0
+
+# Password Hashing
+# (Included with Werkzeug)

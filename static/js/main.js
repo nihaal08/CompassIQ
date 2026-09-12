@@ -1,8 +1,13 @@
 /**
- * CompassIQ — Frontend Controller & Glassmorphism Interactivity
- * =============================================================
- * Handles centered modal alert dismissal (Top-Left 'X'), dynamic ticket
- * workspace loading, live conversations, star rating, and Chart.js analytics.
+ * CompassIQ — Frontend JavaScript Controller
+ * =========================================
+ * Handles:
+ * - Modal alert system with "OK" buttons
+ * - Customer ticket workspace and conversation threads
+ * - Agent split workspace with ticket details
+ * - Sidebar navigation (3 links + Sign Out per role)
+ * - Admin analytics chart initialization
+ * - Star rating feedback system
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,16 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ==========================================================================
-   1. CENTERED MODAL ALERT SYSTEM (TOP-LEFT CLOSE BUTTON)
+   1. MODAL ALERT SYSTEM (Centered alerts with "OK" button)
    ========================================================================== */
 
 function initAlertModals() {
-    // Top-right close buttons (updated class)
+    // Close button handlers (top-left X)
     const closeBtns = document.querySelectorAll('.modal-close-btn');
     closeBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const modalBackdrop = btn.closest('.alert-modal-backdrop') || btn.closest('.custom-modal-backdrop') || btn.closest('.ticket-modal-backdrop');
+            const modalBackdrop = btn.closest('.alert-modal-backdrop') || 
+                                   btn.closest('.custom-modal-backdrop') || 
+                                   btn.closest('.ticket-modal-backdrop');
             if (modalBackdrop) {
                 closeModal(modalBackdrop);
             }
@@ -36,7 +43,7 @@ function initAlertModals() {
         }
     });
 
-    // Close when clicking outside modal box
+    // Close when clicking outside modal
     const backdrops = document.querySelectorAll('.alert-modal-backdrop, .custom-modal-backdrop');
     backdrops.forEach(backdrop => {
         backdrop.addEventListener('click', (e) => {
@@ -68,7 +75,8 @@ function closeModal(modalEl) {
 }
 
 /**
- * Dynamically trigger a centered modal alert with top-left 'X' button
+ * Shows a centered modal alert with title, message, and "OK" button.
+ * Used for notifications, errors, and confirmations.
  */
 function showCustomAlert(title, message, type = 'info') {
     let modal = document.getElementById('dynamicAlertModal');
@@ -87,7 +95,7 @@ function showCustomAlert(title, message, type = 'info') {
                 <h4 class="mb-2" id="dynamicAlertTitle">${title}</h4>
                 <p class="text-muted mb-4" id="dynamicAlertMessage">${message}</p>
                 <button type="button" class="btn btn-cyber px-4" onclick="closeModal('#dynamicAlertModal')">
-                    Understood
+                    OK
                 </button>
             </div>
         `;
@@ -105,7 +113,6 @@ function showCustomAlert(title, message, type = 'info') {
 
 function getIconForType(type) {
     switch (type) {
-        case 'pending_approval':
         case 'warning':
             return 'bi-exclamation-triangle';
         case 'danger':
@@ -118,7 +125,7 @@ function getIconForType(type) {
 }
 
 /* ==========================================================================
-   2. STAR RATING WIDGET
+   2. STAR RATING FEEDBACK SYSTEM
    ========================================================================== */
 
 function initStarRatings() {
@@ -138,20 +145,21 @@ function initStarRatings() {
 }
 
 /* ==========================================================================
-   3. CUSTOMER PORTAL INTERACTION
+   3. CUSTOMER PORTAL - TICKET WORKSPACE
    ========================================================================== */
 
 function openCustomerTicketModal(ticketId) {
     const modal = document.getElementById('customerTicketModal');
     if (!modal) return;
 
-    // Reset thread
+    // Reset thread with loading indicator
     const threadContainer = document.getElementById('custChatThread');
     threadContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-cyan" role="status"></div></div>';
     
     document.getElementById('custModalTicketId').textContent = ticketId;
     document.getElementById('custReplyForm').action = `/customer/tickets/${ticketId}/reply`;
 
+    // Fetch ticket details via AJAX
     fetch(`/customer/tickets/${ticketId}`)
         .then(res => res.json())
         .then(data => {
@@ -159,15 +167,16 @@ function openCustomerTicketModal(ticketId) {
                 const ticket = data.ticket;
                 const replies = data.replies;
 
+                // Update ticket information
                 document.getElementById('custModalSubject').textContent = ticket.subject;
                 document.getElementById('custModalCategory').textContent = ticket.predicted_category;
                 document.getElementById('custModalStatus').textContent = ticket.status;
                 document.getElementById('custModalStatus').className = `badge-status badge-status-${ticket.status.replace(/\s+/g, '')}`;
 
-                // Update Visual Step Progress
+                // Update step progress tracker
                 updateStepTrackerUI('custStepTracker', ticket.status);
 
-                // Render Thread
+                // Render conversation thread
                 threadContainer.innerHTML = '';
                 if (replies.length === 0) {
                     threadContainer.innerHTML = '<p class="text-muted text-center my-3">No messages yet.</p>';
@@ -190,7 +199,7 @@ function openCustomerTicketModal(ticketId) {
                     threadContainer.scrollTop = threadContainer.scrollHeight;
                 }
 
-                // Show Feedback CTA if resolved
+                // Show feedback section if ticket is resolved
                 const feedbackSection = document.getElementById('custFeedbackSection');
                 if (feedbackSection) {
                     if (ticket.status === 'Resolved' && !ticket.satisfaction_score) {
@@ -244,39 +253,39 @@ function updateStepTrackerUI(trackerId, status) {
 }
 
 /* ==========================================================================
-   4. DEPARTMENT AGENT SPLIT WORKSPACE INTERACTION
+   4. AGENT PORTAL - SPLIT WORKSPACE
    ========================================================================== */
 
 function selectAgentTicket(ticketId, clickedElement) {
-    // Highlight active card
+    // Highlight active ticket row
     document.querySelectorAll('.agent-ticket-row').forEach(el => el.classList.remove('active-ticket-row'));
     if (clickedElement) clickedElement.classList.add('active-ticket-row');
 
+    // Show workspace, hide empty state
     const workspace = document.getElementById('agentTicketWorkspace');
     const emptyState = document.getElementById('agentEmptyState');
     if (emptyState) emptyState.style.display = 'none';
     if (workspace) workspace.style.display = 'flex';
 
-    // Show loading indicators
+    // Show loading indicator
     document.getElementById('agentThreadContainer').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-cyan"></div></div>';
-    document.getElementById('aiSimilarTicketsContainer').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-cyan"></div></div>';
 
+    // Fetch ticket details via AJAX
     fetch(`/agent/tickets/${ticketId}/details`)
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
                 const ticket = data.ticket;
                 const replies = data.replies;
-                const matches = data.similar_matches;
 
-                // Left Panel Header & Details
+                // Update ticket information
                 document.getElementById('agentTicketIdHeading').textContent = ticket.ticket_id;
                 document.getElementById('agentTicketSubject').textContent = ticket.subject;
                 document.getElementById('agentCustomerName').textContent = ticket.customer_name;
                 document.getElementById('agentCustomerEmail').textContent = ticket.customer_email;
                 document.getElementById('agentCustomerProduct').textContent = ticket.customer_product_id || 'N/A';
 
-                // Status & Resolution Notes Form
+                // Update status and resolution notes
                 const statusSelect = document.getElementById('agentStatusSelect');
                 if (statusSelect) statusSelect.value = ticket.status;
                 const notesInput = document.getElementById('agentResolutionNotes');
@@ -284,7 +293,7 @@ function selectAgentTicket(ticketId, clickedElement) {
 
                 document.getElementById('agentReplyForm').action = `/agent/tickets/${ticket.ticket_id}/reply`;
 
-                // Render Left Conversation Thread
+                // Render conversation thread
                 const threadContainer = document.getElementById('agentThreadContainer');
                 threadContainer.innerHTML = '';
                 replies.forEach(r => {
@@ -304,7 +313,7 @@ function selectAgentTicket(ticketId, clickedElement) {
                 });
                 threadContainer.scrollTop = threadContainer.scrollHeight;
 
-                // Right Panel: AI Intelligence
+                // Update AI predictions display
                 const catBadge = document.getElementById('agentAiCategoryBadge');
                 if (catBadge) {
                     catBadge.textContent = ticket.predicted_category;
@@ -316,36 +325,6 @@ function selectAgentTicket(ticketId, clickedElement) {
                     prioPill.className = `badge-priority badge-priority-${ticket.predicted_priority}`;
                 }
 
-                // Render Top-3 Similar Matches
-                const matchesContainer = document.getElementById('aiSimilarTicketsContainer');
-                matchesContainer.innerHTML = '';
-                
-                if (!matches || matches.length === 0) {
-                    matchesContainer.innerHTML = '<p class="text-muted text-center py-4">No matching historical tickets computed.</p>';
-                } else {
-                    matches.forEach((m, idx) => {
-                        const card = document.createElement('div');
-                        card.className = 'ai-recommendation-card';
-                        card.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="similarity-pill">
-                                    <i class="bi bi-cpu me-1"></i> ${m.similarity_score}% Match
-                                </span>
-                                <span class="text-dim font-monospace small">${escapeHtml(m.similar_ticket_ref_id)}</span>
-                            </div>
-                            <h6 class="text-white mb-1" style="font-size: 0.92rem;">${escapeHtml(m.similar_subject)}</h6>
-                            <p class="text-muted small mb-2" style="line-height: 1.35;">${escapeHtml(m.similar_description)}</p>
-                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.75rem;">
-                                <span class="text-cyan"><i class="bi bi-clock-history me-1"></i> Avg Resolution: ${m.historical_resolution_hours || 'N/A'} hrs</span>
-                                <button type="button" class="btn btn-sm btn-cyber-outline py-0 px-2" onclick="copyHistoricalContext('${escapeHtml(m.similar_description).replace(/'/g, "\\'")}')">
-                                    Use Solution
-                                </button>
-                            </div>
-                        `;
-                        matchesContainer.appendChild(card);
-                    });
-                }
-
             } else {
                 showCustomAlert('Error', data.message || 'Failed to load ticket workspace.', 'danger');
             }
@@ -355,138 +334,112 @@ function selectAgentTicket(ticketId, clickedElement) {
         });
 }
 
-function copyHistoricalContext(text) {
-    const replyBox = document.getElementById('agentReplyMessage');
-    if (replyBox) {
-        replyBox.value = `Referencing solution:\n${text}\n\n`;
-        replyBox.focus();
-    }
-}
-
 /* ==========================================================================
-   5. SIDEBAR NAVIGATION HANDLERS
+   5. SIDEBAR NAVIGATION (3 links + Sign Out per role)
    ========================================================================== */
 
 function initSidebarNavigation() {
-  // 1. Locate the true scroll container
-  const scrollContainer = document.querySelector('.main-content') ||
-                          document.querySelector('.page-wrapper') ||
-                          document.documentElement;
+    // Find scroll container
+    const scrollContainer = document.querySelector('.main-content') ||
+                            document.querySelector('.page-wrapper') ||
+                            document.documentElement;
 
-  // 2. Attach click handlers to all sidebar navigation links
-  const sidebarLinks = document.querySelectorAll('.sidebar-nav-item, .nav-link, [data-nav-action]');
+    // Attach click handlers to sidebar links
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav-item, .nav-link, [data-nav-action]');
 
-  sidebarLinks.forEach(link => {
-    link.addEventListener('click', function (e) {
-      const action = this.getAttribute('data-nav-action');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            const action = this.getAttribute('data-nav-action');
 
-      // Handle logout action - let it proceed normally
-      if (action === 'logout') {
-        return;
-      }
+            // Handle logout - let it proceed normally
+            if (action === 'logout') {
+                return;
+            }
 
-      // Get target section ID based on action
-      let targetId = getTargetSectionId(action);
-      if (!targetId) return;
+            // Get target section ID
+            let targetId = getTargetSectionId(action);
+            if (!targetId) return;
 
-      const targetEl = document.getElementById(targetId);
-      if (!targetEl) return;
+            const targetEl = document.getElementById(targetId);
+            if (!targetEl) return;
 
-      e.preventDefault();
+            e.preventDefault();
 
-      // Update active menu link styling
-      sidebarLinks.forEach(l => l.classList.remove('active'));
-      this.classList.add('active');
+            // Update active menu styling
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
 
-      // Handle special actions that don't require scrolling
-      if (action === 'profile' && typeof openProfileModal === 'function') {
-        openProfileModal();
-        return;
-      }
+            // Apply queue filters for agent dashboard
+            if (action === 'assigned-queue' && typeof triggerQueueFilter === 'function') {
+                triggerQueueFilter('all');
+            }
+            if (action === 'pending-submitted' && typeof triggerQueueFilter === 'function') {
+                triggerQueueFilter('Submitted');
+            }
+            if (action === 'in-progress' && typeof triggerQueueFilter === 'function') {
+                triggerQueueFilter('In Progress');
+            }
+            if (action === 'resolved-tickets' && typeof triggerQueueFilter === 'function') {
+                triggerQueueFilter('Resolved');
+            }
 
-      if (action === 'ai-insights') {
-        const modal = document.getElementById('ticketModal');
-        if (modal && modal.classList.contains('show')) {
-          scrollToSection('ai-insights-section', scrollContainer);
-        } else {
-          showCustomAlert('AI Insights', 'Open a ticket to view AI-powered similarity recommendations and confidence scores.', 'info');
-        }
-        return;
-      }
+            // Apply filters for customer dashboard
+            if (action === 'ticket-history' && typeof filterTicketHistory === 'function') {
+                filterTicketHistory();
+            }
+            if (action === 'my-tickets' && typeof resetTicketFilter === 'function') {
+                resetTicketFilter();
+            }
 
-      // Apply queue filters before scrolling
-      if (action === 'assigned-queue' && typeof triggerQueueFilter === 'function') {
-        triggerQueueFilter('all');
-      }
-      if (action === 'pending-submitted' && typeof triggerQueueFilter === 'function') {
-        triggerQueueFilter('Submitted');
-      }
-      if (action === 'in-progress' && typeof triggerQueueFilter === 'function') {
-        triggerQueueFilter('In Progress');
-      }
-      if (action === 'resolved-tickets' && typeof triggerQueueFilter === 'function') {
-        triggerQueueFilter('Resolved');
-      }
+            // Refresh admin charts
+            if (action === 'analytics' && typeof refreshAdminCharts === 'function') {
+                refreshAdminCharts();
+            }
 
-      if (action === 'ticket-history' && typeof filterTicketHistory === 'function') {
-        filterTicketHistory();
-      }
+            // Scroll to target section
+            scrollToSection(targetId, scrollContainer);
 
-      if (action === 'my-tickets' && typeof resetTicketFilter === 'function') {
-        resetTicketFilter();
-      }
-
-      if (action === 'analytics' && typeof refreshAdminCharts === 'function') {
-        refreshAdminCharts();
-      }
-
-      // Perform scrolling
-      scrollToSection(targetId, scrollContainer);
-
-      // Special focus for create ticket
-      if (action === 'create-ticket') {
-        setTimeout(() => {
-          const subjectInput = document.getElementById('subject');
-          if (subjectInput) {
-            subjectInput.focus();
-          }
-        }, 500);
-      }
+            // Focus subject input for create ticket
+            if (action === 'create-ticket') {
+                setTimeout(() => {
+                    const subjectInput = document.getElementById('subject');
+                    if (subjectInput) {
+                        subjectInput.focus();
+                    }
+                }, 500);
+            }
+        });
     });
-  });
 }
 
 function getTargetSectionId(action) {
-  const actionMap = {
-    'dashboard': 'customer-stats-section',
-    'my-tickets': 'customer-tickets-table',
-    'create-ticket': 'create-ticket-section',
-    'ticket-history': 'customer-tickets-table',
-    'assigned-queue': 'department-ticket-table',
-    'pending-submitted': 'department-ticket-table',
-    'in-progress': 'department-ticket-table',
-    'resolved-tickets': 'department-ticket-table',
-    'ai-insights': 'ai-insights-section',
-    'all-tickets': 'admin-all-tickets-section',
-    'user-approvals': 'user-verification-card',
-    'fraud-center': 'fraud-escalation-center',
-    'analytics': 'admin-analytics-section'
-  };
+    const actionMap = {
+        'dashboard': 'customer-stats-section',
+        'my-tickets': 'customer-tickets-table',
+        'create-ticket': 'create-ticket-section',
+        'ticket-history': 'customer-tickets-table',
+        'assigned-queue': 'department-ticket-table',
+        'pending-submitted': 'department-ticket-table',
+        'in-progress': 'department-ticket-table',
+        'resolved-tickets': 'department-ticket-table',
+        'all-tickets': 'admin-all-tickets-section',
+        'user-management': 'user-verification-card',
+        'analytics': 'admin-analytics-section'
+    };
 
-  // Determine which dashboard we're on
-  const currentPath = window.location.pathname;
-  if (currentPath.includes('/admin')) {
-    return actionMap[action] || null;
-  } else if (currentPath.includes('/agent')) {
-    return actionMap[action] || null;
-  } else if (currentPath.includes('/customer')) {
-    return actionMap[action] || null;
-  }
+    // Determine dashboard context
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/admin')) {
+        return actionMap[action] || null;
+    } else if (currentPath.includes('/agent')) {
+        return actionMap[action] || null;
+    } else if (currentPath.includes('/customer')) {
+        return actionMap[action] || null;
+    }
 
-  return actionMap[action] || null;
+    return actionMap[action] || null;
 }
 
-// Add missing triggerQueueFilter function for sidebar navigation
 function triggerQueueFilter(status) {
     const filterButtons = document.querySelectorAll('.queue-status-tabs a');
     filterButtons.forEach(btn => {
@@ -497,7 +450,6 @@ function triggerQueueFilter(status) {
     });
 }
 
-// Add missing filterTicketHistory function for customer dashboard
 function filterTicketHistory() {
     const table = document.querySelector('#customer-tickets-table table tbody');
     if (!table) return;
@@ -516,7 +468,6 @@ function filterTicketHistory() {
     });
 }
 
-// Add missing resetTicketFilter function for customer dashboard
 function resetTicketFilter() {
     const table = document.querySelector('#customer-tickets-table table tbody');
     if (!table) return;
@@ -527,9 +478,7 @@ function resetTicketFilter() {
     });
 }
 
-// Add missing refreshAdminCharts function for admin dashboard
 function refreshAdminCharts() {
-    // Trigger chart update animation
     const charts = document.querySelectorAll('canvas');
     charts.forEach(canvas => {
         if (canvas.chart) {
@@ -539,51 +488,46 @@ function refreshAdminCharts() {
 }
 
 function scrollToSection(sectionId, scrollContainer) {
-  const section = document.getElementById(sectionId);
-  if (!section) return;
+    const section = document.getElementById(sectionId);
+    if (!section) return;
 
-  // Top padding/offset so the card is not flush against the top edge
-  const DESIRED_TOP_OFFSET = 24;
+    const DESIRED_TOP_OFFSET = 24;
 
-  // If scrolling is inside .main-content
-  if (scrollContainer && scrollContainer !== document.documentElement && scrollContainer !== document.body) {
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const targetRect = section.getBoundingClientRect();
+    if (scrollContainer && scrollContainer !== document.documentElement && scrollContainer !== document.body) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const targetRect = section.getBoundingClientRect();
+        const targetPosition = targetRect.top - containerRect.top + scrollContainer.scrollTop - DESIRED_TOP_OFFSET;
 
-    // Calculate position relative to container's current scroll position
-    const targetPosition = targetRect.top - containerRect.top + scrollContainer.scrollTop - DESIRED_TOP_OFFSET;
+        scrollContainer.scrollTo({
+            top: Math.max(0, targetPosition),
+            behavior: 'smooth'
+        });
+    } else {
+        const targetTop = section.getBoundingClientRect().top + window.pageYOffset - DESIRED_TOP_OFFSET;
+        window.scrollTo({
+            top: Math.max(0, targetTop),
+            behavior: 'smooth'
+        });
+    }
 
-    scrollContainer.scrollTo({
-      top: Math.max(0, targetPosition),
-      behavior: 'smooth'
-    });
-  } else {
-    // Fallback for standard document window scrolling (no fixed header offset needed)
-    const targetTop = section.getBoundingClientRect().top + window.pageYOffset - DESIRED_TOP_OFFSET;
-    window.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth'
-    });
-  }
-
-  // Visual focus ring to highlight the targeted card
-  section.classList.remove('section-focus-highlight');
-  void section.offsetWidth; // Force reflow
-  section.classList.add('section-focus-highlight');
-  setTimeout(() => section.classList.remove('section-focus-highlight'), 1200);
+    // Visual focus highlight
+    section.classList.remove('section-focus-highlight');
+    void section.offsetWidth;
+    section.classList.add('section-focus-highlight');
+    setTimeout(() => section.classList.remove('section-focus-highlight'), 1200);
 }
 
 /* ==========================================================================
-   6. ADMIN ANALYTICS CHART INITIALIZATION (Chart.js)
+   6. ADMIN ANALYTICS - CHART.JS INITIALIZATION
    ========================================================================== */
 
-function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, satData) {
-    // Chart.js Dark Mode Global Defaults
+function initAdminCharts(deptLabels, deptData) {
+    // Configure Chart.js for dark theme
     Chart.defaults.color = '#8E9CAE';
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
     Chart.defaults.font.family = "'Inter', sans-serif";
 
-    // 1. Department Volume Bar Chart
+    // Category Distribution Bar Chart
     const deptCtx = document.getElementById('deptVolumeChart');
     if (deptCtx) {
         new Chart(deptCtx, {
@@ -626,74 +570,12 @@ function initAdminCharts(deptLabels, deptData, prioLabels, prioData, satLabels, 
             }
         });
     }
-
-    // 2. Priority Distribution Doughnut Chart
-    const prioCtx = document.getElementById('priorityDoughnutChart');
-    if (prioCtx) {
-        new Chart(prioCtx, {
-            type: 'doughnut',
-            data: {
-                labels: prioLabels,
-                datasets: [{
-                    data: prioData,
-                    backgroundColor: [
-                        '#FF3366', // Critical
-                        '#FF9900', // High
-                        '#FFCC00', // Medium
-                        '#00E676'  // Low
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#121824'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { boxWidth: 12, padding: 15 }
-                    }
-                },
-                cutout: '70%'
-            }
-        });
-    }
-
-    // 3. Satisfaction Score Chart
-    const satCtx = document.getElementById('satisfactionChart');
-    if (satCtx) {
-        new Chart(satCtx, {
-            type: 'bar',
-            data: {
-                labels: satLabels,
-                datasets: [{
-                    label: 'Reviews',
-                    data: satData,
-                    backgroundColor: 'rgba(255, 204, 0, 0.6)',
-                    borderColor: '#FFCC00',
-                    borderWidth: 1.5,
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
-                }
-            }
-        });
-    }
 }
 
-/* Helper to escape HTML tags */
+/* ==========================================================================
+   7. UTILITY FUNCTIONS
+   ========================================================================== */
+
 function escapeHtml(string) {
     if (!string) return '';
     const div = document.createElement('div');
