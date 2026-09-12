@@ -138,20 +138,11 @@ def admin_required(f):
 @app.route('/')
 def index():
     """
-    Root route that redirects users to their appropriate dashboard based on role.
-    - Customer → Customer Dashboard
-    - Agent → Agent Dashboard  
-    - Admin → Admin Dashboard
-    - Not logged in → Login page
+    Root route serving the public landing page.
+    - Logged in users see "Go to Dashboard" button in navbar
+    - Not logged in users see the full landing page with CTA to login
     """
-    if g.user:
-        if g.user['role'] == 'customer':
-            return redirect(url_for('customer_dashboard'))
-        elif g.user['role'] == 'agent':
-            return redirect(url_for('agent_dashboard'))
-        elif g.user['role'] == 'admin':
-            return redirect(url_for('admin_dashboard'))
-    return render_template('login.html')
+    return render_template('index.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])

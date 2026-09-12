@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompassIQ — Enterprise Ticket Intelligence Platform</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        /* ====== RESET & BASE ====== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* ====== NAVIGATION (Glassmorphism) ====== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar.scrolled {
+            background: rgba(10, 14, 39, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .navbar-brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+        
+        .navbar-brand-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        
+        .navbar-badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        
+        .navbar-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .navbar-link:hover {
+            color: #ffffff;
+        }
+        
+        .navbar-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #d946ef);
+            transition: width 0.3s ease;
+        }
+        
+        .navbar-link:hover::after {
+            width: 100%;
+        }
+        
+        .navbar-cta {
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* ====== HERO SECTION ====== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 8rem 0 4rem;
+            background: linear-gradient(135deg, #0a0e27 0%, #161334 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(217, 70, 239, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+            font-weight: 500;
+        }
+        
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+        
+        .hero-title-gradient {
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            margin-bottom: 2.5rem;
+            max-width: 550px;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .hero-visual {
+            animation: fadeInRight 0.8s ease;
+        }
+        
+        .mockup-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .mockup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .mockup-title {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+        
+        .mockup-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #22c55e;
+        }
+        
+        .mockup-status-dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .ticket-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .ticket-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        
+        .ticket-id {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.25rem;
+        }
+        
+        .ticket-subject {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.95rem;
+        }
+        
+        .ticket-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .ticket-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-dept {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        
+        .badge-priority {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .badge-status {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        
+        /* ====== CAPABILITIES SECTION ====== */
+        .capabilities {
+            padding: 6rem 0;
+            background: #0a0e27;
+        }
+        
+        .section-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        
+        .capability-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .capability-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #d946ef);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .capability-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .capability-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-4px);
+        }
+        
+        .capability-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(217, 70, 239, 0.2));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #a5b4fc;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        .capability-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+        }
+        
+        .capability-description {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.7;
+        }
+        
+        /* ====== ARCHITECTURE SECTION ====== */
+        .architecture {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #161334 0%, #0a0e27 100%);
+        }
+        
+        .architecture-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .architecture-text {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+        }
+        
+        .architecture-text p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .architecture-visual {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+        
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .arch-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .arch-step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .arch-step-text {
+            flex: 1;
+        }
+        
+        .arch-step-title {
+            font-weight: 600;
+            color: #ffffff;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .arch-step-desc {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* ====== CONTACT SECTION (Glassmorphism) ====== */
+        .contact {
+            padding: 6rem 0;
+            background: linear-gradient(135deg, #0b0d1b 0%, #161334 100%);
+            position: relative;
+        }
+        
+        .contact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 22px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(217, 70, 239, 0.05));
+            pointer-events: none;
+        }
+        
+        .contact-card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .contact-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+        
+        .contact-info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-info-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a5b4fc;
+            font-size: 1.25rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            flex-shrink: 0;
+        }
+        
+        .contact-info-text {
+            flex: 1;
+        }
+        
+        .contact-info-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .contact-info-value {
+            font-size: 1rem;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 1rem 1.5rem;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .form-input:focus {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 120px;
+            border-radius: 16px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-submit:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        /* ====== FOOTER ====== */
+        .footer {
+            background: #0a0e27;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3rem 0;
+        }
+        
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .footer-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .footer-brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        
+        .footer-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .footer-status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+        
+        .footer-link:hover {
+            color: #ffffff;
+        }
+        
+        .footer-bottom {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.85rem;
+        }
+        
+        /* ====== TOAST NOTIFICATION ====== */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(34, 197, 94, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+        
+        /* ====== ANIMATIONS ====== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 1024px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .capabilities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .architecture-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero {
+                padding: 6rem 0 3rem;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-brand">
+                <div class="navbar-brand-icon">
+                    <i class="bi bi-compass"></i>
+                </div>
+                <span class="navbar-brand-text">CompassIQ</span>
+                <span class="navbar-badge">Enterprise Platform</span>
+            </a>
+            
+            <div class="navbar-links">
+                <a href="#overview" class="navbar-link">Overview</a>
+                <a href="#capabilities" class="navbar-link">Platform Capabilities</a>
+                <a href="#architecture" class="navbar-link">Architecture</a>
+                <a href="#contact" class="navbar-link">Contact</a>
+                {% if g.user %}
+                    <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="navbar-cta">
+                        <i class="bi bi-speedometer2"></i>
+                        Open Dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="navbar-cta">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Sign In / Launch Portal
+                    </a>
+                {% endif %}
+            </div>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" style="display: none; position: fixed; top: 72px; left: 0; right: 0; background: rgba(10, 14, 39, 0.98); backdrop-filter: blur(20px); padding: 1.5rem; z-index: 999; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <a href="#overview" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Overview</a>
+            <a href="#capabilities" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Platform Capabilities</a>
+            <a href="#architecture" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Architecture</a>
+            <a href="#contact" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Contact</a>
+            {% if g.user %}
+                <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
+                    Open Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
+                    Sign In / Launch Portal
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Hero Section -->
+    <section id="overview" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    <span>Production-Ready ITSM Platform</span>
+                </div>
+                <h1 class="hero-title">
+                    Enterprise Ticket<br>
+                    <span class="hero-title-gradient">Intelligence & Automated Triage</span>
+                </h1>
+                <p class="hero-subtitle">
+                    CompassIQ automates incident classification, predicts ticket priority on ingestion, and routes requests to the right departmental queues without manual intervention.
+                </p>
+                <div class="hero-cta">
+                    {% if g.user %}
+                        <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="btn-primary">
+                            <i class="bi bi-speedometer2"></i>
+                            Open Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn-primary">
+                            <i class="bi bi-rocket-takeoff"></i>
+                            Open Support Portal
+                        </a>
+                    {% endif %}
+                    <a href="#capabilities" class="btn-secondary">
+                        <i class="bi bi-info-circle"></i>
+                        View System Specs
+                    </a>
+                </div>
+            </div>
+            
+            <div class="hero-visual">
+                <div class="mockup-card">
+                    <div class="mockup-header">
+                        <span class="mockup-title">Live Ticket Ingestion</span>
+                        <div class="mockup-status">
+                            <span class="mockup-status-dot"></span>
+                            <span>Processing</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket-item">
+                        <div class="ticket-id">TKT-847291</div>
+                        <div class="ticket-header">
+                            <span class="ticket-subject">Unauthorized credit card charge - $499.99</span>
+                            <div class="ticket-badges">
+                                <span class="ticket-badge badge-dept">Billing</span>
+                                <span class="ticket-badge badge-priority">High</span>
+                            </div>
+                        </div>
+                        <div class="ticket-badges">
+                            <span class="ticket-badge badge-status">Queued</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket-item">
+                        <div class="ticket-id">TKT-847292</div>
+                        <div class="ticket-header">
+                            <span class="ticket-subject">API gateway timeout - 502 errors</span>
+                            <div class="ticket-badges">
+                                <span class="ticket-badge badge-dept">Technical</span>
+                                <span class="ticket-badge badge-priority">Critical</span>
+                            </div>
+                        </div>
+                        <div class="ticket-badges">
+                            <span class="ticket-badge badge-status">Assigned</span>
+                        </div>
+                    </div>
+                    
+                    <div class="ticket-item">
+                        <div class="ticket-id">TKT-847293</div>
+                        <div class="ticket-header">
+                            <span class="ticket-subject">Password reset request for account access</span>
+                            <div class="ticket-badges">
+                                <span class="ticket-badge badge-dept">Account</span>
+                                <span class="ticket-badge badge-priority">Medium</span>
+                            </div>
+                        </div>
+                        <div class="ticket-badges">
+                            <span class="ticket-badge badge-status">Queued</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Platform Capabilities Section -->
+    <section id="capabilities" class="capabilities">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Platform Capabilities</span>
+                <h2 class="section-title">Intelligent Support Automation</h2>
+                <p class="section-subtitle">
+                    Production-grade features designed for enterprise support operations
+                </p>
+            </div>
+            
+            <div class="capabilities-grid">
+                <div class="capability-card">
+                    <div class="capability-icon">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h3 class="capability-title">Automated Incident Triage</h3>
+                    <p class="capability-description">
+                        Immediate extraction of subject intent and accurate routing to Technical, Billing, or Account desks. Eliminates manual triage bottlenecks and reduces mean time to assignment.
+                    </p>
+                </div>
+                
+                <div class="capability-card">
+                    <div class="capability-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="capability-title">Dynamic Priority Scoring</h3>
+                    <p class="capability-description">
+                        Identifies urgent blockers instantly using supervised NLP classification. Prevents SLA breaches by flagging Critical and High priority issues for immediate agent attention.
+                    </p>
+                </div>
+                
+                <div class="capability-card">
+                    <div class="capability-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3 class="capability-title">Unified Agent Workspace</h3>
+                    <p class="capability-description">
+                        Clean department queues equipped with threaded customer communication, resolution tracking, and priority-based sorting. Enables efficient workflow management for support teams.
+                    </p>
+                </div>
+                
+                <div class="capability-card">
+                    <div class="capability-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3 class="capability-title">Service Quality Analytics</h3>
+                    <p class="capability-description">
+                        Real-time CSAT scoring and distribution metrics for operations leaders. Track resolution times, category distribution, and agent performance across the organization.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Architecture Section -->
+    <section id="architecture" class="architecture">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">System Architecture</span>
+                <h2 class="section-title">How CompassIQ Works</h2>
+                <p class="section-subtitle">
+                    Supervised NLP pipeline for real-time ticket classification
+                </p>
+            </div>
+            
+            <div class="architecture-content">
+                <div class="architecture-text">
+                    <p>
+                        CompassIQ processes incoming support tickets through a supervised machine learning pipeline. The system uses TF-IDF vectorization to convert text into numerical feature vectors, which are then classified by Logistic Regression models trained on historical support data.
+                    </p>
+                    <p>
+                        Each ticket is analyzed for both category (Technical, Billing, Account, General Inquiry) and priority (Critical, High, Medium, Low) simultaneously. The classification results drive automatic routing to the appropriate departmental queue, ensuring urgent issues receive immediate attention from qualified agents.
+                    </p>
+                    <p>
+                        The platform maintains a closed-loop feedback system through CSAT ratings, allowing continuous monitoring of service quality and model performance. All classification decisions include confidence scores, enabling manual review for low-confidence predictions.
+                    </p>
+                </div>
+                
+                <div class="architecture-visual">
+                    <div class="arch-flow">
+                        <div class="arch-step">
+                            <div class="arch-step-number">1</div>
+                            <div class="arch-step-text">
+                                <div class="arch-step-title">Ticket Ingestion</div>
+                                <div class="arch-step-desc">Raw subject and description captured from web form or API</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-step">
+                            <div class="arch-step-number">2</div>
+                            <div class="arch-step-text">
+                                <div class="arch-step-title">Text Preprocessing</div>
+                                <div class="arch-step-desc">Lowercasing, stopword removal, lemmatization, TF-IDF vectorization</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-step">
+                            <div class="arch-step-number">3</div>
+                            <div class="arch-step-text">
+                                <div class="arch-step-title">ML Classification</div>
+                                <div class="arch-step-desc">Logistic Regression predicts category and priority with confidence scoring</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-step">
+                            <div class="arch-step-number">4</div>
+                            <div class="arch-step-text">
+                                <div class="arch-step-title">Queue Dispatch</div>
+                                <div class="arch-step-desc">Automatic routing to department-specific agent workspaces</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-step">
+                            <div class="arch-step-number">5</div>
+                            <div class="arch-step-text">
+                                <div class="arch-step-title">Resolution & Feedback</div>
+                                <div class="arch-step-desc">Agent resolution, CSAT collection, performance analytics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section (Glassmorphism) -->
+    <section id="contact" class="contact">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-badge">Contact</span>
+                <h2 class="section-title">Get in Touch</h2>
+                <p class="section-subtitle">
+                    Enterprise deployment and integration inquiries
+                </p>
+            </div>
+            
+            <div class="contact-grid">
+                <!-- Left Card: Contact Info -->
+                <div class="contact-card">
+                    <div class="contact-card-content">
+                        <h3 class="contact-title">Contact Info</h3>
+                        <p class="contact-subtitle">
+                            Speak with our solutions team to discuss deployment, enterprise integrations, or custom support queue configurations.
+                        </p>
+                        
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <span class="contact-info-label">Email</span>
+                                <span class="contact-info-value">support@compassiq.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <span class="contact-info-label">Sales Inquiries</span>
+                                <span class="contact-info-value">inquiries@compassiq.com</span>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="bi bi-code-slash"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <span class="contact-info-label">Technology Stack</span>
+                                <span class="contact-info-value">Flask, SQLite, scikit-learn, TF-IDF</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Card: Contact Form -->
+                <div class="contact-card">
+                    <div class="contact-card-content">
+                        <h3 class="contact-title">Send a Message</h3>
+                        <p class="contact-subtitle">
+                            Complete the form below and our support engineering desk will respond shortly.
+                        </p>
+                        
+                        <form class="contact-form" onsubmit="handleContactSubmit(event)">
+                            <div class="form-group">
+                                <label class="form-label">Your Name *</label>
+                                <input type="text" class="form-input" placeholder="Enter your full name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Corporate Email Address *</label>
+                                <input type="email" class="form-input" placeholder="name@company.com" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Organization / Department (Optional)</label>
+                                <input type="text" class="form-input" placeholder="Your organization name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Write your inquiry...</label>
+                                <textarea class="form-input form-textarea" placeholder="Describe your requirements or questions" required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn-submit">
+                                <i class="bi bi-send"></i>
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-brand-icon">
+                        <i class="bi bi-compass"></i>
+                    </div>
+                    <span class="footer-brand-text">CompassIQ</span>
+                </div>
+                
+                <div class="footer-status">
+                    <span class="footer-status-dot"></span>
+                    <span>All Systems Operational</span>
+                </div>
+                
+                <div class="footer-links">
+                    <a href="{{ url_for('login') }}" class="footer-link">Support Portal</a>
+                    <a href="#capabilities" class="footer-link">Documentation</a>
+                    <a href="#contact" class="footer-link">Contact</a>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                © 2024 CompassIQ Platform. Enterprise Ticket Intelligence & Automated Triage System.
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="bi bi-check-circle-fill toast-icon"></i>
+        <span id="toastMessage">Inquiry received. Our support engineering desk will respond shortly.</span>
+    </div>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Contact form handler with toast
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            
+            // Show toast notification
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            
+            // Hide toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+            
+            // Reset form
+            event.target.reset();
+        }
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href.length > 1) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
