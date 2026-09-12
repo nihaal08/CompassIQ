@@ -264,6 +264,7 @@
                     <h1 class="auth-title">Login</h1>
                     
                     <form method="POST" action="{{ url_for('login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="email" name="email" class="auth-input" placeholder="Enter your username" required autofocus>
                         <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
                         

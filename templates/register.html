@@ -297,6 +297,7 @@
                     <h1 class="auth-title">Create Account</h1>
                     
                     <form method="POST" action="{{ url_for('register') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="text" name="full_name" class="auth-input" placeholder="Full Name" required autofocus>
                         <input type="email" name="email" class="auth-input" placeholder="Email Address" required>
                         <input type="text" name="bill_no_product_id" class="auth-input" placeholder="Bill No / Product ID">

@@ -318,5 +318,5 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
         }
 
 
-# Attempt initial load upon import
-load_ai_engine()
+# Note: AI engine loading is now controlled explicitly in app.py to prevent
+# double-loading during Flask debug reloader parent/child process spawning

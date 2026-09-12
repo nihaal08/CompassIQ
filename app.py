@@ -32,11 +32,8 @@ app.config['SECRET_KEY'] = Config.SECRET_KEY
 # Initialize CSRF protection for demo purposes
 csrf = CSRFProtect(app)
 
-# Initialize AI engine on startup (if models are already present)
-try:
-    load_ai_engine()
-except Exception as e:
-    print(f"[AI Engine Startup] Warning: {e}")
+# Note: AI engine loading is deferred to main() to prevent premature loading
+# and to allow for error handling during the startup sequence
 
 
 # ============================================================================
@@ -734,6 +731,7 @@ if __name__ == '__main__':
     print("=" * 70)
 
     # 1. Automatic Database & Schema Initialization Hook
+    # With use_reloader=False, this runs once in the single process
     try:
         init_db_schema()
     except Exception as e:
@@ -741,6 +739,7 @@ if __name__ == '__main__':
         print("Please ensure MySQL is running and credentials in .env or config.py are correct.")
 
     # 2. Check for the 4 Required Machine Learning Model Files
+    # Since use_reloader=False, we always run this check in the single process
     base_dir = os.path.dirname(os.path.abspath(__file__))
     models_dir = os.path.join(base_dir, 'models')
     os.makedirs(models_dir, exist_ok=True)
@@ -762,13 +761,20 @@ if __name__ == '__main__':
         try:
             result = subprocess.run([sys.executable, train_script], check=True)
             print("[CompassIQ ML] Model training completed successfully.")
-            # Reload freshly trained models into memory
-            load_ai_engine(force_reload=True)
         except Exception as e:
             print(f"[CompassIQ ML Error] Failed to run automated training pipeline: {e}")
     else:
         print("[CompassIQ ML] All 4 serialized model artifacts verified in models/ directory.")
 
-    # 3. Boot Flask Web Server
-    print("\n[CompassIQ] Booting server on http://127.0.0.1:5000 (debug=True)...")
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # 3. Load AI Engine models (only once, after all checks)
+    try:
+        load_ai_engine()
+    except Exception as e:
+        print(f"[AI Engine Startup] Warning: {e}")
+
+    # 4. Boot Flask Web Server
+    # Note: use_reloader=False to prevent watchdog false-positive triggers from OneDrive sync
+    # while keeping debug=True for error reporting and auto-restart on errors
+    print("\n[CompassIQ] Booting server on http://127.0.0.1:5000 (debug=True, use_reloader=False)...")
+    print("[CompassIQ] File watcher disabled to prevent OneDrive sync conflicts. Manually restart after code changes.")
+    app.run(host='127.0.0.1', port=5000, debug=True, use_reloader=False)
