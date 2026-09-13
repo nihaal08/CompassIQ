@@ -65,7 +65,6 @@
     </div>
     <div class="card-body">
         <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm" onsubmit="return validateTicketForm(this)">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="form-label">Subject *</label>
                 <input type="text" id="subject" name="subject" class="form-input" placeholder="Brief summary of your issue" required>
@@ -354,7 +353,6 @@ function openTicketDetail(ticketId) {
                             <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
                                 <h4 class="card-title" style="font-size: 1rem;">Rate Your Experience</h4>
                                 <form method="POST" action="/customer/tickets/${ticket.ticket_id}/feedback" style="margin-top: var(--spacing-md);" onsubmit="handleFeedbackSubmit(event, this)">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <div class="form-group">
                                         <label class="form-label">Satisfaction Score (1-5)</label>
                                         <select name="satisfaction_score" class="form-select">
@@ -379,7 +377,6 @@ function openTicketDetail(ticketId) {
                             <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
                                 <h4 class="card-title" style="font-size: 1rem;">Add Reply</h4>
                                 <form method="POST" action="/customer/tickets/${ticket.ticket_id}/reply" style="margin-top: var(--spacing-md);" onsubmit="handleCustomerReply(event, this)">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <div class="form-group">
                                         <label class="form-label">Your Message</label>
                                         <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required></textarea>

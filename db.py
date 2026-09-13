@@ -116,6 +116,8 @@ def init_db_schema(schema_path: str = None):
 
         if table_exists:
             print(f"[CompassIQ DB] Database schema already initialized. Ready.")
+            # Ensure standardized demo accounts exist even if schema exists
+            ensure_demo_accounts(conn)
             return True
 
         # 4. If users table does not exist, execute schema.sql
@@ -130,6 +132,10 @@ def init_db_schema(schema_path: str = None):
         cursor.executescript(schema_sql)
         conn.commit()
         print(f"[CompassIQ DB] Successfully created tables and seeded default accounts.")
+        
+        # Ensure standardized demo accounts exist after schema creation
+        ensure_demo_accounts(conn)
+        
         return True
 
     except Exception as e:
@@ -140,6 +146,97 @@ def init_db_schema(schema_path: str = None):
     finally:
         if conn:
             conn.close()
+
+
+def ensure_demo_accounts(conn):
+    """
+    Ensures standardized demo accounts exist with Password@123.
+    Updates existing accounts if they have different credentials.
+    This is called during database initialization for viva demo reliability.
+    """
+    from werkzeug.security import generate_password_hash
+    
+    # Generate hash for standard demo password
+    demo_password_hash = generate_password_hash('Password@123', method='scrypt')
+    
+    demo_accounts = [
+        {
+            'email': 'admin@compassiq.com',
+            'full_name': 'System Administrator',
+            'role': 'admin',
+            'department': 'None',
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'technical@compassiq.com',
+            'full_name': 'Technical Support Agent',
+            'role': 'agent',
+            'department': 'Technical',
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'billing@compassiq.com',
+            'full_name': 'Billing Support Agent',
+            'role': 'agent',
+            'department': 'Billing',
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'account@compassiq.com',
+            'full_name': 'Account Support Agent',
+            'role': 'agent',
+            'department': 'Account',
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'general@compassiq.com',
+            'full_name': 'General Inquiry Agent',
+            'role': 'agent',
+            'department': 'General Inquiry',
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'customer@compassiq.com',
+            'full_name': 'Demo Customer',
+            'role': 'customer',
+            'department': 'None',
+            'account_status': 'APPROVED'
+        }
+    ]
+    
+    try:
+        cursor = conn.cursor()
+        
+        for account in demo_accounts:
+            # Check if account exists
+            cursor.execute("SELECT user_id FROM users WHERE email = ?", (account['email'],))
+            existing = cursor.fetchone()
+            
+            if existing:
+                # Update existing account to ensure correct password and status
+                cursor.execute("""
+                    UPDATE users 
+                    SET password_hash = ?, account_status = ?
+                    WHERE email = ?
+                """, (demo_password_hash, account['account_status'], account['email']))
+                print(f"[CompassIQ DB] Updated demo account: {account['email']}")
+            else:
+                # Insert new demo account
+                cursor.execute("""
+                    INSERT INTO users (full_name, email, password_hash, role, department, account_status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (account['full_name'], account['email'], demo_password_hash, 
+                      account['role'], account['department'], account['account_status']))
+                print(f"[CompassIQ DB] Created demo account: {account['email']}")
+        
+        conn.commit()
+        print(f"[CompassIQ DB] Standardized demo accounts ensured (Password@123).")
+        
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"[DB Demo Accounts Error] Failed to ensure demo accounts: {e}")
+        raise e
 
 
 # Alias for backward compatibility

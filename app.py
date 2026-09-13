@@ -37,10 +37,14 @@ from ai_engine import predict_and_retrieve, load_ai_engine
 # Initialize Flask application
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config['SECRET_KEY'] = Config.SECRET_KEY
+app.config['SECRET_KEY'] = 'compassiq-mca-secret-key'
 
-# Initialize CSRF protection for form security
-csrf = CSRFProtect(app)
+# Disable CSRF protection for viva demo reliability
+app.config['WTF_CSRF_ENABLED'] = False
+app.config['WTF_CSRF_CHECK_DEFAULT'] = False
+
+# CSRF protection disabled for demo purposes
+# csrf = CSRFProtect(app)
 
 # ============================================================================
 # FLOW 1: AUTHENTICATION (Auto-Approved Registration, Login, Logout)

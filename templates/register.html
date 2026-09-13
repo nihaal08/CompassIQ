@@ -38,7 +38,7 @@
         
         .auth-left {
             flex: 1;
-            background: linear-gradient(135deg, var(--surface-mint) 0%, var(--bg-canvas) 100%);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, #0a0e27 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -55,15 +55,15 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23133829' fill-opacity='0.05' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,96,576,90.7C672,85,768,139,864,154.7C960,171,1056,149,1152,122.7C1248,96,1344,64,1392,48L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-            background-size: cover;
-            background-position: bottom;
-            opacity: 0.3;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+            pointer-events: none;
         }
         
         .auth-right {
             flex: 1;
-            background: var(--primary);
+            background: linear-gradient(135deg, #161334 0%, #0b0d1b 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -79,10 +79,10 @@
             left: -100px;
             width: 200px;
             height: 200px;
-            background: var(--accent-lime);
+            background: #a855f7;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.2;
+            opacity: 0.15;
         }
         
         .auth-logo {
@@ -95,7 +95,7 @@
         .auth-logo-icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-green) 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
             border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
@@ -103,17 +103,18 @@
             color: white;
             font-size: 2rem;
             margin: 0 auto var(--spacing-md);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
         }
         
         .auth-logo-text {
             font-size: 1.5rem;
             font-weight: var(--font-weight-bold);
-            color: var(--primary);
+            color: #ffffff;
         }
         
         .auth-subtitle {
             font-size: 1rem;
-            color: var(--text-secondary);
+            color: #cbd5e1;
             max-width: 400px;
             text-align: center;
             position: relative;
@@ -130,7 +131,7 @@
         .auth-title {
             font-size: 1.75rem;
             font-weight: var(--font-weight-bold);
-            color: white;
+            color: #ffffff;
             margin-bottom: var(--spacing-xl);
             text-align: center;
         }
@@ -139,65 +140,67 @@
             width: 100%;
             height: 48px;
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: var(--radius-full);
-            color: white;
+            color: #ffffff;
             font-size: 0.95rem;
             margin-bottom: var(--spacing-lg);
             transition: all 0.2s ease;
         }
         
         .auth-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .auth-input:focus {
             outline: none;
-            border-color: var(--accent-lime);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
         
         .auth-button {
             width: 100%;
             height: 48px;
-            background: var(--accent-lime);
-            color: var(--primary);
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            color: #ffffff;
             border: none;
             border-radius: var(--radius-full);
             font-size: 1rem;
             font-weight: var(--font-weight-semibold);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             margin-bottom: var(--spacing-lg);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .auth-button:hover {
-            background: var(--accent-green);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
         }
         
         .auth-links {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: #cbd5e1;
             font-size: 0.9rem;
         }
         
         .auth-links a {
-            color: var(--accent-lime);
+            color: #6366f1;
             text-decoration: none;
             font-weight: var(--font-weight-medium);
         }
         
         .auth-links a:hover {
-            color: var(--accent-green);
+            color: #a855f7;
             text-decoration: underline;
         }
         
         .auth-divider {
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
             margin: var(--spacing-lg) 0;
             position: relative;
         }
@@ -209,22 +212,22 @@
             top: 50%;
             width: 100%;
             height: 1px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
         }
         
         .auth-divider span {
-            background: var(--primary);
+            background: #0b0d1b;
             padding: 0 var(--spacing-md);
             position: relative;
             z-index: 1;
         }
         
         .info-box {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             border-radius: var(--radius-lg);
             padding: var(--spacing-md) var(--spacing-lg);
-            color: rgba(255, 255, 255, 0.9);
+            color: #cbd5e1;
             font-size: 0.9rem;
             margin: var(--spacing-lg) 0;
             display: flex;
@@ -235,7 +238,7 @@
         .info-box i {
             flex-shrink: 0;
             font-size: 1.1rem;
-            color: var(--accent-lime);
+            color: #a5b4fc;
         }
         
         .form-grid {
@@ -297,19 +300,18 @@
                     <h1 class="auth-title">Create Account</h1>
                     
                     <form method="POST" action="{{ url_for('register') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="text" name="full_name" class="auth-input" placeholder="Full Name" required autofocus>
-                        <input type="email" name="email" class="auth-input" placeholder="Email Address" required>
-                        <input type="text" name="bill_no_product_id" class="auth-input" placeholder="Bill No / Product ID">
+                        <input type="text" name="full_name" class="auth-input" placeholder="Enter your full name" required autofocus>
+                        <input type="email" name="email" class="auth-input" placeholder="Enter your email address" required>
+                        <input type="text" name="bill_no_product_id" class="auth-input" placeholder="Bill number or product ID (optional)">
                         
                         <div class="form-grid">
-                            <input type="password" name="password" class="auth-input" placeholder="Password" required minlength="6">
-                            <input type="password" name="confirm_password" class="auth-input" placeholder="Confirm Password" required minlength="6">
+                            <input type="password" name="password" class="auth-input" placeholder="Create a password" required minlength="6">
+                            <input type="password" name="confirm_password" class="auth-input" placeholder="Confirm your password" required minlength="6">
                         </div>
                         
                         <div class="info-box">
                             <i class="bi bi-shield-check"></i>
-                            <span>All new customer accounts require admin verification before access is granted.</span>
+                            <span>Your account will be automatically approved for immediate access.</span>
                         </div>
                         
                         <button type="submit" class="auth-button">

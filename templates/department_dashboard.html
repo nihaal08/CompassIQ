@@ -110,26 +110,26 @@
         
         <!-- Section 1: Ticket Overview -->
         <div style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">Ticket Overview</h4>
-            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: var(--spacing-md);">
+            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Ticket Overview</h4>
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: var(--spacing-md);">
                 <div style="margin-bottom: var(--spacing-sm);">
-                    <strong style="color: #374151; font-size: 0.9rem;">Customer:</strong>
-                    <span style="color: #6b7280; font-size: 0.9rem;"> <span id="modalCustomerName">Customer Name</span> (<span id="modalCustomerEmail">email@example.com</span>)</span>
+                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Customer:</strong>
+                    <span style="color: #e2e8f0; font-size: 0.9rem;"> <span id="modalCustomerName">Customer Name</span> (<span id="modalCustomerEmail">email@example.com</span>)</span>
                 </div>
                 <div style="margin-bottom: var(--spacing-sm);">
-                    <strong style="color: #374151; font-size: 0.9rem;">Subject:</strong>
-                    <div id="modalSubject" style="color: #111827; font-size: 0.95rem; margin-top: 4px;">Subject</div>
+                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Subject:</strong>
+                    <div id="modalSubject" style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">Subject</div>
                 </div>
                 <div>
-                    <strong style="color: #374151; font-size: 0.9rem;">Description:</strong>
-                    <div id="modalDescription" style="color: #4b5563; font-size: 0.9rem; line-height: 1.5; margin-top: 4px; white-space: pre-wrap;">Description</div>
+                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Description:</strong>
+                    <div id="modalDescription" style="color: #e2e8f0; font-size: 0.9rem; line-height: 1.5; margin-top: 4px; white-space: pre-wrap;">Description</div>
                 </div>
             </div>
         </div>
         
         <!-- Section 2: AI Intelligence & Similar Matches -->
         <div id="ai-insights-section" style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">AI Intelligence & Similar Matches</h4>
+            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">AI Intelligence & Similar Matches</h4>
             <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md);">
                 <span id="modalCategory" class="badge badge-category">Category</span>
                 <span id="modalAiPriority" class="badge badge-priority-Medium">Priority</span>
@@ -141,7 +141,7 @@
         
         <!-- Section 3: Communication History -->
         <div style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">Communication History</h4>
+            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Communication History</h4>
             <div class="chat-thread-container" id="modalChatThread" style="max-height: 250px;">
                 <!-- Chat messages will be loaded here -->
             </div>
@@ -149,14 +149,13 @@
         
         <!-- Section 4: Agent Response & Action Panel -->
         <div>
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #111827; font-weight: 600;">Agent Response & Actions</h4>
+            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Agent Response & Actions</h4>
             <form method="POST" id="modalReplyForm" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="ticket_id" id="modalFormTicketId">
                 <textarea name="message" class="form-textarea" placeholder="Reply to customer..." required style="min-height: 80px;"></textarea>
                 <div style="display: flex; gap: var(--spacing-md); align-items: center;">
                     <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #374151; font-weight: 500;">Update Status:</label>
+                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e1; font-weight: 500;">Update Status:</label>
                         <select name="status" class="form-select" required>
                             <option value="Submitted">Submitted</option>
                             <option value="Under Review">Under Review</option>

@@ -1,6 +1,6 @@
 /* ==========================================================================
    CompassIQ — Reusable Component Styles
-   Badges, Buttons, Tables, Forms, Cards, Modals (Forest Green Theme)
+   Badges, Buttons, Tables, Forms, Cards, Modals (Glassmorphism Dark Theme)
    ========================================================================== */
 
 @import url('./variables.css');
@@ -23,39 +23,35 @@
 
 /* Category Badges */
 .badge-category {
-  background-color: var(--surface-mint);
-  color: var(--primary);
-  border: 1px solid var(--border-mint);
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #ffffff;
+  border: 1px solid var(--border-accent);
 }
 
 .badge-category-Technical {
-  background-color: var(--category-technical-bg);
-  color: var(--category-technical);
-  border: 1px solid #93c5fd;
+  background: var(--category-technical-bg);
+  color: #60a5fa;
+  border: 1px solid var(--category-technical-border);
 }
 
 .badge-category-Billing {
-  background-color: var(--category-billing-bg);
-  color: var(--category-billing);
-  border: 1px solid #fcd34d;
+  background: var(--category-billing-bg);
+  color: #fbbf24;
+  border: 1px solid var(--category-billing-border);
 }
 
 .badge-category-Account {
-  background-color: var(--category-account-bg);
-  color: var(--category-account);
-  border: 1px solid #c4b5fd;
+  background: var(--category-account-bg);
+  color: #c4b5fd;
+  border: 1px solid var(--category-account-border);
 }
 
 .badge-category-GeneralInquiry {
-  background-color: var(--category-inquiry-bg);
-  color: var(--category-inquiry);
-  border: 1px solid #d1d5db;
-}
-
-.badge-category-Fraud {
-  background-color: var(--category-fraud-bg);
-  color: var(--category-fraud);
-  border: 1px solid #fca5a5;
+  background: var(--category-inquiry-bg);
+  color: #d1d5db;
+  border: 1px solid var(--category-inquiry-border);
 }
 
 /* Priority Badges */
@@ -68,23 +64,27 @@
 }
 
 .badge-priority-Low {
-  background-color: var(--priority-low-bg);
-  color: var(--priority-low);
+  background: var(--priority-low-bg);
+  color: #4ade80;
+  border: 1px solid var(--priority-low-border);
 }
 
 .badge-priority-Medium {
-  background-color: var(--priority-medium-bg);
-  color: var(--priority-medium);
+  background: var(--priority-medium-bg);
+  color: #fbbf24;
+  border: 1px solid var(--priority-medium-border);
 }
 
 .badge-priority-High {
-  background-color: var(--priority-high-bg);
-  color: var(--priority-high);
+  background: var(--priority-high-bg);
+  color: #fb923c;
+  border: 1px solid var(--priority-high-border);
 }
 
 .badge-priority-Critical {
-  background-color: var(--priority-critical-bg);
-  color: var(--priority-critical);
+  background: var(--priority-critical-bg);
+  color: #f87171;
+  border: 1px solid var(--priority-critical-border);
 }
 
 /* Status Badges */
@@ -97,53 +97,55 @@
 }
 
 .badge-status-Submitted {
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: var(--status-submitted-bg);
+  color: #4ade80;
+  border: 1px solid var(--status-submitted-border);
 }
 
 .badge-status-UnderReview {
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background: var(--status-review-bg);
+  color: #fbbf24;
+  border: 1px solid var(--status-review-border);
 }
 
 .badge-status-InProgress {
-  background-color: #fffbeb;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background: var(--status-progress-bg);
+  color: #c4b5fd;
+  border: 1px solid var(--status-progress-border);
 }
 
 .badge-status-Resolved {
-  background-color: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: var(--status-resolved-bg);
+  color: #4ade80;
+  border: 1px solid var(--status-resolved-border);
 }
 
 .badge-status-Closed {
-  background-color: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+  background: var(--status-closed-bg);
+  color: #94a3b8;
+  border: 1px solid var(--status-closed-border);
 }
 
 /* ========== BUTTONS ========== */
 
-/* Primary Button - Forest Green */
+/* Primary Button - Gradient */
 .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: var(--primary);
+  background: var(--accent-gradient);
   color: white;
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Small Button Variant */
@@ -161,17 +163,9 @@
   flex-wrap: wrap;
 }
 
-/* Fraud Action Buttons */
-.fraud-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
 }
 
 .btn-primary:active {
@@ -183,73 +177,88 @@
   cursor: not-allowed;
 }
 
-/* Secondary Button - Light Border */
+/* Secondary Button - Glassmorphism */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: #f8fafc;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--card-bg-hover);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
   transition: all 0.2s ease;
   text-decoration: none;
 }
 
 .btn-secondary:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
-  border-color: #94a3b8;
+  background: var(--card-bg-hover);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
 }
 
-/* Lime Accent Button */
+/* Accent Button */
 .btn-accent {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: var(--accent-lime);
-  color: var(--primary);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.95rem;
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.btn-accent:hover {
-  background-color: var(--accent-green);
-  transform: translateY(-1px);
-}
-
-/* Dark Forest Button */
-.btn-dark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  padding: 10px 20px;
-  background-color: var(--primary);
+  background: var(--accent-gradient);
   color: white;
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+}
+
+/* Dark Button */
+.btn-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 10px 20px;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-dark:hover {
-  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
 }
 
 /* Danger Button */
@@ -259,19 +268,22 @@
   justify-content: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
-  background-color: #ef4444;
-  color: #ffffff;
-  border: none;
+  background: var(--danger-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius-md);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-decoration: none;
 }
 
 .btn-danger:hover {
-  background-color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
 }
 
 /* Ghost Button */
@@ -288,8 +300,8 @@
 }
 
 .btn-ghost:hover {
-  background-color: var(--surface-subtle);
-  color: var(--primary);
+  background: var(--card-bg);
+  color: var(--text-main);
 }
 
 /* Dark Circle Button with Arrow */
@@ -339,7 +351,7 @@
   font-weight: 500;
   font-size: 0.875rem;
   text-align: left;
-  color: var(--text-primary);
+  color: var(--text-main);
 }
 
 .form-input,
@@ -349,12 +361,12 @@
   box-sizing: border-box;
   height: 42px;
   padding: 8px 12px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-family: var(--font-family);
   font-size: 0.95rem;
-  color: var(--text-primary);
-  background-color: var(--surface);
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.07);
   transition: all 0.2s ease;
 }
 
@@ -368,8 +380,9 @@
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: var(--accent-green);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .form-input::placeholder,
@@ -392,36 +405,39 @@
 /* ========== CARDS & PANELS ========== */
 
 .card {
-  background-color: var(--card-bg) !important;
-  border: 1px solid var(--card-border) !important;
-  border-radius: 12px !important;
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-lg) !important;
   padding: 24px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05) !important;
-  color: var(--card-text) !important;
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-card) !important;
+  color: var(--text-main) !important;
+  transition: all 0.3s ease;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--border-mint);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-primary);
+  background: var(--card-bg-hover);
 }
 
 .card-header {
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--card-text) !important;
+  color: var(--text-main) !important;
   margin: 0;
 }
 
 .card-subtitle {
   font-size: 0.9rem;
-  color: var(--card-subtitle) !important;
+  color: var(--text-secondary) !important;
   margin-top: var(--spacing-sm);
 }
 
@@ -431,28 +447,32 @@
 
 .card-footer {
   padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--card-border);
+  border-top: 1px solid var(--border-color);
   display: flex;
   gap: var(--spacing-md);
   justify-content: flex-end;
 }
 
-/* Mint Card Variant */
+/* Accent Card Variant */
 .card-mint {
-  background-color: var(--surface-mint);
-  border: 1px solid var(--border-mint);
+  background: var(--surface-mint);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-accent);
 }
 
-/* Forest Banner Card - Replaced with High-Contrast Light Theme */
+/* Banner Card */
 .card-forest-banner {
   background: var(--card-bg) !important;
-  border: 1px solid var(--card-border) !important;
-  color: var(--card-text) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
 }
 
 .card-forest-banner .card-title,
 .card-forest-banner .card-subtitle {
-  color: var(--card-text) !important;
+  color: var(--text-main) !important;
 }
 
 /* ========== TABLES ========== */
@@ -471,7 +491,9 @@
 }
 
 .enterprise-table thead {
-  background-color: var(--table-header-bg);
+  background: rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -481,8 +503,8 @@
   padding: 12px 16px;
   text-align: left;
   font-weight: 700;
-  color: var(--table-header-text) !important;
-  border-bottom: 2px solid var(--table-border) !important;
+  color: var(--text-main) !important;
+  border-bottom: 2px solid var(--border-accent) !important;
   white-space: nowrap;
   vertical-align: middle;
   text-transform: uppercase;
@@ -492,15 +514,15 @@
 
 .enterprise-table tbody td {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--table-border);
-  color: var(--cell-secondary);
+  border-bottom: 1px solid var(--border-color);
+  color: #e2e8f0;
   height: 48px;
   vertical-align: middle;
   word-break: break-word;
 }
 
 .enterprise-table tbody tr:hover {
-  background-color: var(--surface-mint);
+  background: var(--card-bg-hover);
   transition: background-color 0.2s ease;
 }
 
@@ -508,7 +530,7 @@
   border-bottom: none;
 }
 
-/* Fraud Management Table Specifics */
+/* Management Table Specifics */
 .fraud-management-table {
   width: 100%;
   border-collapse: collapse;
@@ -519,8 +541,8 @@
   padding: 12px 16px;
   text-align: left;
   font-weight: 700;
-  color: var(--table-header-text) !important;
-  border-bottom: 2px solid var(--table-border) !important;
+  color: var(--text-main) !important;
+  border-bottom: 2px solid var(--border-accent) !important;
   white-space: nowrap;
   vertical-align: middle;
   text-transform: uppercase;
@@ -586,15 +608,17 @@
 }
 
 .alert-modal-box {
-  background: #ffffff !important; /* Solid opaque white background */
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   width: 90%;
   max-width: 480px;
   padding: 24px 28px;
   position: relative;
   text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
   transform: translateY(20px) scale(0.95);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -606,14 +630,14 @@
 .alert-modal-title {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827; /* Dark Charcoal */
+  color: var(--text-main);
   margin-top: 15px;
   margin-bottom: var(--spacing-md);
 }
 
 .alert-modal-message {
   font-size: 0.95rem;
-  color: #374151; /* Slate 700 */
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: var(--spacing-lg);
 }
@@ -626,17 +650,20 @@
 }
 
 .alert-modal-buttons .btn-primary {
-  background: #133829; /* Forest Green */
-  color: #ffffff;
+  background: var(--accent-gradient);
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 10px 20px;
   font-weight: 500;
   font-size: 0.875rem;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .alert-modal-buttons .btn-primary:hover {
-  background: #1b4332;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
 }
 
 /* ========== DEMO CREDENTIALS MODAL ========== */
@@ -644,8 +671,9 @@
 .modal-backdrop-custom {
   position: fixed;
   inset: 0;
-  background-color: rgba(17, 24, 39, 0.65); /* Dark, high-contrast solid backdrop */
-  backdrop-filter: none;
+  background-color: rgba(11, 13, 27, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -661,10 +689,12 @@
 }
 
 .modal-content-custom {
-  background: #ffffff; /* Solid pure white surface */
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
   width: 90%;
   max-width: 650px;
   max-height: 85vh;
@@ -700,8 +730,8 @@
   gap: 16px !important;
   padding: 10px 14px !important;
   border-radius: 8px !important;
-  background: #f8fafc !important;
-  border: 1px solid #f1f5f9 !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
   margin-bottom: 8px !important;
   transition: background-color 0.2s ease !important;
 }
@@ -711,7 +741,8 @@
 }
 
 .demo-cred-item:hover {
-  background: #f1f5f9 !important;
+  background: var(--card-bg-hover) !important;
+  border-color: var(--accent-primary) !important;
 }
 
 .demo-cred-item .demo-role-badge {
@@ -739,7 +770,7 @@
 
 .cred-email {
   font-size: 0.8125rem !important;
-  color: #1e293b !important;
+  color: #e2e8f0 !important;
   font-weight: 500 !important;
   white-space: nowrap !important;
   overflow: hidden !important;
@@ -747,16 +778,16 @@
 }
 
 .cred-sep {
-  color: #9ca3af !important;
+  color: #94a3b8 !important;
   font-size: 0.8125rem !important;
   flex-shrink: 0 !important;
 }
 
 .cred-pwd {
   font-size: 0.75rem !important;
-  color: #0f172a !important;
+  color: #c4b5fd !important;
   font-family: 'Courier New', monospace !important;
-  background: #e2e8f0 !important;
+  background: rgba(99, 102, 241, 0.2) !important;
   padding: 2px 6px !important;
   border-radius: 4px !important;
   white-space: nowrap !important;
@@ -772,7 +803,7 @@
   font-size: 0.75rem !important;
   font-weight: 600 !important;
   border-radius: 6px !important;
-  background: #133829 !important; /* Forest Green */
+  background: var(--accent-gradient) !important;
   color: #ffffff !important;
   border: none !important;
   cursor: pointer !important;
@@ -783,7 +814,7 @@
 }
 
 .demo-autofill-btn:hover {
-  background: #1e543e !important;
+  background: var(--accent-secondary) !important;
 }
 
 /* ========== TICKET DETAILS MODAL ========== */
@@ -791,8 +822,9 @@
 .ticket-modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(17, 24, 39, 0.6); /* Solid dark overlay */
-  backdrop-filter: none;
+  background-color: rgba(11, 13, 27, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -808,10 +840,12 @@
 }
 
 .ticket-modal-content {
-  background: #ffffff; /* Solid white surface */
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
   width: 92%;
   max-width: 850px;
   max-height: 88vh;
@@ -835,7 +869,7 @@
   background: transparent;
   border: none;
   font-size: 1.25rem;
-  color: #9ca3af;
+  color: #94a3b8;
   cursor: pointer;
   line-height: 1;
   padding: 4px;
@@ -847,7 +881,7 @@
 }
 
 .modal-close-btn:hover {
-  color: #111827;
+  color: #ffffff;
 }
 
 /* Keep old class for backward compatibility */
@@ -859,13 +893,14 @@
   background: transparent;
   border: none;
   font-size: 1.25rem;
-  color: #9ca3af;
+  color: #94a3b8;
   cursor: pointer;
   line-height: 1;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
   transition: color 0.15s ease-in-out;
   z-index: 10;
 }
@@ -982,8 +1017,10 @@
 /* ========== METRIC CARDS ========== */
 
 .metric-card {
-  background: var(--surface-white);
-  border: 1px solid var(--border-subtle);
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
   box-shadow: var(--shadow-card);
@@ -1009,7 +1046,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background-color: var(--surface-mint);
-  color: var(--primary);
+  color: #6366f1;
 }
 
 .metric-content {
@@ -1019,7 +1056,7 @@
 .metric-label {
   font-size: 0.85rem;
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
+  color: #cbd5e1;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: var(--spacing-sm);
@@ -1028,7 +1065,7 @@
 .metric-value {
   font-size: 2rem;
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: #ffffff;
   line-height: 1;
 }
 
@@ -1038,10 +1075,11 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  color: #a5b4fc;
 }
 
 .metric-trend.positive {
-  color: var(--success);
+  color: #4ade80;
 }
 
 .metric-trend.negative {

@@ -1,6 +1,6 @@
 /* ==========================================================================
    CompassIQ — CSS Variables & Design Tokens
-   Modern Forest Green + Lime/Mint + Crisp Cream Palette
+   Glassmorphism Dark Theme — Midnight Indigo/Purple Enterprise Palette
    ========================================================================== */
 
 :root {
@@ -12,113 +12,127 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* ====== COLOR PALETTE ====== */
-  /* Primary Forest Green */
-  --primary-dark: #1b4332;              /* Deep rich evergreen used in headers/dark accents */
-  --primary: #133829;                   /* Main forest green */
-  --primary-hover: #0f2b1f;             /* Darker shade for hover */
-  --primary-light: #eefbf3;             /* Light mint background */
+  /* ====== COLOR PALETTE — Glassmorphism Dark Theme ====== */
+  /* Primary Accent Gradient */
+  --accent-gradient: linear-gradient(135deg, #6366f1, #d946ef);
+  --accent-primary: #6366f1;            /* Electric indigo */
+  --accent-secondary: #a855f7;         /* Neon purple */
+  --accent-tertiary: #d946ef;           /* Soft magenta/pink */
 
-  /* High-Contrast Professional Colors for Cards & Tables */
-  --card-bg: #ffffff;                   /* Clean white card background */
-  --card-border: #e5e7eb;               /* Light subtle gray border */
-  --card-text: #111827;                 /* Slate 900 for card titles */
-  --card-subtitle: #4b5563;             /* Slate 600 for card subtitles */
-  --table-header-bg: #f9fafb;           /* Light gray table header background */
-  --table-header-text: #6b7280;         /* Slate 500 for table headers */
-  --table-border: #e5e7eb;              /* Light table borders */
-  --cell-primary: #111827;              /* Slate 900 for primary cell content */
-  --cell-secondary: #64748b;            /* Slate 500 for secondary cell content */
-  --cell-monospace: #0f172a;            /* Slate 900 for monospace text */
+  /* Backgrounds — Deep Midnight Dark Indigo/Slate */
+  --bg-primary: #0b0d1b;                /* Deep midnight background */
+  --bg-secondary: #161334;              /* Dark indigo secondary */
+  --bg-canvas: linear-gradient(135deg, #0b0d1b 0%, #161334 100%);
+  --bg-canvas-solid: #0a0e27;           /* Solid fallback */
 
-  /* Vivid Lime / Spring Green Accent */
-  --accent-green: #22c55e;              /* Vivid green for active states */
-  --accent-lime: #4ade80;               /* Crisp lime for buttons and highlights */
-  --accent-teal: #40916c;               /* Teal accent for secondary actions */
-  --accent-hover: #16a34a;             /* Darker green for hover states */
+  /* Surface & Cards — Glassmorphism Translucent */
+  --card-bg: rgba(255, 255, 255, 0.04);  /* Translucent dark glass */
+  --card-bg-hover: rgba(255, 255, 255, 0.07);
+  --card-bg-solid: rgba(255, 255, 255, 0.08);
 
-  /* Soft Mint Surface */
-  --surface-mint: #eefbf3;             /* Pill badges, subtle icon backgrounds */
-  --surface-mint-light: #f0fdf4;       /* Lighter mint for card hover tints */
+  /* Borders & Dividers — Subtle Glowing Edge Strokes */
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-color-hover: rgba(255, 255, 255, 0.18);
+  --border-accent: rgba(99, 102, 241, 0.3);
 
-  /* Background & Surfaces */
-  --bg-canvas: #f8faf9;                /* Clean canvas background */
-  --bg-canvas-alt: #ffffff;             /* Pure white alternative */
-  --surface-white: #ffffff;            /* Card surfaces */
-  --surface-subtle: #f1f5f4;           /* Muted headers & subtle sections */
-  --surface-hover: #e8f5e9;            /* Forest green hover state */
+  /* Typography — Crisp White & Muted Lavender/Slate */
+  --text-main: #ffffff;                 /* Crisp white headings */
+  --text-secondary: #e2e8f0;           /* Light slate secondary text (increased contrast) */
+  --text-muted: #a5b4fc;               /* Light lavender text (increased contrast) */
+  --text-light: rgba(255, 255, 255, 0.7);
 
-  /* Borders */
-  --border-subtle: #e5e7eb;            /* Subtle light borders */
-  --border-mint: #bbf7d0;              /* Mint green borders */
-  --border-strong: #d1d5db;            /* Stronger borders for sections */
+  /* Semantic Feedback Colors with Glow */
+  --success: #22c55e;                  /* Vibrant emerald/teal glow */
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --success-border: rgba(34, 197, 94, 0.3);
+  
+  --warning: #f59e0b;                  /* Amber/gold glow */
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-border: rgba(245, 158, 11, 0.3);
+  
+  --danger: #ef4444;                    /* Ruby/crimson glow */
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger-border: rgba(239, 68, 68, 0.3);
+  
+  --info: #3b82f6;                      /* Blue glow */
+  --info-bg: rgba(59, 130, 246, 0.15);
+  --info-border: rgba(59, 130, 246, 0.3);
 
-  /* Text Colors */
-  --text-primary: #111827;             /* Dark charcoal text */
-  --text-secondary: #374151;           /* Secondary text color */
-  --text-muted: #6b7280;               /* Muted/placeholder text */
-  --text-light: #9ca3af;               /* Light gray text for placeholders */
-
-  /* Semantic Feedback Colors */
-  --success: #16a34a;                  /* Success green */
-  --success-bg: #f0fdf4;               /* Success background */
+  /* Status Colors */
+  --status-submitted: #22c55e;
+  --status-submitted-bg: rgba(34, 197, 94, 0.15);
+  --status-submitted-border: rgba(34, 197, 94, 0.3);
   
-  --warning: #d97706;                  /* Warning amber */
-  --warning-bg: #fef3c7;               /* Warning background */
+  --status-review: #f59e0b;
+  --status-review-bg: rgba(245, 158, 11, 0.15);
+  --status-review-border: rgba(245, 158, 11, 0.3);
   
-  --high-priority: #ea580c;            /* High priority orange */
-  --high-priority-bg: #fff7ed;         /* High priority background */
+  --status-progress: #a855f7;
+  --status-progress-bg: rgba(168, 85, 247, 0.15);
+  --status-progress-border: rgba(168, 85, 247, 0.3);
   
-  --danger: #dc2626;                   /* Danger red */
-  --danger-bg: #fee2e2;                /* Danger background */
+  --status-resolved: #22c55e;
+  --status-resolved-bg: rgba(34, 197, 94, 0.15);
+  --status-resolved-border: rgba(34, 197, 94, 0.3);
   
-  --info: #0284c7;                     /* Info blue */
-  --info-bg: #f0f9ff;                  /* Info background */
-
-  /* Status Colors (mapped to semantic feedback) */
-  --status-submitted: #22c55e;         /* Accent green */
-  --status-submitted-bg: #f0fdf4;
-  
-  --status-review: #d97706;            /* Warning amber */
-  --status-review-bg: #fef3c7;
-  
-  --status-progress: #4ade80;          /* Lime green */
-  --status-progress-bg: #eefbf3;
-  
-  --status-resolved: #16a34a;         /* Success green */
-  --status-resolved-bg: #f0fdf4;
-  
-  --status-closed: #6b7280;            /* Gray */
-  --status-closed-bg: #f3f4f6;
+  --status-closed: #64748b;
+  --status-closed-bg: rgba(100, 116, 139, 0.15);
+  --status-closed-border: rgba(100, 116, 139, 0.3);
 
   /* Priority Colors */
-  --priority-low: #16a34a;             /* Green */
-  --priority-low-bg: #f0fdf4;
+  --priority-low: #22c55e;
+  --priority-low-bg: rgba(34, 197, 94, 0.15);
+  --priority-low-border: rgba(34, 197, 94, 0.3);
   
-  --priority-medium: #d97706;          /* Amber */
-  --priority-medium-bg: #fef3c7;
+  --priority-medium: #f59e0b;
+  --priority-medium-bg: rgba(245, 158, 11, 0.15);
+  --priority-medium-border: rgba(245, 158, 11, 0.3);
   
-  --priority-high: #ea580c;            /* Orange */
-  --priority-high-bg: #fff7ed;
+  --priority-high: #f97316;
+  --priority-high-bg: rgba(249, 115, 22, 0.15);
+  --priority-high-border: rgba(249, 115, 22, 0.3);
   
-  --priority-critical: #dc2626;        /* Red */
-  --priority-critical-bg: #fee2e2;
+  --priority-critical: #ef4444;
+  --priority-critical-bg: rgba(239, 68, 68, 0.15);
+  --priority-critical-border: rgba(239, 68, 68, 0.3);
 
   /* Category Colors */
-  --category-technical: #0284c7;        /* Blue for technical */
-  --category-technical-bg: #f0f9ff;
+  --category-technical: #3b82f6;
+  --category-technical-bg: rgba(59, 130, 246, 0.15);
+  --category-technical-border: rgba(59, 130, 246, 0.3);
   
-  --category-billing: #d97706;         /* Amber for billing */
-  --category-billing-bg: #fef3c7;
+  --category-billing: #f59e0b;
+  --category-billing-bg: rgba(245, 158, 11, 0.15);
+  --category-billing-border: rgba(245, 158, 11, 0.3);
   
-  --category-account: #7c3aed;         /* Purple for account */
-  --category-account-bg: #f5f3ff;
+  --category-account: #a855f7;
+  --category-account-bg: rgba(168, 85, 247, 0.15);
+  --category-account-border: rgba(168, 85, 247, 0.3);
   
-  --category-inquiry: #6b7280;         /* Gray for general inquiry */
-  --category-inquiry-bg: #f3f4f6;
-  
-  --category-fraud: #dc2626;          /* Red for fraud */
-  --category-fraud-bg: #fee2e2;
+  --category-inquiry: #64748b;
+  --category-inquiry-bg: rgba(100, 116, 139, 0.15);
+  --category-inquiry-border: rgba(100, 116, 139, 0.3);
+
+  /* Legacy color aliases for compatibility */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: rgba(99, 102, 241, 0.15);
+  --accent-green: #22c55e;
+  --accent-lime: #22c55e;
+  --accent-teal: #14b8a6;
+  --accent-hover: #a855f7;
+  --surface-mint: rgba(99, 102, 241, 0.15);
+  --surface-mint-light: rgba(99, 102, 241, 0.2);
+  --surface-white: rgba(255, 255, 255, 0.04);
+  --surface-subtle: rgba(255, 255, 255, 0.02);
+  --surface-hover: rgba(99, 102, 241, 0.2);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-mint: rgba(99, 102, 241, 0.3);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-light: rgba(255, 255, 255, 0.5);
 
   /* ====== SPACING ====== */
   --spacing-xs: 4px;
@@ -133,14 +147,16 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
   /* ====== SHADOWS ====== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
 
   /* ====== LAYOUT ====== */
   --sidebar-width: 260px;

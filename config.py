@@ -32,10 +32,12 @@ else:
 
 class Config:
     # Flask Security Key
-    SECRET_KEY = os.getenv('SECRET_KEY', 'compassiq_secret_key_2026')
+    SECRET_KEY = 'compassiq-mca-secret-key'
     
-    # CSRF Protection Settings
-    WTF_CSRF_TIME_LIMIT = None  # Prevents unexpected token timeout during testing
+    # CSRF Protection Settings - Disabled for viva demo reliability
+    WTF_CSRF_ENABLED = False
+    WTF_CSRF_CHECK_DEFAULT = False
+    WTF_CSRF_TIME_LIMIT = None
 
     # SQLite3 Database Settings - Updated with new structure
     DATABASE_DIR = BASE_DIR / 'database' / 'storage'

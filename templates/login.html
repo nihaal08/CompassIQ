@@ -38,7 +38,7 @@
         
         .auth-left {
             flex: 1;
-            background: linear-gradient(135deg, var(--surface-mint) 0%, var(--bg-canvas) 100%);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, #0a0e27 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -55,15 +55,15 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23133829' fill-opacity='0.05' d='M0,96L48,112C96,128,192,160,288,160C384,160,480,96,576,90.7C672,85,768,139,864,154.7C960,171,1056,149,1152,122.7C1248,96,1344,64,1392,48L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-            background-size: cover;
-            background-position: bottom;
-            opacity: 0.3;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+            pointer-events: none;
         }
         
         .auth-right {
             flex: 1;
-            background: var(--primary);
+            background: linear-gradient(135deg, #161334 0%, #0b0d1b 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -79,10 +79,10 @@
             left: -100px;
             width: 200px;
             height: 200px;
-            background: var(--accent-lime);
+            background: #a855f7;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.2;
+            opacity: 0.15;
         }
         
         .auth-logo {
@@ -95,7 +95,7 @@
         .auth-logo-icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-green) 100%);
+            background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
             border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
@@ -103,17 +103,18 @@
             color: white;
             font-size: 2rem;
             margin: 0 auto var(--spacing-md);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
         }
         
         .auth-logo-text {
             font-size: 1.5rem;
             font-weight: var(--font-weight-bold);
-            color: var(--primary);
+            color: #ffffff;
         }
         
         .auth-subtitle {
             font-size: 1rem;
-            color: var(--text-secondary);
+            color: #cbd5e1;
             max-width: 400px;
             text-align: center;
             position: relative;
@@ -130,7 +131,7 @@
         .auth-title {
             font-size: 1.75rem;
             font-weight: var(--font-weight-bold);
-            color: white;
+            color: #ffffff;
             margin-bottom: var(--spacing-xl);
             text-align: center;
         }
@@ -139,65 +140,67 @@
             width: 100%;
             height: 48px;
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: var(--radius-full);
-            color: white;
+            color: #ffffff;
             font-size: 0.95rem;
             margin-bottom: var(--spacing-lg);
             transition: all 0.2s ease;
         }
         
         .auth-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .auth-input:focus {
             outline: none;
-            border-color: var(--accent-lime);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
         
         .auth-button {
             width: 100%;
             height: 48px;
-            background: var(--accent-lime);
-            color: var(--primary);
+            background: linear-gradient(135deg, #6366f1, #d946ef);
+            color: #ffffff;
             border: none;
             border-radius: var(--radius-full);
             font-size: 1rem;
             font-weight: var(--font-weight-semibold);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             margin-bottom: var(--spacing-lg);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .auth-button:hover {
-            background: var(--accent-green);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+            box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
         }
         
         .auth-links {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: #cbd5e1;
             font-size: 0.9rem;
         }
         
         .auth-links a {
-            color: var(--accent-lime);
+            color: #6366f1;
             text-decoration: none;
             font-weight: var(--font-weight-medium);
         }
         
         .auth-links a:hover {
-            color: var(--accent-green);
+            color: #a855f7;
             text-decoration: underline;
         }
         
         .auth-divider {
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.5);
             margin: var(--spacing-lg) 0;
             position: relative;
         }
@@ -209,11 +212,11 @@
             top: 50%;
             width: 100%;
             height: 1px;
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.12);
         }
         
         .auth-divider span {
-            background: var(--primary);
+            background: #0b0d1b;
             padding: 0 var(--spacing-md);
             position: relative;
             z-index: 1;
@@ -264,8 +267,7 @@
                     <h1 class="auth-title">Login</h1>
                     
                     <form method="POST" action="{{ url_for('login') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="email" name="email" class="auth-input" placeholder="Enter your username" required autofocus>
+                        <input type="email" name="email" class="auth-input" placeholder="Enter your email" required autofocus>
                         <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
                         
                         <button type="submit" class="auth-button">
@@ -287,23 +289,20 @@
                     
                     <!-- Demo Credentials Button -->
                     <div style="text-align: center; margin-top: var(--spacing-lg);">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="openDemoModalBtn" style="background: var(--surface-mint, #eefbf3); color: #1b4332; border: 1px solid #bbf7d0; padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; border-radius: 20px; font-weight: 500;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="openDemoModalBtn" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; border-radius: 20px; font-weight: 500;">
                             🔑 Quick Demo Access
                         </button>
                     </div>
                     
                     <style>
                         #openDemoModalBtn:hover {
-                            background: #dcfce7;
-                            color: #14532d;
-                            border-color: #86efac;
+                            background: rgba(99, 102, 241, 0.25);
+                            color: #ffffff;
+                            border-color: #6366f1;
                             transform: translateY(-1px);
+                            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
                         }
                     </style>
-                    
-                    <div class="auth-links" style="margin-top: var(--spacing-lg); font-size: 0.8rem;">
-                        <a href="#">Terms and Services</a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -312,8 +311,8 @@
     <!-- Demo Credentials Modal -->
     <div class="modal-backdrop-custom" id="demoCredentialsModal">
         <div class="modal-content-custom">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid #e5e7eb;">
-                <h3 style="font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid rgba(255, 255, 255, 0.12);">
+                <h3 style="font-size: 1.5rem; font-weight: 600; color: #ffffff; margin: 0;">
                     Demo Access Credentials
                 </h3>
                 <button type="button" class="modal-close-btn" id="closeDemoModalBtn">
@@ -324,12 +323,12 @@
             <div class="demo-credentials-modal-body">
                 <!-- Administrator Section -->
                 <div class="demo-section">
-                    <div class="demo-cred-item" data-email="admin@compassiq.com" data-password="Admin@Compass2026">
+                    <div class="demo-cred-item" data-email="admin@compassiq.com" data-password="Password@123">
                         <div class="demo-role-badge">Admin</div>
                         <div class="demo-cred-info">
                             <span class="cred-email">admin@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Admin@Compass2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
@@ -339,45 +338,45 @@
 
                 <!-- Department Agents Section -->
                 <div class="demo-section">
-                    <div class="demo-cred-item" data-email="tech.support@compassiq.com" data-password="Tech@Support2026">
-                        <div class="demo-role-badge">Tech Support</div>
+                    <div class="demo-cred-item" data-email="technical@compassiq.com" data-password="Password@123">
+                        <div class="demo-role-badge">Technical Support</div>
                         <div class="demo-cred-info">
-                            <span class="cred-email">tech.support@compassiq.com</span>
+                            <span class="cred-email">technical@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Tech@Support2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
                         </button>
                     </div>
-                    <div class="demo-cred-item" data-email="billing.support@compassiq.com" data-password="Billing@Support2026">
+                    <div class="demo-cred-item" data-email="billing@compassiq.com" data-password="Password@123">
                         <div class="demo-role-badge">Billing Support</div>
                         <div class="demo-cred-info">
-                            <span class="cred-email">billing.support@compassiq.com</span>
+                            <span class="cred-email">billing@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Billing@Support2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
                         </button>
                     </div>
-                    <div class="demo-cred-item" data-email="account.support@compassiq.com" data-password="Account@Support2026">
+                    <div class="demo-cred-item" data-email="account@compassiq.com" data-password="Password@123">
                         <div class="demo-role-badge">Account Support</div>
                         <div class="demo-cred-info">
-                            <span class="cred-email">account.support@compassiq.com</span>
+                            <span class="cred-email">account@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Account@Support2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
                         </button>
                     </div>
-                    <div class="demo-cred-item" data-email="general.support@compassiq.com" data-password="General@Support2026">
+                    <div class="demo-cred-item" data-email="general@compassiq.com" data-password="Password@123">
                         <div class="demo-role-badge">General Inquiry</div>
                         <div class="demo-cred-info">
-                            <span class="cred-email">general.support@compassiq.com</span>
+                            <span class="cred-email">general@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">General@Support2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
@@ -387,23 +386,12 @@
 
                 <!-- Customer Accounts Section -->
                 <div class="demo-section">
-                    <div class="demo-cred-item" data-email="alex.morgan@customer.com" data-password="Customer@2026">
-                        <div class="demo-role-badge">Customer (Approved)</div>
+                    <div class="demo-cred-item" data-email="customer@compassiq.com" data-password="Password@123">
+                        <div class="demo-role-badge">Customer</div>
                         <div class="demo-cred-info">
-                            <span class="cred-email">alex.morgan@customer.com</span>
+                            <span class="cred-email">customer@compassiq.com</span>
                             <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Customer@2026</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                    <div class="demo-cred-item" data-email="jordan.lee@customer.com" data-password="Customer@2026">
-                        <div class="demo-role-badge">Customer (Pending)</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">jordan.lee@customer.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Customer@2026</code>
+                            <code class="cred-pwd">Password@123</code>
                         </div>
                         <button type="button" class="demo-autofill-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Auto Fill
@@ -433,9 +421,9 @@
                 For academic demo purposes, please contact the system administrator to reset credentials.
             </p>
 
-            <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); margin: var(--spacing-md) 0;">
-                <strong style="color: var(--text-primary);">Admin Contact:</strong><br>
-                <span style="color: var(--text-secondary);">admin@compassiq.local</span>
+            <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-md); border-radius: var(--radius-md); margin: var(--spacing-md) 0; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <strong style="color: #ffffff;">Admin Contact:</strong><br>
+                <span style="color: #cbd5e1;">admin@compassiq.local</span>
             </div>
 
             <div class="alert-modal-buttons">
