@@ -1,1209 +1,423 @@
-================================================================================
-COMPASSIQ — AI-POWERED TICKET MANAGEMENT SYSTEM
-ACADEMIC SCRUM PROJECT BOOK
-================================================================================
-
-================================================================================
-1. COVER / PROJECT INFORMATION
-================================================================================
-
-Project Title: CompassIQ — AI-Powered Customer Support Ticket Management System
-
-Academic Information:
-────────────────────────────────────────────────────────────────────────────────
-Register Number: [To be filled by student]
-Student ID: [To be filled by student]
-Academic Year: 2024-2025
-Department: [To be filled by student]
-Institution: [To be filled by student]
-
-Scrum Team:
-────────────────────────────────────────────────────────────────────────────────
-Scrum Master: [To be filled by student]
-Product Owner: [To be filled by student]
-Team Members: [To be filled by student]
-Faculty Guide: [To be filled by student]
-
-Project Duration: 8 Weeks (4 Sprints)
-Start Date: [To be filled by student]
-End Date: [To be filled by student]
-
-Project Category: AI/ML Full-Stack Web Application
-Technology Domain: Natural Language Processing, Machine Learning, Web Development
-
-
-================================================================================
-2. INTRODUCTION & OBJECTIVES
-================================================================================
-
-System Overview:
-────────────────────────────────────────────────────────────────────────────────
-CompassIQ is an AI-powered customer support ticket management system designed
-to automate ticket classification, routing, and resolution workflows. The system
-demonstrates the integration of machine learning techniques (TF-IDF and Logistic
-Regression) with full-stack web development using Flask, SQLite, and modern
-frontend technologies.
-
-The system addresses the challenge of manual ticket triage in customer support
-environments by automatically classifying incoming tickets into categories
-(Technical, Billing, Account, General Inquiry) and priorities (Critical, High,
-Medium, Low) using supervised machine learning. This enables intelligent
-routing to appropriate department queues, reducing response times and improving
-customer satisfaction.
-
-Purpose of the System:
-────────────────────────────────────────────────────────────────────────────────
-The primary purpose of CompassIQ is to demonstrate the practical application
-of AI/ML techniques in a real-world business context. The system serves as an
-academic mini-project for MCA internal viva evaluation, showcasing the
-integration of natural language processing, classification algorithms,
-database management, and web application development.
-
-Main Project Objectives:
-────────────────────────────────────────────────────────────────────────────────
-1. Implement Role-Based Access Control (RBAC) with three distinct user roles
-   (Customer, Agent, Admin) to demonstrate secure multi-user system design.
-
-2. Develop an AI-powered ticket classification pipeline using TF-IDF (Term
-   Frequency-Inverse Document Frequency) for feature extraction and Logistic
-   Regression for multi-class classification of ticket categories and priorities.
-
-3. Design and implement a relational database schema using SQLite with proper
-   foreign key relationships to support ticket lifecycle management and
-   conversation history tracking.
-
-4. Build a full-stack web application using Flask with Jinja2 templating,
-   providing role-specific dashboards for customers, agents, and administrators.
-
-5. Implement automated ticket routing to department-specific queues based on
-   AI predictions, reducing manual triage effort and improving response times.
-
-6. Create a customer satisfaction feedback loop with CSAT (Customer Satisfaction)
-   ratings (1-5 stars) to collect performance metrics and enable continuous
-   improvement.
-
-7. Develop admin analytics dashboard with real-time metrics and category
-   distribution visualization using Chart.js for data-driven decision making.
-
-8. Optimize system performance to achieve <2 second startup time for reliable
-   viva demonstration, balancing functionality with responsiveness.
-
-9. Implement glassmorphic dark theme with high-contrast accessibility (WCAG
-   AA+ compliant) to demonstrate modern UI/UX design principles.
-
-10. Ensure code quality with line-by-line viva-defensible comments, clear
-    documentation, and testable evaluation flows for academic assessment.
-
-
-================================================================================
-3. EXISTING SYSTEM
-================================================================================
-
-Traditional Workflow Description:
-────────────────────────────────────────────────────────────────────────────────
-In traditional customer support environments, the ticket management process
-is predominantly manual and suffers from several inefficiencies:
-
-1. Manual Ticket Intake: Customers submit tickets via email or web forms
-   without structured categorization. Support staff must manually read each
-   ticket to understand the issue type.
-
-2. Manual Triage: Support agents manually determine the category (Technical,
-   Billing, Account, General) and priority (Critical, High, Medium, Low) of each
-   ticket based on subjective judgment, leading to inconsistent classification.
-
-3. Manual Routing: Tickets are manually assigned to department queues based on
-   agent availability rather than expertise, resulting in suboptimal routing
-   and delayed resolution times.
-
-4. No Historical Context: Agents lack access to similar resolved tickets
-   for reference, requiring repeated research for common issues and increasing
-   resolution time.
-
-5. Inconsistent Resolution Tracking: Resolution notes and customer feedback
-   are not systematically collected, making it difficult to measure performance and
-   identify improvement areas.
-
-6. No Real-Time Analytics: Managers lack real-time visibility into ticket
-   volumes, category distributions, and agent performance metrics, hindering
-   data-driven decision making.
-
-Specific Limitations and Pain Points:
-────────────────────────────────────────────────────────────────────────────────
-- High manual effort required for ticket triage and routing
-- Inconsistent classification leads to misrouted tickets
-- Longer resolution times due to lack of historical context
-- No standardized metrics for performance measurement
-- Customer satisfaction not systematically tracked
-- Scalability limitations with manual processes
-- Subjective priority assignment leads to SLA breaches
-- Lack of audit trail for compliance and accountability
-
-Structured Comparison Table:
-────────────────────────────────────────────────────────────────────────────────
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ System / Traditional Method          │ Operational Description          │ Core Limitations & Bottlenecks       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Manual Email Ticket Submission          │ Customers send unstructured emails   │ No structured categorization, difficult │
-│                                         │ to support inbox                  │ to track and prioritize             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Manual Triage by Support Staff         │ Agents read each ticket manually      │ Subjective classification, inconsistent │
-│                                         │ to determine category/priority      │ routing, time-consuming process     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Manual Queue Assignment               │ Tickets assigned based on agent     │ Misrouting based on availability not     │
-│                                         │ availability not expertise          │ expertise, suboptimal resolution times  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ No Historical Context Access           │ Agents research issues from        │ Repeated research for common issues,     │
-│                                         │ scratch for each ticket              │ increased resolution time            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ Excel-Based Tracking                   │ Ticket data stored in spreadsheets  │ No real-time visibility, version      │
-│                                         │ shared via email                  │ control issues, limited collaboration │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ No Performance Metrics                 │ Performance measured anecdotally     │ No data-driven insights, cannot measure │
-│                                         │ through manager feedback            │ improvement over time               │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-
-================================================================================
-4. PROPOSED SYSTEM
-================================================================================
-
-Proposed Architecture Overview:
-────────────────────────────────────────────────────────────────────────────────
-CompassIQ implements an automated ticket management system with the following
-architectural components:
-
-1. Automated Ticket Intake: Structured web form captures ticket subject and
-   description, triggering immediate AI-powered classification.
-
-2. ML Classification Pipeline: TF-IDF vectorization converts text to numerical
-   features, Logistic Regression classifiers predict category and priority
-   with confidence scoring.
-
-3. Intelligent Routing: Tickets are automatically assigned to department-specific
-   queues based on AI predictions (Technical → Technical, Billing → Billing,
-   etc.).
-
-4. Conversation History: Threaded messaging system maintains complete
-   conversation history between customers and agents for context and audit trail.
-
-5. Customer Feedback Loop: CSAT ratings (1-5 stars) and feedback comments are
-   collected on resolved tickets to measure satisfaction and drive improvements.
-
-6. Real-Time Analytics: Admin dashboard provides live metrics (Total Tickets,
-   Open Tickets, Resolved Tickets) and category distribution visualization
-   for data-driven decision making.
-
-Key Operational Improvements:
-────────────────────────────────────────────────────────────────────────────────
-- Automated classification reduces manual triage time by ~80%
-- Consistent categorization ensures accurate routing to expert agents
-- Historical context access reduces resolution time by ~40%
-- Real-time metrics enable proactive resource allocation
-- CSAT tracking provides quantifiable performance measurement
-- Structured audit trail supports compliance and accountability
-
-Major Functional Advantages:
-────────────────────────────────────────────────────────────────────────────────
-1. AI-Powered Classification: Explainable TF-IDF + Logistic Regression
-   pipeline provides confidence scoring and safe fallback mechanisms.
-
-2. Role-Based Access Control: Three distinct roles (Customer, Agent, Admin) with
-   appropriate permissions and dashboards for secure multi-user access.
-
-3. Department-Specific Queues: Tickets automatically routed to expert agents
-   based on AI-predicted categories, improving resolution quality.
-
-4. Threaded Conversation: Complete conversation history with timestamps and
-   sender identification for context and audit trail.
-
-5. CSAT Feedback Loop: Systematic collection of customer satisfaction data
-   with 1-5 star ratings and feedback comments for performance measurement.
-
-6. Real-Time Analytics: Live metrics and category distribution visualization
-   using Chart.js for data-driven decision making and resource planning.
-
-7. Glassmorphic UI/UX: Modern dark theme with high-contrast accessibility
-   (WCAG AA+ compliant) demonstrating professional UI/UX design principles.
-
-8. Performance Optimization: <2 second startup time with lightweight ML
-   inference (<100ms per prediction) suitable for reliable viva demonstration.
-
-
-================================================================================
-5. MODULE DESCRIPTION
-================================================================================
-
-Module 1: Authentication & Authorization
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: Flask Sessions, Werkzeug scrypt, Python decorators
-Functional Description:
-- Implements user registration with auto-approval for streamlined demo flow
-- Validates credentials using scrypt password hashing
-- Manages user sessions with fixed SECRET_KEY for stability
-- Enforces role-based access control using @login_required, @role_required decorators
-- Protects routes from unauthorized access with redirect to login
-
-Module 2: Database Layer
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: SQLite3, Python sqlite3 module
-Functional Description:
-- Provides connection pooling and query execution helpers
-- Implements parameterized queries for SQL injection prevention
-- Manages schema initialization with automated table creation
-- Executes CRUD operations for users, tickets, and replies
-- Maintains foreign key relationships for data integrity
-
-Module 3: AI Inference Engine
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: scikit-learn, NLTK, joblib
-Functional Description:
-- Loads 3 serialized ML artifacts (TF-IDF vectorizer, category classifier,
-  priority classifier)
-- Performs text preprocessing (lowercasing, stopword removal, lemmatization)
-- Transforms text to TF-IDF feature vectors
-- Predicts ticket category using Logistic Regression
-- Predicts ticket priority using Logistic Regression
-- Provides confidence scoring using predict_proba()
-- Implements rule-based fallback heuristic for missing models
-
-Module 4: Customer Portal
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: Flask routes, Jinja2 templates, AJAX
-Functional Description:
-- Provides ticket creation form with subject and description inputs
-- Integrates AI inference during ticket creation for auto-classification
-- Displays customer's ticket history with status badges
-- Implements ticket detail modal with conversation thread
-- Handles customer reply submission via AJAX
-- Collects CSAT feedback (1-5 stars) for resolved tickets
-- Auto-transitions tickets to "Closed" status after feedback
-
-Module 5: Agent Portal
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: Flask routes, Jinja2 templates, AJAX
-Functional Description:
-- Displays department-specific ticket queue filtered by agent's department
-- Implements priority-based sorting (Critical > High > Medium > Low)
-- Provides modal workspace for ticket details and conversation thread
-- Handles agent reply submission via AJAX
-- Updates ticket status (Submitted → In Progress → Resolved)
-- Adds resolution notes for audit trail
-- Displays AI predictions for context
-
-Module 6: Admin Portal
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: Flask routes, Jinja2 templates, Chart.js
-Functional Description:
-- Displays KPI metric cards (Total Tickets, Open Tickets, Resolved Tickets)
-- Implements category distribution analytics using Chart.js bar chart
-- Provides user management table with approval/rejection/ban functionality
-- Displays system ticket registry with filtering capabilities
-- Aggregates data for real-time metrics and visualization
-
-Module 7: Frontend UI/UX
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: HTML5, CSS3 (Glassmorphic dark theme), JavaScript (Vanilla ES6+)
-Functional Description:
-- Implements glassmorphic dark theme with midnight indigo palette
-- Provides high-contrast accessibility (WCAG AA+ compliant)
-- Implements modal alert system with "OK" buttons
-- Handles star rating widget for CSAT feedback
-- Manages AJAX requests for dynamic content updates
-- Implements logout confirmation modal
-- Provides responsive design for mobile compatibility
-
-Module 8: Data Seeding
-────────────────────────────────────────────────────────────────────────────────
-Technology / Library: Python script, Werkzeug scrypt
-Functional Description:
-- Creates seed_viva_data.py script for viva demo data refresh
-- Wipes ticket-related data using DELETE FROM (not DROP TABLE)
-- Preserves database schema structure
-- Creates 25 demo users with standardized credentials (Password@123)
-- Creates 14 realistic tickets across all departments
-- Creates 11 conversation thread replies for realistic demo data
-
-
-================================================================================
-6. DEVELOPING ENVIRONMENT
-================================================================================
-
-Structured Hardware and Software Specification Table:
-────────────────────────────────────────────────────────────────────────────────
-┌──────────────────────────────────┬──────────────────────────┬──────────────────────────────────┬─────────────────────────────────┐
-│ Component Category             │ Technology / Tool         │ Specification / Version         │ Purpose in Project               │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Operating System               │ Windows 10/11             │ 64-bit, x86_64                 │ Development environment         │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Processor / RAM                 │ Intel Core i5/i7         │ 2.4-3.5 GHz, 8-16 GB RAM      │ Code execution and testing        │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Programming Language            │ Python 3.8+               │ 3.8.10 or higher                │ Backend development             │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Web Framework                  │ Flask 2.0+                │ 2.0.0 or higher                │ Web application server          │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Database                       │ SQLite 3                  │ Built-in with Python 3.8+      │ Data persistence                │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ ML Framework                   │ scikit-learn 1.0+        │ 1.0.0 or higher                │ ML classification               │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ NLP Library                    │ NLTK 3.6+                │ 3.6.0 or higher                │ Text preprocessing              │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Model Serialization            │ joblib 1.2+               │ 1.2.0 or higher                │ ML artifact persistence         │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Data Processing                │ pandas 1.3+               │ 1.3.0 or higher                │ Data manipulation              │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Numerical Computing             │ numpy 1.20+               │ 1.20.0 or higher               │ Array operations                │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Password Hashing               │ Werkzeug 2.0+            │ 2.0.0 or higher                │ Security (scrypt)               │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Form Security                  │ Flask-WTF 1.2+            │ 1.2.0 or higher                │ CSRF (disabled for viva demo)    │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Environment Variables           │ python-dotenv 1.0+        │ 1.0.0 or higher                │ Configuration management        │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Template Engine                 │ Jinja2                    │ Built-in with Flask             │ HTML templating                 │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Frontend JavaScript             │ Vanilla ES6+              │ ES6+ features                   │ Client-side interactivity        │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Data Visualization              │ Chart.js 4.4+             │ 4.4.0 or higher                │ Analytics visualization         │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Icon Library                    │ Bootstrap Icons 1.11+     │ 1.11.0 or higher               │ UI icons                        │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ Version Control                 │ Git                       │ 2.30+ or higher                 │ Code versioning                 │
-├──────────────────────────────────┼──────────────────────────┼──────────────────────────────────┼─────────────────────────────────┤
-│ IDE                            │ VS Code                   │ Latest stable                   │ Code editing                    │
-└──────────────────────────────────┴──────────────────────────┴──────────────────────────────────┴─────────────────────────────────┘
-
-
-================================================================================
-7. SPRINT PLAN
-================================================================================
-
-Structured Sprint Planning Table:
-────────────────────────────────────────────────────────────────────────────────
-┌──────────┬──────────────────────────────┬────────────┬────────────┬────────┬──────────────┐
-│ Sprint # │ Sprint Name / Goal             │ Start Date  │ End Date    │ Status │ Progress (%) │
-├──────────┼──────────────────────────────┼────────────┼────────────┼────────┼──────────────┤
-│ Sprint 1 │ Architecture & Setup            │ Week 1      │ Week 2      │ 100%   │ 100%         │
-├──────────┼──────────────────────────────┼────────────┼────────────┼────────┼──────────────┤
-│ Sprint 2 │ AI/ML Engine                   │ Week 3      │ Week 4      │ 100%   │ 100%         │
-├──────────┼──────────────────────────────┼────────────┼────────────┼────────┼──────────────┤
-│ Sprint 3 │ Full-Stack Portals             │ Week 5      │ Week 6      │ 100%   │ 100%         │
-├──────────┼──────────────────────────────┼────────────┼────────────┼────────┼──────────────┤
-│ Sprint 4 │ Viva Optimization             │ Week 7      │ Week 8      │ 100%   │ 100%         │
-└──────────┴──────────────────────────────┴────────────┴────────────┴────────┴──────────────┘
-
-Sprint Details:
-────────────────────────────────────────────────────────────────────────────────
-Sprint 1 (Week 1-2): Architecture & Setup
-- Establish project foundation, database schema, and RBAC setup
-- Implement Flask application structure with configuration management
-- Design and implement relational database schema with 4 tables
-- Implement role-based access control with three user roles
-- Create basic route structure for authentication
-- Build frontend templates with CSRF protection
-
-Sprint 2 (Week 3-4): AI/ML Engine
-- Implement TF-IDF vectorization for text feature extraction
-- Train Logistic Regression classifiers for category and priority
-- Implement model serialization using joblib
-- Create AI inference module with safe fallback mechanism
-- Evaluate model performance and tune hyperparameters
-
-Sprint 3 (Week 5-6): Full-Stack Portals
-- Implement customer portal with ticket creation and history
-- Implement agent portal with department queues and resolution workflow
-- Implement admin portal with metrics and analytics
-- Create AJAX endpoints for dynamic content updates
-- Implement ticket lifecycle workflow and conversation threads
-
-Sprint 4 (Week 7-8): Viva Optimization
-- Optimize startup time to <2 seconds (removed historical corpus)
-- Remove similarity search and fraud detection for simplification
-- Disable CSRF protection for viva demo reliability
-- Standardize demo credentials (Password@123 for all accounts)
-- Implement glassmorphic dark theme with high-contrast accessibility
-- Remove sidebar, implement full-width layout
-- Create seed script for viva demo data
-- Update all documentation for viva readiness
-
-
-================================================================================
-8. PRODUCT BACKLOG
-================================================================================
-
-Comprehensive Product Backlog Table:
-────────────────────────────────────────────────────────────────────────────────
-┌─────┬────────────────────────────────────┬──────────────────────────────────────────────────────────┬───────────┬───────────────┬────────────────┬────────┬──────────┐
-│ ID  │ Backlog Item / User Story           │ Description                                          │ Priority │ Story Points │ Target Sprint │ Status │ Remarks │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US1 │ User Registration with Auto-Approval  │ As a new user, I want to register an        │ High      │ 5           │ Sprint 1      │ Done    │         │
-│     │                                     │ account that is automatically approved so I      │           │             │               │        │         │
-│     │                                     │ can immediately access the system.       │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US2 │ User Login with Role-Based          │ As a registered user, I want to login to        │ High      │ 3           │ Sprint 1      │ Done    │         │
-│     │ Redirection                           │ the system and be redirected to my role-     │           │             │               │        │         │
-│     │                                     │ specific dashboard (Customer, Agent, or Admin). │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US3 │ Customer Ticket Creation with AI     │ As a customer, I want to create a support   │ High      │ 8           │ Sprint 3      │ Done    │         │
-│     │ Classification                         │ ticket with subject and description, and     │           │             │               │        │         │
-│     │                                     │ have the system automatically classify      │           │             │               │        │         │
-│     │                                     │ it into a category and priority.           │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US4 │ Agent Department Queue View         │ As an agent, I want to view only tickets      │ High      │ 5           │ Sprint 3      │ Done    │         │
-│     │                                     │ assigned to my department, sorted by        │           │             │               │        │         │
-│     │                                     │ priority (Critical > High > Medium > Low).    │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US5 │ Agent Ticket Resolution with         │ As an agent, I want to view ticket details,   │ High      │ 8           │ Sprint 3      │ Done    │         │
-│     │ Modal Workspace                      │ submit replies, update status, and add       │           │             │               │        │         │
-│     │                                     │ resolution notes in a modal workspace.     │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US6 │ Customer CSAT Feedback            │ As a customer, I want to rate resolved     │ Medium    │ 5           │ Sprint 3      │ Done    │         │
-│     │                                     │ tickets with 1-5 stars and provide       │           │             │               │        │         │
-│     │                                     │ feedback comments for performance     │           │             │               │        │         │
-│     │                                     │ measurement.                           │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US7 │ Admin Dashboard Metrics            │ As an admin, I want to view system      │ High      │ 5           │ Sprint 3      │ Done    │         │
-│     │                                     │ metrics (Total, Open, Resolved tickets) │           │             │               │        │         │
-│     │                                     │ and category distribution analytics.     │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US8 │ User Management                    │ As an admin, I want to view all users,     │ Medium    │ 5           │ Sprint 3      │ Done    │         │
-│     │                                     │ approve/reject new registrations, and      │           │             │               │        │         │
-│     │                                     │ ban user accounts.                       │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US9 │ AI Classification Pipeline            │ As a system, I want to automatically     │ High      │ 13          │ Sprint 2      │ Done    │         │
-│     │                                     │ classify tickets using TF-IDF +        │           │             │               │        │         │
-│     │                                     │ Logistic Regression with confidence    │           │             │               │        │         │
-│     │                                     │ scoring.                                │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US10│ Database Schema with Foreign Keys     │ As a system, I want to maintain data     │ High      │ 8           │ Sprint 1      │ Done    │         │
-│     │                                     │ integrity using foreign key constraints  │           │             │               │        │         │
-│     │                                     │ between users, tickets, and replies.   │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US11│ Startup Optimization <2 Seconds      │ As a system, I want to start up in under │ High      │ 8           │ Sprint 4      │ Done    │         │
-│     │                                     │ 2 seconds by removing historical corpus    │           │             │               │        │         │
-│     │                                     │ and optimizing model loading.            │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US12│ CSRF Protection Disabled for Demo    │ As a viva demonstrator, I want all POST  │ High      │ 5           │ Sprint 4      │ Done    │         │
-│     │                                     │ requests to succeed without 400 CSRF     │           │             │               │        │         │
-│     │                                     │ errors by disabling CSRF protection.     │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US13│ Standardized Demo Credentials      │ As a viva demonstrator, I want all demo  │ High      │ 5           │ Sprint 4      │ Done    │         │
-│     │                                     │ accounts to use the same password      │           │             │               │        │         │
-│     │                                     │ (Password@123) for easy demonstration.  │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US14│ Glassmorphic Dark Theme with         │ As a user, I want a modern glassmorphic  │ Medium    │ 8           │ Sprint 4      │ Done    │         │
-│     │ High-Contrast Accessibility         │ dark theme with high-contrast text       │           │             │               │        │         │
-│     │                                     │ (WCAG AA+ compliant) for professional   │           │             │               │        │         │
-│     │                                     │ visual presentation.                  │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US15│ Full-Width Layout (No Sidebar)      │ As a user, I want a spacious full-width  │ Medium    │ 5           │ Sprint 4      │ Done    │         │
-│     │                                     │ layout with Sign Out in top navbar      │           │             │               │        │         │
-│     │                                     │ for simplified navigation.              │           │             │               │        │         │
-├─────┼────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────┼───────────────┼────────────────┼────────┼──────────┤
-│ US16│ Viva Demo Data Seeding Script      │ As a viva demonstrator, I want a script    │ High      │ 8           │ Sprint 4      │ Done    │         │
-│     │                                     │ to refresh demo data with realistic tickets │           │             │               │        │         │
-│     │                                     │ and conversation threads without       │           │             │               │        │         │
-│     │                                     │ destroying the database schema.         │           │             │               │        │         │
-└─────┴────────────────────────────────────┴──────────────────────────────────────────────────────────┴───────────┴───────────────┴────────────────┴────────┴──────────┘
-
-
-================================================================================
-9. SPRINT BACKLOG / DETAILED TASK BREAKDOWN
-================================================================================
-
-Granular Task Breakdown by Sprint:
-────────────────────────────────────────────────────────────────────────────────
-┌──────────┬──────────┬────────────────────────────────────┬───────────────────┬───────────┬───────────────┬────────┐
-│ Task ID  │ Sprint   │ Task Description                         │ Assigned Role     │ Priority │ Est. Effort  │ Status │
-├──────────┼──────────┼────────────────────────────────────┼───────────────────┼───────────┼───────────────┼────────┤
-│ T1-1     │ Sprint 1  │ Initialize Flask application structure    │ Full-Stack Dev   │ High      │ 2 days       │ Done   │
-│ T1-2     │ Sprint 1  │ Design database schema with 4 tables      │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T1-3     │ Sprint 1  │ Implement schema.sql with foreign keys │ Full-Stack Dev   │ High      │ 2 days       │ Done   │
-│ T1-4     │ Sprint 1  │ Create db.py with query/modify helpers │ Full-Stack Dev   │ High      │ 2 days       │ Done   │
-│ T1-5     │ Sprint 1  │ Implement RBAC decorators                │ Full-Stack Dev   │ High      │ 2 days       │ Done   │
-│ T1-6     │ Sprint 1  │ Implement authentication routes          │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T1-7     │ Sprint 1 │ Create base.html with Jinja2           │ Frontend Dev     │ Medium    │ 2 days       │ Done   │
-│ T1-8     │ Sprint 1  │ Create login.html and register.html    │ Frontend Dev     │ Medium    │ 2 days       │ Done   │
-│ T1-9     │ Sprint 1 │ Configure CSRF protection              │ Full-Stack Dev   │ High      │ 1 day        │ Done   │
-│ T2-1     │ Sprint 2  │ Collect and preprocess ticket dataset   │ ML Engineer     │ High      │ 3 days       │ Done   │
-│ T2-2     │ Sprint 2  │ Implement TF-IDF vectorizer          │ ML Engineer     │ High      │ 2 days       │ Done   │
-│ T2-3     │ Sprint 2  │ Train category classifier            │ ML Engineer     │ High      │ 3 days       │ Done   │
-│ T2-4     │ Sprint 2  │ Train priority classifier            │ ML Engineer     │ High      │ 3 days       │ Done   │
-│ T2-5     │ Sprint 2  │ Serialize models with joblib             │ ML Engineer     │ High      │ 1 day        │ Done   │
-│ T2-6     │ Sprint 2  │ Implement ai_engine.py with prediction  │ ML Engineer     │ High      │ 3 days       │ Done   │
-│ T2-7     │ Sprint 2  │ Implement rule-based fallback       │ ML Engineer     │ Medium    │ 2 days       │ Done   │
-│ T3-1     │ Sprint 3  │ Create customer_dashboard.html      │ Frontend Dev     │ High      │ 3 days       │ Done   │
-│ T3-2     │ Sprint 3  │ Implement customer routes              │ Full-Stack Dev   │ High      │ 4 days       │ Done   │
-│ T3-3     │ Sprint 3  │ Integrate AI inference on ticket    │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T3-4     │ Sprint 3  │ Create department_dashboard.html  │ Frontend Dev     │ High      │ 3 days       │ Done   │
-│ T3-5     │ Sprint 3  │ Implement agent routes                 │ Full-Stack Dev   │ High      │ 4 days       │ Done   │
-│ T3-6     │ Sprint 3  │ Implement AJAX endpoints               │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T3-7     │ Sprint 3  │ Create admin_dashboard.html         │ Frontend Dev     │ High      │ 3 days       │ Done   │
-│ T3-8     │ Sprint 3  │ Implement admin routes                 │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T3-9     │ Sprint 3  │ Integrate Chart.js for analytics    │ Frontend Dev     │ Medium    │ 2 days       │ Done   │
-│ T3-10    │ Sprint 3  │ Implement main.js for interaction    │ Frontend Dev     │ High      │ 4 days       │ Done   │
-│ T4-1     │ Sprint 4  │ Remove historical corpus loading     │ Full-Stack Dev   │ High      │ 1 day        │ Done   │
-│ T4-2     │ Sprint 4  │ Disable Flask reloader              │ Full-Stack Dev   │ High      │ 0.5 days     │ Done   │
-│ T4-3     │ Sprint 4  │ Remove similarity search logic       │ Full-Stack Dev   │ Medium    │ 1 day        │ Done   │
-│ T4-4     │ Sprint 4  │ Remove fraud detection logic          │ Full-Stack Dev   │ Medium    │ 1 day        │ Done   │
-│ T4-5     │ Sprint 4  │ Implement auto-approval             │ Full-Stack Dev   │ High      │ 1 day        │ Done   │
-│ T4-6     │ Sprint 4  │ Disable CSRF protection             │ Full-Stack Dev   │ High      │ 0.5 days     │ Done   │
-│ T4-7     │ Sprint 4  │ Standardize demo credentials        │ Full-Stack Dev   │ High      │ 1 day        │ Done   │
-│ T4-8     │ Sprint 4  │ Remove Terms and Conditions         │ Frontend Dev     │ Low       │ 0.5 days     │ Done   │
-│ T4-9     │ Sprint 4  │ Redesign landing page              │ Frontend Dev     │ Medium    │ 3 days       │ Done   │
-│ T4-10    │ Sprint 4  │ Apply glassmorphic theme           │ Frontend Dev     │ High      │ 3 days       │ Done   │
-│ T4-11    │ Sprint 4  │ Improve contrast and accessibility    │ Frontend Dev     │ High      │ 2 days       │ Done   │
-│ T4-12    │ Sprint 4  │ Remove sidebar, full-width layout   │ Frontend Dev     │ High      │ 2 days       │ Done   │
-│ T4-13    │ Sprint 4  │ Fix layout alignment                │ Frontend Dev     │ Medium    │ 2 days       │ Done   │
-│ T4-14    │ Sprint 4  │ Fix database display (NULL to "—")   │ Frontend Dev     │ Low       │ 0.5 days     │ Done   │
-│ T4-15    │ Sprint 4  │ Create seed_viva_data.py script      │ Full-Stack Dev   │ High      │ 2 days       │ Done   │
-│ T4-16    │ Sprint 4  │ Refactor code with comments         │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-│ T4-17    │ Sprint 4  │ Update all documentation          │ Full-Stack Dev   │ High      │ 3 days       │ Done   │
-└──────────┴──────────┴────────────────────────────────────┴───────────────────┴───────────┴───────────────┴────────┘
-
-
-================================================================================
-10. SYSTEM WORKFLOW / FLOWCHART (TEXT REPRESENTATION)
-================================================================================
-
-ASCII Flowchart Mapping System Execution:
-────────────────────────────────────────────────────────────────────────────────
-                    ┌──────────────────┐
-                    │   START: User     │
-                    │   Accesses Site   │
-                    └─────────┬──────────┘
-                              │
-                              ▼
-                    ┌──────────────────┐
-                    │   Not Logged In?   │
-                    └─────────┬──────────┘
-                              │
-              ┌─────────────Yes─────────────┐
-              │                              │
-              ▼                              │
-    ┌──────────────────┐                │
-    │  Redirect to       │                │
-    │  Login Page       │                │
-    └─────────┬──────────┘                │
-              │                              │
-              ▼                              │
-    ┌──────────────────┐                │
-    │  User Enters      │                │
-    │  Credentials     │                │
-    └─────────┬──────────┘                │
-              │                              │
-              ▼                              │
-    ┌──────────────────┐                │
-    │  Validate         │                │
-    │  Credentials     │                │
-    └─────────┬──────────┘                │
-              │                              │
-     ┌────────Yes────────┐                │
-     │                  │                │
-     ▼                  │                │
-┌──────────────────┐  │                │
-│  Create Session     │  │                │
-│  Set g.user         │  │                │
-└─────────┬──────────┘  │                │
-          │              │                │
-          ▼              │                │
-┌──────────────────┐  │                │
-│  Check Role        │  │                │
-└─────────┬──────────┘  │                │
-          │              │                │
-   ┌──────┴───────┐   │                │
-   │              │   │                │
-   ▼              ▼   │                │
-┌────────┐  ┌────────┐  ┌────────┐  │
-│Customer│  │ Agent  │  │ Admin  │  │
-└───┬────┘  └───┬────┘  └───┬────┘  │
-    │          │          │          │
-    ▼          ▼          ▼          │
-┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│View Own  │  │View Dept  │  │View All  │  │
-│Tickets  │  │Queue     │  │Tickets  │  │
-└───┬──────┘  └───┬──────┘  └───┬──────┘  │
-    │             │             │          │
-    │             │             │          │
-    ▼             ▼             ▼          │
-┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│Create   │  │Select    │  │View      │  │
-│Ticket   │  │Ticket    │  │Metrics   │  │
-└───┬──────┘  └───┬──────┘  └───┬──────┘  │
-    │             │             │          │
-    ▼             ▼             ▼          │
-┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│AI Engine│  │Modal     │  │Chart.js  │  │
-│Predicts │  │Workspace │  │Renders  │  │
-│Category │  │with Chat │  │Analytics │  │
-└───┬──────┘  └───┬──────┘  └───┬──────┘  │
-    │             │             │          │
-    ▼             ▼             ▼          │
-┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│Ticket   │  │Update    │  │Aggregate│  │
-│Created │  │Status    │  │Data      │  │
-└───┬──────┘  └───┬──────┘  └───┬──────┘  │
-    │             │             │          │
-    ▼             ▼             ▼          │
-┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│Database │  │Database  │  │Display   │  │
-│Stores  │  │Updates   │  │Dashboard │  │
-└──────────┘  └──────────┘  └──────────┘  │
-                                        │
-                                        ▼
-                            ┌──────────────────┐
-                            │   END: Render     │
-                            │   Template / JSON  │
-                            └──────────────────┘
-
-
-================================================================================
-11. VERSION DETAILS / IMPLEMENTATION HISTORY
-================================================================================
-
-Chronological Release and Iteration Log:
-────────────────────────────────────────────────────────────────────────────────
-
-Version 1.0.0 — Week 2 (Sprint 1 Completion)
-────────────────────────────────────────────────────────────────────────────────
-Changes Implemented:
-- Initial Flask application structure with configuration management
-- SQLite database schema with 4 tables (USERS, TICKETS, TICKET_REPLIES, TICKET_SIMILAR_MATCHES)
-- Role-Based Access Control with three roles (customer, agent, admin)
-- Authentication routes (register, login, logout) with session management
-- Basic frontend templates (base.html, login.html, register.html)
-- CSRF protection using Flask-WTF
-Features Added:
-- User registration with validation
-- User login with credential verification
-- Role-based dashboard redirection
-- Password hashing using Werkzeug PBKDF2
-Optimizations & Bug Fixes:
-- None (initial release)
-Milestone Status: Sprint 1 Complete ✅
-
-Version 1.1.0 — Week 4 (Sprint 2 Completion)
-────────────────────────────────────────────────────────────────────────────────
-Changes Implemented:
-- TF-IDF vectorizer trained and serialized (max_features=5000, ngram_range=(1,2))
-- Logistic Regression category classifier trained (4 categories)
-- Logistic Regression priority classifier trained (4 priorities)
-- AI inference module (ai_engine.py) implemented with text preprocessing
-- Model artifact management (3 joblib files)
-- Rule-based fallback mechanism for missing models
-Features Added:
-- Automated ticket classification during creation
-- Category prediction (Technical, Billing, Account, General Inquiry)
-- Priority prediction (Critical, High, Medium, Low)
-- Confidence scoring using predict_proba()
-- Safe fallback with keyword matching
-Optimizations & Bug Fixes:
-- None (ML pipeline initial release)
-Milestone Status: Sprint 2 Complete ✅
-
-Version 1.2.0 — Week 6 (Sprint 3 Completion)
-────────────────────────────────────────────────────────────────────────────────
-Changes Implemented:
-- Customer portal with ticket creation and history
-- Agent portal with department queues and modal workspace
-- Admin portal with metrics and Chart.js analytics
-- AJAX endpoints for dynamic content updates
-- Ticket lifecycle workflow (Submitted → In Progress → Resolved → Closed)
-- Conversation thread system with TICKET_REPLIES table
-- CSAT feedback collection (1-5 star ratings)
-Features Added:
-- Customer dashboard with ticket creation form
-- Agent dashboard with department-specific queue
-- Admin dashboard with metric cards and category chart
-- Modal workspace for agent ticket resolution
-- AJAX endpoints for replies and feedback
-- Conversation history tracking
-Optimizations & Bug Fixes:
-- None (full-stack initial release)
-Milestone Status: Sprint 3 Complete ✅
-
-Version 1.3.0 — Week 8 (Sprint 4 Completion)
-────────────────────────────────────────────────────────────────────────────────
-Changes Implemented:
-- Removed historical corpus loading (reduced model artifacts from 4 to 3)
-- Disabled Flask reloader (use_reloader=False)
-- Optimized database schema check (instant no-op if initialized)
-- Removed similarity search and fraud detection for simplification
-- Implemented auto-approval (registration sets status to APPROVED)
-- Disabled CSRF protection (WTF_CSRF_ENABLED = False)
-- Standardized demo credentials (Password@123 for all accounts)
-- Removed Terms and Conditions from login page
-- Redesigned landing page as enterprise SaaS
-- Applied glassmorphic dark theme across all pages
-- Improved contrast and accessibility to WCAG AA+
-- Removed sidebar, implemented full-width layout
-- Fixed layout alignment (centering, charts, cards)
-- Fixed database display ("—" instead of "None")
-- Created seed_viva_data.py script for viva demo data
-- Refactored code with viva-oriented comments
-- Updated all documentation files
-Features Added:
-- Enterprise SaaS landing page with glassmorphic design
-- Full-width layout with top navigation
-- Logout confirmation modal
-- High-contrast accessibility (WCAG AA+ compliant)
-- Seed script for demo data refresh
-Optimizations & Bug Fixes:
-- Startup time reduced from 7-12s to <2s (85% reduction)
-- Memory footprint reduced by ~60% (removed historical corpus)
-- Fixed 400 "CSRF token missing" errors for viva demo
-- Fixed layout alignment issues (centering, chart aspect ratio)
-- Fixed database display issues (NULL departments)
-Milestone Status: Sprint 4 Complete ✅
-
-
-================================================================================
-12. DATABASE DESIGN
-================================================================================
-
-Detailed Data Dictionary for All Entities:
-
-Entity 1: USERS Table
-────────────────────────────────────────────────────────────────────────────────
-┌─────────────────────────┬──────────────┬────────────────────────────────────────┬────────────────────────────────┐
-│ Column Name              │ Data Type     │ Key / Constraint                     │ Description / Purpose            │
-├─────────────────────────┼──────────────┼────────────────────────────────────────┼────────────────────────────────┤
-│ user_id                  │ INTEGER       │ PRIMARY KEY AUTOINCREMENT          │ Unique identifier for each user   │
-│ full_name                │ TEXT          │ NOT NULL                            │ User's full name                 │
-│ email                    │ TEXT          │ UNIQUE NOT NULL                     │ User's email address (login ID)    │
-│ password_hash            │ TEXT          │ NOT NULL                            │ Scrypt-hashed password             │
-│ role                     │ TEXT          │ NOT NULL, CHECK(role IN         │ User role: customer, agent, admin │
-│                          │               │ ('customer','agent','admin'))       │                                  │
-│ department               │ TEXT          │ CHECK(department IN ('Technical', │ Agent's assigned department       │
-│                          │               │ 'Billing','Account','General',    │ (NULL for customers/admins)       │
-│                          │               │ 'None'))                             │                                  │
-│ bill_no_product_id       │ TEXT          │ NULL                                │ Customer's product reference      │
-│ account_status           │ TEXT          │ DEFAULT 'PENDING', CHECK(        │ Account status: PENDING, APPROVED,     │
-│                          │               │ account_status IN                │ REJECTED, BANNED (viva: APPROVED)│
-│                          │               │ ('PENDING','APPROVED',              │                                  │
-│                          │               │ 'REJECTED','BANNED'))              │                                  │
-│ created_at               │ TIMESTAMP     │ DEFAULT CURRENT_TIMESTAMP            │ Account creation timestamp      │
-
-Entity 2: TICKETS Table
-────────────────────────────────────────────────────────────────────────────────
-┌─────────────────────────┬──────────────┬────────────────────────────────────────┬────────────────────────────────┐
-│ Column Name              │ Data Type     │ Key / Constraint                     │ Description / Purpose            │
-├─────────────────────────┼──────────────┼────────────────────────────────────────┼────────────────────────────────┤
-│ ticket_id                │ TEXT          │ PRIMARY KEY, UNIQUE                │ Ticket identifier (TKT-YYYYMMDD-XXXX)│
-│ customer_id              │ INTEGER       │ FOREIGN KEY → users.user_id        │ Customer who created the ticket  │
-│ subject                  │ TEXT          │ NOT NULL                            │ Ticket subject line               │
-│ description              │ TEXT          │ NOT NULL                            │ Detailed ticket description      │
-│ predicted_category       │ TEXT          │ CHECK(predicted_category IN      │ AI-predicted category             │
-│                          │               │ ('Technical','Billing','Account', │                                  │
-│                          │               │ 'General Inquiry','Fraud'))      │                                  │
-│ predicted_priority       │ TEXT          │ CHECK(predicted_priority IN      │ AI-predicted priority             │
-│                          │               │ ('Critical','High','Medium','Low')) │                                  │
-│ assigned_department      │ TEXT          │ CHECK(assigned_department IN     │ Department for ticket routing     │
-│                          │               │ ('Technical','Billing','Account',   │                                  │
-│                          │               │ 'General Inquiry','Admin_Fraud'))│                                  │
-│ status                   │ TEXT          │ DEFAULT 'Submitted', CHECK(       │ Ticket status in lifecycle         │
-│                          │               │ status IN ('Submitted','Under', │                                  │
-│                          │               │ 'Review','In Progress','Resolved',│                                  │
-│                          │               │ 'Closed'))                      │                                  │
-│ assigned_agent_id        │ INTEGER       │ FOREIGN KEY → users.user_id        │ Agent assigned to ticket            │
-│ resolution_notes          │ TEXT          │ NULL                                │ Agent's resolution notes            │
-│ satisfaction_score        │ INTEGER       │ CHECK(satisfaction_score BETWEEN │ CSAT rating (1-5 stars)          │
-│                          │               │ 1 AND 5)                          │                                  │
-│ customer_feedback         │ TEXT          │ NULL                                │ Customer feedback comment          │
-│ resolved_at              │ TIMESTAMP     │ NULL                                │ Ticket resolution timestamp      │
-│ created_at               │ TIMESTAMP     │ DEFAULT CURRENT_TIMESTAMP            │ Ticket creation timestamp      │
-
-Entity 3: TICKET_REPLIES Table
-────────────────────────────────────────────────────────────────────────────────
-┌─────────────────────────┬──────────────┬────────────────────────────────────────┬────────────────────────────────┐
-│ Column Name              │ Data Type     │ Key / Constraint                     │ Description / Purpose            │
-├─────────────────────────┼──────────────┼────────────────────────────────────────┼────────────────────────────────┤
-│ reply_id                 │ INTEGER       │ PRIMARY KEY AUTOINCREMENT          │ Unique reply identifier            │
-│ ticket_id                │ TEXT          │ FOREIGN KEY → tickets.ticket_id     │ Associated ticket                │
-│ sender_id                │ INTEGER       │ FOREIGN KEY → users.user_id        │ User who sent the reply            │
-│ message                  │ TEXT          │ NOT NULL                            │ Reply message content            │
-│ created_at               │ TIMESTAMP     │ DEFAULT CURRENT_TIMESTAMP            │ Reply timestamp                  │
-
-Entity 4: TICKET_SIMILAR_MATCHES Table (IDLE)
-────────────────────────────────────────────────────────────────────────────────
-┌─────────────────────────┬──────────────┬────────────────────────────────────────┬────────────────────────────────┐
-│ Column Name              │ Data Type     │ Key / Constraint                     │ Description / Purpose            │
-├─────────────────────────┼──────────────┼────────────────────────────────────────┼────────────────────────────────┤
-│ match_id                 │ INTEGER       │ PRIMARY KEY AUTOINCREMENT          │ Match identifier                │
-│ ticket_id                │ TEXT          │ FOREIGN KEY → tickets.ticket_id     │ Associated ticket                │
-│ similar_ticket_ref_id    │ TEXT          │ NULL                                │ Historical ticket reference      │
-│ similarity_score         │ REAL          │ NULL                                │ Cosine similarity score           │
-│ similar_subject          │ TEXT          │ NULL                                │ Historical ticket subject          │
-│ similar_description      │ TEXT          │ NULL                                │ Historical ticket description      │
-│ historical_resolution_hrs│ INTEGER       │ NULL                                │ Historical resolution time (hours)│
-│ created_at               │ TIMESTAMP     │ DEFAULT CURRENT_TIMESTAMP            │ Match timestamp                  │
-Note: This table is IDLE in the simplified version. Historical corpus similarity
-search was removed for startup optimization. Kept for schema compatibility.
-
-
-================================================================================
-13. UI DESIGN / SCREEN SPECIFICATIONS
-================================================================================
-
-Screen 1: Landing Page (index.html)
-────────────────────────────────────────────────────────────────────────────────
-Intended User Role: Public / Unauthenticated Users
-Operational Purpose: Enterprise SaaS product presentation and login portal entry point
-Core UI Elements:
-- Glassmorphic navigation bar with gradient branding
-- Hero section with live ticket mockup
-- Platform capability cards (4 features)
-- Architecture pipeline explanation
-- Contact section with glassmorphic form
-Layout & Visual Presentation:
-- Full-width centered layout (max-width 1280px)
-- Midnight indigo/purple gradient backgrounds
-- Backdrop blur effects on cards
-- Gradient buttons with glow shadows
-- Responsive design for mobile compatibility
-
-Screen 2: Login Page (login.html)
-────────────────────────────────────────────────────────────────────────────────
-Intended User Role: Unauthenticated Users
-Operational Purpose: User authentication with demo quick-fill functionality
-Core UI Elements:
-- Glassmorphic authentication form (split layout)
-- Email and password input fields
-- Demo quick-fill button for standardized credentials
-- Sign In button with gradient styling
-- No Terms and Conditions or consent checkboxes
-Layout & Visual Presentation:
-- Left panel: Gradient branding with radial glow effects
-- Right panel: Glassmorphic dark form with backdrop blur
-- Centered form with glassmorphic inputs
-- Demo credentials modal with glassmorphic styling
-- Responsive design for mobile compatibility
-
-Screen 3: Customer Dashboard (customer_dashboard.html)
-────────────────────────────────────────────────────────────────────────────────
-Intended User Role: Customer
-Operational Purpose: Ticket creation, history viewing, and CSAT feedback submission
-Core UI Elements:
-- Create Ticket section with subject and description form
-- My Tickets table with status badges and priority pills
-- Ticket detail modal with conversation thread
-- CSAT feedback form (1-5 star rating)
-- Sign Out button in top navbar
-Layout & Visual Presentation:
-- Full-width centered layout (max-width 1280px)
-- Glassmorphic metric cards with icon wrappers
-- Table with glassmorphic header and row hover effects
-- Modal with glassmorphic backdrop and "OK" buttons
-- High-contrast text for readability
-
-Screen 4: Agent/Department Dashboard (department_dashboard.html)
-────────────────────────────────────────────────────────────────────────────────
-Intended User Role: Agent (Technical, Billing, Account, General Inquiry)
-Operational Purpose: Department queue viewing, ticket resolution, and reply submission
-Core UI Elements:
-- Department-specific ticket queue table
-- Modal workspace for ticket details and conversation thread
-- Status dropdown (Submitted, In Progress, Resolved)
-- Resolution notes textarea
-- Reply submission button
-- Sign Out button in top navbar
-Layout & Visual Presentation:
-- Full-width centered layout (max-width 1280px)
-- Glassmorphic table with high-contrast headers
-- Modal with glassmorphic backdrop and backdrop blur
-- Form inputs with glassmorphic styling
-- Status badges with glow effects
-- High-contrast text on dark backgrounds
-
-Screen 5: Admin Dashboard (admin_dashboard.html)
-────────────────────────────────────────────────────────────────────────────────
-Intended User Role: Admin
-Operational Purpose: System metrics, user management, and analytics viewing
-Core UI Elements:
-- KPI metric cards (Total Tickets, Open Tickets, Resolved Tickets)
-- Category distribution chart (Chart.js bar chart, indigo theme)
-- User management table with role badges and status badges
-- System ticket registry with filtering
-- Sign Out button in top navbar
-Layout & Visual Presentation:
-- Full-width centered layout (max-width 1280px)
-- Glassmorphic metric cards with icon wrappers
-- Chart card with fixed 380px height
-- User table with NULL departments displaying as "—"
-- Glassmorphic table with high-contrast headers
-- High-contrast text for readability
-
-
-================================================================================
-14. FUNCTIONALITY / FEATURE DETAILS
-================================================================================
-
-Feature 1: AI Classification Pipeline
-────────────────────────────────────────────────────────────────────────────────
-Feature Name: AI-Powered Ticket Classification
-Input Parameters:
-- ticket_subject (TEXT): Subject line of the ticket
-- ticket_description (TEXT): Detailed description of the issue
-Internal Processing Logic:
-1. Text Preprocessing: clean_text() function performs lowercasing, regex cleaning,
-   stopword removal (NLTK), and lemmatization
-2. Feature Extraction: TfidfVectorizer transforms text to numerical feature vectors
-   (max_features=5000, ngram_range=(1,2))
-3. Category Prediction: category_model.predict() classifies into 4 categories
-   (Technical, Billing, Account, General Inquiry)
-4. Priority Prediction: priority_model.predict() classifies into 4 priorities
-   (Critical, High, Medium, Low)
-5. Confidence Scoring: category_model.predict_proba() returns probability scores;
-   if <45%, low_confidence flag is set
-6. Safe Fallback: If models unavailable, rule-based heuristic uses keyword matching
-System Output / State Change:
-- Returns: predicted_category, predicted_priority, assigned_department
-- Database: TICKETS table populated with AI predictions
-- Ticket is automatically routed to appropriate department queue
-Related System Module: ai_engine.py
-
-Feature 2: Ticket Lifecycle Management
-────────────────────────────────────────────────────────────────────────────────
-Feature Name: Ticket Status Transitions
-Input Parameters:
-- ticket_id (TEXT): Unique ticket identifier
-- new_status (TEXT): New status (Submitted, In Progress, Resolved, Closed)
-- resolution_notes (TEXT): Agent's resolution notes (optional)
-Internal Processing Logic:
-1. Validate ticket_id exists in database
-2. Update status in TICKETS table
-3. If status is "Resolved", populate resolved_at timestamp
-4. If resolution_notes provided, store in TICKETS table
-5. If status is "Closed" after CSAT feedback, ensure final state
-System Output / State Change:
-- Database: TICKETS table status and timestamps updated
-- Flash message: "Ticket updated successfully"
-- Agent queue table refreshes (AJAX)
-- Customer dashboard table refreshes (AJAX)
-Related System Module: app.py (agent and customer routes)
-
-Feature 3: Authentication and Authorization
-────────────────────────────────────────────────────────────────────────────────
-Feature Name: User Authentication with RBAC
-Input Parameters:
-- email (TEXT): User's email address
-- password (TEXT): User's password (plaintext)
-Internal Processing Logic:
-1. Validate input fields are not empty
-2. Query USERS table for email match
-3. Use check_password_hash() to verify password against stored hash
-4. Check account_status is not 'BANNED'
-5. Create session with user_id, role, full_name
-6. Redirect to role-specific dashboard based on role
-System Output / State Change:
-- Session created with user context
-- Redirect: /customer/dashboard (customer), /agent/dashboard (agent), /admin/dashboard (admin)
-- Flash message: "Welcome back, [Full Name]!"
-Related System Module: app.py (login route, decorators)
-
-Feature 4: CSAT Feedback Collection
-────────────────────────────────────────────────────────────────────────────────
-Feature Name: Customer Satisfaction Feedback
-Input Parameters:
-- ticket_id (TEXT): Unique ticket identifier
-- satisfaction_score (INTEGER): Rating from 1 to 5
-- customer_feedback (TEXT): Optional feedback comment
-Internal Processing Logic:
-1. Validate ticket exists and status is "Resolved"
-2. Update satisfaction_score and customer_feedback in TICKETS table
-3. Change status from "Resolved" to "Closed"
-4. Populate resolved_at timestamp if not already set
-System Output / State Change:
-- Database: TICKETS table updated with CSAT data
-- Ticket status changes to "Closed"
-- Flash message: "Thank you! Your satisfaction feedback has been recorded."
-- Feedback section shows rating confirmation
-Related System Module: app.py (customer feedback route)
-
-Feature 5: Admin Analytics Aggregation
-────────────────────────────────────────────────────────────────────────────────
-Feature Name: System Metrics and Category Distribution
-Input Parameters:
-- None (computed on dashboard load)
-Internal Processing Logic:
-1. Total Tickets: COUNT(*) from TICKETS table
-2. Open Tickets: COUNT(*) from TICKETS WHERE status NOT IN ('Resolved', 'Closed')
-3. Resolved Tickets: COUNT(*) from TICKETS WHERE status IN ('Resolved', 'Closed')
-4. Category Distribution: GROUP BY predicted_category, COUNT(*) for chart data
-System Output / State Change:
-- Database: Aggregated metrics computed via SQL queries
-- Template: Metric cards populated with counts
-- Chart.js: Bar chart rendered with category distribution data
-Related System Module: app.py (admin_dashboard route)
-
-
-================================================================================
-15. TESTING AND VALIDATION
-================================================================================
-
-Structured Test Suite Table:
-────────────────────────────────────────────────────────────────────────────────
-┌────────┬──────────────────────────────────┬────────────────────────────────────────────────┬──────────────────┬─────────────┐
-│ Test ID │ Test Case Description               │ Expected Result                             │ Actual Result      │ Status      │ Remarks │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-01   │ User Registration (Auto-Approved)   │ User created with APPROVED status,        │ User created, status APPROVED │ Pass        │         │
-│        │                                    │ redirect to login                         │                          │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-02   │ User Login with Standardized       │ Session created, redirect to          │ Session created, redirect      │ Pass        │         │
-│        │ Credentials (Password@123)       │ role-specific dashboard                    │                          │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-03   │ Role-Based Dashboard           │ Admin → /admin/dashboard,           │ Correct redirection for all     │ Pass        │         │
-│        │ Redirection                     │ Agent → /agent/dashboard,         │ roles                       │              │         │
-│        │                                │ Customer → /customer/dashboard    │                          │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-04   │ Ticket Creation with AI           │ AI predicts category and priority,  │ AI predictions accurate, ticket  │ Pass        │         │
-│        │ Classification                │ ticket created successfully           │ created successfully         │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ AI-01   │ TF-IDF Feature Extraction        │ Text converted to numerical feature   │ Text vectorized successfully │ Pass        │         │
-│        │                                │ vectors (5000 features)                 │                          │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ AI-02   │ Logistic Regression               │ Multi-class classification with     │ Classification works correctly,  │ Pass        │         │
-│        │ Classification                │ probability estimation                   │ confidence scores returned │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ AI-03   │ Rule-Based Fallback              │ System remains functional when       │ Fallback triggers correctly,    │ Pass        │         │
-│        │ Mechanism                        │ ML models are missing or unavailable  │ system functional           │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-05   │ Agent Ticket Resolution          │ Status updated to "Resolved",        │ Status updated, reply added,      │ Pass        │         │
-│        │ with Modal Workspace             │ reply added, resolution notes saved │ notes saved                  │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-06   │ Customer CSAT Feedback         │ Ticket status changes to "Closed",     │ Status closed, rating saved,     │ Pass        │         │
-│        │ Submission                     │ CSAT rating and feedback saved        │ feedback saved              │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-07   │ Admin Dashboard Metrics          │ KPI cards display correct counts,   │ Metrics accurate, chart          │ Pass        │         │
-│        │ and Chart                     │ category chart renders correctly        │ renders correctly           │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-08   │ Unauthorized Access Prevention  │ Redirect to login with flash message, │ Redirect works correctly,      │ Pass        │         │
-│        │                                │ access denied                            │ access denied               │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-09   │ SQL Injection Prevention      │ Payload treated as literal string,    │ No SQL injection, data      │ Pass        │         │
-│        │                                │ database tables intact                │ intact                      │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-10   │ CSRF Protection Disabled         │ All POST requests succeed without 400 │ No 400 errors, forms        │ Pass        │         │
-│        │ (Viva Demo)                     │ "CSRF token missing" errors         │ submit cleanly              │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-11   │ Startup Time <2 Seconds         │ Application starts in under 2 seconds  │ Startup ~1.5 seconds         │ Pass        │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-12   │ Database Display Fix (NULL to      │ NULL departments display as "—"       │ Departments display as "—"    │ Pass        │         │
-│        │ "—")                          │ instead of "None"                      │                            │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-13   │ Logout Confirmation Modal       │ Modal appears with title and         │ Modal appears, Cancel closes,  │ Pass        │         │
-│        │                                │ message, OK redirects to login    │ OK redirects to login       │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-14   │ Seed Script Execution          │ 25 users, 14 tickets, 11 replies │ All data seeded correctly,     │ Pass        │         │
-│        │ (seed_viva_data.py)              │ created with Password@123             │ database intact            │              │         │
-├────────┼──────────────────────────────────┼────────────────────────────────────────────────┼──────────────────┼─────────────┤
-│ TC-15   │ Glassmorphic Theme Application   │ Glassmorphic styling applied across  │ Theme applied consistently,  │ Pass        │         │
-│        │ Across All Pages                │ all pages, high contrast achieved    │ high contrast achieved        │              │         │
-└────────┴──────────────────────────────────┴────────────────────────────────────────────────┴──────────────────┴─────────────┘
-
-
-================================================================================
-SPRINT SUMMARY
-================================================================================
-
-Total Duration: 8 Weeks
-Total Sprints: 4
-Core Features Delivered:
-- Role-Based Access Control (3 roles: Customer, Agent, Admin)
-- AI-Powered Ticket Classification (TF-IDF + Logistic Regression)
-- SQLite Relational Database (4 tables, 3 active, 1 idle)
-- Full-Stack Web Application (Flask + Jinja2 + Vanilla JS)
-- Customer Satisfaction Feedback Loop (CSAT 1-5 stars)
-- Admin Analytics (Metrics + Chart.js Visualization)
-- Glassmorphic Dark Theme with High-Contrast Accessibility
-- Full-Width Layout (No Sidebar)
-- Enterprise SaaS Landing Page
-
-Optimizations Achieved:
-- Startup time: <2 seconds (85% reduction from 7-12s)
-- Memory footprint: ~60% reduction (removed historical corpus)
-- Navigation: Simplified to Sign Out in top navbar
-- Code readability: Line-by-line viva-defensible comments
-- Documentation: Complete system architecture and test suite
-- UI/UX: Professional glassmorphic design with WCAG AA+ compliance
-
-Viva Readiness:
-- ✅ Code is clean, commented, and explainable
-- ✅ 5 evaluation flows clearly documented
-- ✅ ML pipeline is explainable (TF-IDF + Logistic Regression)
-- ✅ Database schema is standard and relational
-- ✅ Demo flow is streamlined (3.5 minutes total)
-- ✅ Documentation is comprehensive and student-defensible
-- ✅ All demo credentials standardized (Password@123)
-- ✅ CSRF errors eliminated for reliable demo
-- ✅ Layout alignment fixed and optimized
-
-
-================================================================================
-LESSONS LEARNED
-================================================================================
-
-1. Start with clean architecture to avoid refactoring later
-2. Keep ML pipeline simple and explainable for academic projects
-3. Use standard, well-documented libraries (Flask, scikit-learn)
-4. Optimize for viva presentation, not enterprise complexity
-5. Document everything with student-defensible comments
-6. Test early and often to catch integration issues
-7. Simplify navigation and UI for easier demo flow
-8. Use safe fallbacks for ML models to ensure reliability
-9. Disable non-essential security features for demo reliability (CSRF)
-10. Standardize credentials for easy demonstration
-
-
-================================================================================
-FUTURE ENHANCEMENTS (Post-Viva)
-================================================================================
-
-1. Add automated unit tests for all routes and functions
-2. Implement email notifications for ticket updates
-3. Add file attachment support for tickets
-4. Implement real-time chat using WebSockets
-5. Add advanced ML models (Random Forest, BERT embeddings)
-6. Implement API rate limiting and caching
-7. Add audit logging for compliance
-8. Deploy to production with proper security hardening
-
-
-================================================================================
-AGILE METHODOLOGY NOTES
-================================================================================
-
-- 2-week sprints with clear sprint goals
-- Daily stand-ups (simulated for individual project)
-- Sprint reviews and retrospectives after each sprint
-- Adaptive planning based on challenges encountered
-- Continuous integration of feedback and improvements
-- Focus on delivering working software over comprehensive documentation
-- Emphasis on technical excellence and viva readiness
-
-
-================================================================================
-TEAM STRUCTURE
-================================================================================
-
-- Single MCA student developer
-- Mentor guidance from faculty advisor
-- Weekly progress reviews with advisor
-- Self-directed learning and problem-solving
-- Documentation-driven development approach
-
-
-================================================================================
-CONCLUSION
-================================================================================
-
-The CompassIQ project successfully demonstrates core AI/ML concepts in a
-full-stack web application suitable for MCA academic evaluation. The system
-is optimized for viva presentation with clean, explainable code and comprehensive
-documentation. The 5 evaluation flows provide a structured demonstration of
-the system's capabilities, and the simplified architecture ensures focus on
-core features rather than enterprise complexity.
-
-================================================================================
-END OF SCRUM PROJECT BOOK
-================================================================================
+COMPASSIQ - AI POWERED TICKET
+MANAGEMENT SYSTEM
+
+Scrum Master / Developer
+MOHAMED NIHAL
+MES25MCA-2037
+Department of Computer Applications
+MES College of Engineering Kuttippuram
+
+Product Owner / Guide
+Ms. Reshma M.R.
+Assistant Professor
+Department of Computer Applications
+MES College of Engineering Kuttippuram
+
+Introduction:
+This is an AI-powered customer support ticket intelligence system designed for 
+consumer electronics support operations. It classifies ticket text, predicts 
+priority, and maps predictions to department queues using Natural Language 
+Processing and Machine Learning to support faster triage. Historical similarity 
+artifacts are generated during training but are not used by the current runtime 
+inference path.
+
+Objectives:
+• Automate end-to-end customer support ticket triage and routing.
+• Classify customer complaints into predefined categories using Logistic Regression.
+• Predict the priority level (Low, Medium, High, Critical) for incoming tickets.
+• Use TF-IDF and Logistic Regression for explainable ticket classification.
+• Provide category and priority information to support staff during triage.
+• Implement Role-Based Access Control (Customer, Agent, Admin) with session security.
+• Reduce manual effort and improve customer satisfaction (CSAT) through faster support.
+
+Technology Stack:
+Technology              | Library / Tool        | Purpose
+------------------------+-----------------------+---------------------------------------
+Web Framework           | Flask 2.0+ (Python)   | Backend routes and Jinja2 controller
+Security & Auth         | Werkzeug 2.0+         | Password hashing & session-based RBAC
+Form Security           | Flask-WTF 1.2+        | Included dependency; CSRF disabled for viva demo
+Database Engine         | SQLite3               | Relational data storage & constraints
+Machine Learning        | scikit-learn 1.3+     | Logistic Regression classifiers
+NLP & Linguistics       | NLTK 3.8+             | Text cleaning, lemmatization & stopwords
+Feature Extraction      | TF-IDF Vectorizer     | Unigram & bigram feature matrix with sublinear TF
+Imbalance Handling      | imbalanced-learn      | SMOTE applied to training matrices
+Model Serialization     | joblib 1.3+           | Trained ML model artifact persistence
+Data Processing         | pandas & numpy        | Dataset processing & matrix operations
+Frontend Interface      | HTML5, CSS3, ES6 JS   | Responsive UI & dynamic modal views
+UI Framework & Icons    | Bootstrap Icons      | Iconography with custom CSS components
+Analytics Engine        | Chart.js 4.4+         | Admin category distribution chart
+
+
+#Existing System:
+Existing customer support operations rely on manual triage by human agents or rigid 
+rule-based pattern matchers that are slow, error-prone, and lack semantic understanding.
+
+System                  | Description                                  | Limitation
+------------------------+----------------------------------------------+--------------------------------------
+Manual Support Triage   | Human agents read and route tickets manually.| Slow response time, high misrouting.
+Rule-Based Regex Routers| Uses rigid keyword matching rules.           | Lacks semantic context; breaks easily.
+Generic Helpdesk Forms  | Standard web forms without AI intelligence.  | No automated priority/category triage.
+Keyword Search Systems  | Basic text matching for past resolutions.    | Low relevance, zero vector similarity.
+Static Support Queues   | Monolithic queues without role isolation.    | No automated classification or priority prediction.
+
+
+#Proposed System:
+It proposes a cost-effective, explainable AI support ticket system that combines real-time 
+NLP categorization, machine learning priority prediction, and automated multi-department 
+routing with customer, agent, and administrator dashboards.
+
+> AI Classification & Retrieval Mappings
+Input Pattern / Issue          | Target Action / Department | AI Inference Method
+-------------------------------+----------------------------+--------------------------------------
+Ticket text                     | Technical/Billing/Account/ | Logistic Regression with
+                               | General Inquiry department | confidence from predict_proba()
+Ticket text                     | Low/Medium/High/Critical   | Logistic Regression with
+                               | priority                   | confidence from predict_proba()
+Low category confidence         | Manual-review indicator    | Threshold below 45%
+Fraud category in training data | No separate runtime route  | No fraud override implemented
+Historical corpus               | Training artifact only     | Not loaded by current inference
+Invalid input or model failure  | Safe default predictions   | Rule-based/default fallback
+
+
+* Module Description
+Module                 | Technology                   | Function
+-----------------------+------------------------------+---------------------------------------
+Customer Module        | Flask + HTML5/CSS3/JS        | Auto-approved registration, ticket submission,
+                       |                              | status tracking, replies, and CSAT rating.
+AI Intelligence Module | NLTK + scikit-learn + joblib | Text preprocessing, TF-IDF vectorization,
+                       |                              | category and priority ML predictions.
+Similarity Retrieval   | train_model.py + joblib      | Training-time historical corpus artifact;
+Module                 |                              | current runtime returns no similar matches.
+Department Module      | Flask + HTML5/CSS3/JS        | Department queues, ticket detail modal,
+                       |                              | replies, and status/resolution updates.
+Administrator Module   | Flask + SQLite3 + Chart.js   | System metrics, category chart, user table,
+                       |                              | and system ticket registry.
+
+
+* Developing Environment
+Component              | Specification
+-----------------------+------------------------------------------------------
+Operating System       | Windows 10 / 11
+Processor              | Intel Core i3 / i5
+RAM                    | 4GB minimum (8GB recommended)
+Programming Language   | Python 3.10 / 3.11+
+Web Framework          | Flask 3.0+
+Database               | SQLite3
+Key Libraries          | scikit-learn, NLTK, imbalanced-learn, joblib, pandas, Flask-WTF
+IDE                    | Visual Studio Code
+Dataset                | 20,000 customer support records; 5 categories and 4 priorities
+
+
+Sprint Plan
+Backlog Item             | Completion | Hours | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 1                 |            |       |    |    |    |    |    |    |    |    |    |    
+Requirement Analysis     | 10/01/2026 |   4   | 1  | 1  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+Database Schema Design   | 14/01/2026 |   6   | 0  | 0  | 2  | 2  | 1  | 1  | 0  | 0  | 0  |  0 
+SQLite Database Layer    | 18/01/2026 |   5   | 0  | 0  | 0  | 0  | 2  | 2  | 1  | 0  | 0  |  0 
+Flask Setup & Config     | 22/01/2026 |   4   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 0  |  0 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 2                 |            |       |    |    |    |    |    |    |    |    |    |    
+Dataset Preprocessing    | 27/01/2026 |   6   | 2  | 2  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+NLTK & TF-IDF Pipeline   | 01/02/2026 |   7   | 0  | 0  | 2  | 2  | 2  | 1  | 0  | 0  | 0  |  0 
+Logistic Reg. & SMOTE    | 05/02/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Historical Corpus Build | 09/02/2026 |   6   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 2  |  0 
+Model Serialization      | 12/02/2026 |   3   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 2  |  1 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 3                 |            |       |    |    |    |    |    |    |    |    |    |    
+Auth & RBAC Security     | 18/02/2026 |   6   | 2  | 2  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+Customer Submission UI   | 22/02/2026 |   7   | 0  | 0  | 2  | 2  | 2  | 1  | 0  | 0  | 0  |  0 
+AI Engine Integration    | 26/02/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Department Workspace UI  | 02/03/2026 |   8   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 2  |  2 
+Admin Dashboard & Users  | 06/03/2026 |   6   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 3  |  3 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 4                 |            |       |    |    |    |    |    |    |    |    |    |    
+UI Redesign & Modals     | 12/03/2026 |   8   | 2  | 2  | 2  | 2  | 0  | 0  | 0  | 0  | 0  |  0 
+CSAT & Chart.js Engine   | 16/03/2026 |   6   | 0  | 0  | 2  | 2  | 1  | 1  | 0  | 0  | 0  |  0 
+Automated System Testing | 22/03/2026 |   8   | 0  | 0  | 0  | 0  | 2  | 2  | 2  | 2  | 0  |  0 
+Performance Optimization | 26/03/2026 |   4   | 0  | 0  | 0  | 0  | 0  | 0  | 2  | 1  | 1  |  0 
+Final Documentation      | 31/03/2026 |   5   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 3  |  2 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Sprint 5 (Viva Critical) |            |       |    |    |    |    |    |    |    |    |    |    
+Comprehensive Audit      | 10/09/2026 |   6   | 2  | 2  | 1  | 1  | 0  | 0  | 0  | 0  | 0  |  0 
+Demo Configuration Audit | 10/09/2026 |   4   | 0  | 0  | 1  | 1  | 1  | 1  | 0  | 0  | 0  |  0 
+Admin Dashboard Review   | 10/09/2026 |   2   | 0  | 0  | 0  | 0  | 1  | 1  | 0  | 0  | 0  |  0 
+Async Modal Replies     | 10/09/2026 |   5   | 0  | 0  | 0  | 0  | 0  | 2  | 2  | 1  | 0  |  0 
+Agent Queue Scope        | 10/09/2026 |   3   | 0  | 0  | 0  | 0  | 0  | 0  | 1  | 1  | 1  |  0 
+AI Safe Fallbacks        | 10/09/2026 |   4   | 0  | 0  | 0  | 0  | 0  | 0  | 1  | 1  | 1  | 1 
+Demo Mode Polish         | 10/09/2026 |   2   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 1  | 1  |  0 
+Final Viva Preparation   | 10/09/2026 |   3   | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 2  |  1 
+-------------------------+------------+-------+----+----+----+----+----+----+----+----+----+-----
+Total                    |            |  131  | 14 | 14 | 14 | 14 | 14 | 13 | 14 | 14 | 13 | 11
+
+
+Product Backlog
+ID   | Name                                     | Priority | Estimate (Hours) | Status
+-----+------------------------------------------+----------+------------------+-----------
+1    | Project Setup & DB Initialization        | High     | 15               | Completed
+2    | Data Preprocessing & Lemmatization       | High     | 6                | Completed
+3    | TF-IDF Feature Extraction Pipeline       | High     | 7                | Completed
+4    | Category & Priority Model Training       | High     | 8                | Completed
+5    | Historical Corpus Artifact Generation    | Medium   | 6                | Completed
+6    | User Registration & Account Creation     | High     | 6                | Completed
+7    | RBAC Authentication & Session Security   | High     | 6                | Completed
+8    | Customer Ticket Submission & Tracker     | High     | 7                | Completed
+9    | AI Category, Priority & Routing          | High     | 8                | Completed
+10   | Department Modal Workspace & Reply Desk  | High     | 8                | Completed
+11   | Administrator Metrics & Category Chart   | Medium   | 6                | Completed
+12   | Responsive UI & Solid Modal Redesign     | Medium   | 8                | Completed
+13   | CSAT Star Rating & Feedback System       | Medium   | 6                | Completed
+14   | System Integration & Workflow Testing   | High     | 9                | Completed
+15   | Comprehensive Codebase Review            | High     | 6                | Completed
+16   | Demo Security Configuration              | Medium   | 4                | Completed
+17   | Admin Dashboard Verification             | Medium   | 2                | Completed
+18   | Asynchronous Modal Reply System         | High     | 5                | Completed
+19   | Agent Department Queue Filtering         | High     | 3                | Completed
+20   | AI Engine Safe Fallback Mechanisms      | High     | 4                | Completed
+21   | Demo Mode Polish & Forgot Password      | Medium   | 2                | Completed
+22   | Final Viva Documentation & Preparation  | High     | 3                | Completed
+-----+------------------------------------------+----------+------------------+-----------
+Total|                                          |          | 131              | Completed
+
+
+User Story
+ID   | As a type of User | I want to...                             | So that I can...
+-----+-------------------+------------------------------------------+--------------------------------------------------
+1    | Customer          | Register with Bill No / Product ID       | Create an approved customer account.
+2    | Customer          | Submit a complaint with Subject & Details| Request support assistance for my device.
+3    | Customer          | View my ticket status on a 5-stage bar   | Track progress from Submitted to Resolved.
+4    | Customer          | Read responses from support agents       | Communicate and get help on my issue.
+5    | Customer          | Rate resolved tickets (1–5 stars)        | Provide feedback on support service quality.
+6    | Customer          | Reply to tickets asynchronously in modal   | Maintain conversation without page reloads.
+7    | Department Agent  | View my department's isolated queue      | Focus only on tickets relevant to my team.
+8    | Department Agent  | Inspect AI predicted category & priority | Quickly identify issue urgency and context.
+9    | Department Agent  | View AI category and priority predictions | Prioritize and route tickets effectively.
+10   | Department Agent  | Respond to customers & update status     | Resolve complaints and add resolution notes.
+11   | Administrator     | View system users and ticket registry    | Monitor platform records and account status.
+12   | Administrator     | View category distribution chart          | Review ticket volume by predicted category.
+13   | Administrator     | View total, open, and resolved metrics    | Monitor current system workload.
+14   | Customer          | Reply to an open ticket asynchronously    | Continue the support conversation without reload.
+15   | System            | Preprocess text and extract TF-IDF       | Classify category and priority in real-time.
+16   | System            | Generate training-time evaluation output | Assess category and priority model performance.
+17   | System            | Handle AI model failures gracefully      | Maintain system stability with safe fallbacks.
+
+
+Project Plan
+Process Flow Diagram:
+
+                       [ START ]
+                           |
+                           v
+               [ User Starts / Registers ]
+                           |
+                           v
+                [ Account Created ]
+                        |
+                                         v
+                      [ Authenticate Session ]
+                                         |
+                                         v
+                      [ Customer Submits Ticket ]
+                              |
+                              v
+                             [ NLP Text Preprocessing ]
+                            (Clean, Lemmatize, Stopwords)
+                                         |
+                                         v
+                             [ TF-IDF Vectorization ]
+                                         |
+                                         v
+                           [ Predict Category & Priority ]
+                                         |
+                                         v
+                        [ Dynamic Routing Engine ]
+                        (Technical / Billing / Account / General Inquiry)
+                                     |
+                                     v
+                        [ Agent Workspace Modal ]
+                        (AI Category & Priority Badges)
+                                     |
+                                     v
+                        [ Agent Submits Resolution ]
+                                     |
+                                     v
+                        [ Customer 5-Stage Tracker ]
+                                     |
+                                     v
+                        [ Customer Async Reply Modal ]
+                                     |
+                                     v
+                        [ Customer CSAT Star Rating ]
+                                     |
+                                     v
+                        [ Admin Analytics Telemetry ]
+                                     |
+                                     v
+                                 [ STOP ]
+
+
+* Details of Versions
+Version 1.0 (15/01/2026)
+• Initial Flask application setup and SQLite3 database schema creation.
+• Basic manual ticket submission form without AI inference.
+
+Version 1.1 (01/02/2026)
+• Integrated NLTK preprocessing pipeline (WordNet lemmatization, stopword cleaning).
+• Added TF-IDF feature vectorization and basic Logistic Regression classifier.
+
+Version 1.2 (15/02/2026)
+• Trained category and priority models with SMOTE class balancing.
+• Generated and serialized a training-partition historical corpus artifact; runtime retrieval remains disabled.
+
+Version 1.3 (01/03/2026)
+• Built Role-Based Access Control (RBAC) with Werkzeug password hashing.
+• Implemented auto-approved customer registration and department routing from category predictions.
+
+Version 1.4 (15/03/2026)
+• Modernized UI to a glassmorphic dark indigo theme with high-contrast modal popups.
+• Implemented customer 5-stage progress tracker and agent centered modal workspace.
+
+Version 1.5 (31/03/2026)
+• Added Chart.js category distribution chart and post-resolution CSAT star rating system.
+• Added customer and agent conversation endpoints with modal-based ticket details.
+
+Version 2.0 (10/09/2026) - Viva Critical Fixes
+• Confirmed CSRF is disabled in the viva configuration for reliable form submission
+• Aligned the admin dashboard with its implemented total, open, and resolved metrics
+• Enhanced customer ticket detail endpoint with proper JSON error responses
+• Implemented asynchronous modal reply system for customer-agent communication
+• Enhanced AI engine with comprehensive safe fallback mechanisms for edge cases
+• Implemented demo mode forgot password modal for academic presentation
+• Confirmed department-scoped agent queues and current four-category routing
+• Updated documentation to distinguish training artifacts from runtime features
+
+
+* Database and UI Design
+ Database Design:
+Table                  | Attributes [PK/FK]                 | Purpose
+-----------------------+------------------------------------+--------------------------------------------------
+users                  | user_id (PK), full_name, email,    | Stores user credentials, roles (customer/agent/
+                       | password_hash, role, department,   | admin), department, product reference, and status.
+                       | bill_no_product_id, account_status |
+tickets                | ticket_id (PK), customer_id (FK),  | Stores complaints, AI predictions, department,
+                       | subject, description, category,    | status, agent assignment, resolution, and CSAT.
+                       | priority, status, assigned_agent   |
+ticket_similar_matches | match_id (PK), ticket_id (FK),     | Compatibility table for historical match data;
+                       | similar_ref_id, similarity_score,  | not populated or queried by current runtime.
+                       | similar_subject, resolution_hours  |
+ticket_replies         | reply_id (PK), ticket_id (FK),     | Stores two-way communication threads between
+                       | sender_id (FK), message, timestamp | customers and assigned support agents.
+
+
+=> UI Design:
+Interface of CompassIQ AI Ticket Management:
++----------------------------------------------------------------------------------------------------+
+||  COMPASSIQ  |  AI Support Intelligence Desk                  [ Role: Agent | Department: Technical ]|
++----------------------------------------------------------------------------------------------------+
+||  QUEUE FILTER: [All] [Submitted] [Under Review] [In Progress] [Resolved]                         |
++----------------------------------------------------------------------------------------------------+
+||  TICKET QUEUE (Full Width Grid):                                                                   |
+||  [TKT-100001] Cloud sync fails with Error Code 502  | Pri: High  | Status: In Progress | [View Modal]|
+||  [TKT-100002] Kernel panic after firmware update    | Pri: Crit  | Status: Submitted   | [View Modal]|
++----------------------------------------------------------------------------------------------------+
+||  CENTERED DETAIL POPUP MODAL (Solid White Background #ffffff, Top-Right Close Button [X]):         |
+||  +-----------------------------------------------------------------------------------------------+ |
+||  | Ticket: TKT-100001   [Technical] [High]                                                   [X] | |
+||  | Customer: Alex Morgan (alex.morgan@customer.com)                                             | |
+||  | Description: "Whenever I upload data larger than 50MB, the desktop app crashes with 502 error"| |
+||  | --------------------------------------------------------------------------------------------- | |
+||  | AI INTELLIGENCE: Category and predicted priority                                             | |
+||  | Similar historical matches: none returned by the current runtime                             | |
+||  | --------------------------------------------------------------------------------------------- | |
+||  | COMMUNICATION THREAD:                                                                        | |
+||  | • Alex Morgan (Customer): "Hi team, whenever I upload data larger than 50MB..."               | |
+||  | • Tech Support Agent: "Hello Alex, thank you for reaching out. We have identified..."  | |
+||  | --------------------------------------------------------------------------------------------- | |
+||  | AGENT RESPONSE & ACTIONS:                                                                      | |
+||  | [ Reply Text Area ] [ Update Status: In Progress ▼ ] [ Resolution Notes: ___ ]       | |
+||  | [ Send Response & Update Status ]                                                               | |
+||  +-----------------------------------------------------------------------------------------------+ |
++----------------------------------------------------------------------------------------------------+
+
+
+* Sprint 5: Viva Critical Fixes (10/09/2026)
+Date: September 10, 2026
+Duration: 6 hours
+Objective: Review and document the current implementation for viva presentation.
+
+Sprint 5 Tasks:
+
+1. Comprehensive Codebase Review (2 hours)
+   - Reviewed the Flask routes, database layer, AI engine, templates, and static assets
+   - Verified customer, agent, administrator, and model-inference workflows
+   - Recorded the implemented behavior and current limitations for viva explanation
+
+2. Demo Security Configuration (4 hours)
+   - Kept Flask-WTF as an available dependency for the project configuration
+   - Confirmed WTF_CSRF_ENABLED and WTF_CSRF_CHECK_DEFAULT are False for the viva demo
+   - Confirmed the fixed Flask secret key and Werkzeug password hashing configuration
+   - Result: Demo forms submit without CSRF-token validation while sessions and passwords remain configured
+
+3. Admin Dashboard Review (2 hours)
+   - Verified total_tickets and resolved_tickets calculations in admin_dashboard()
+   - Verified open tickets are displayed as total tickets minus resolved tickets
+   - Verified Chart.js receives grouped predicted-category counts
+   - Result: The dashboard documents its implemented three-metric and category-chart view
+
+4. Asynchronous Modal Reply System (5 hours)
+   - Updated /customer/tickets/<ticket_id> endpoint to return proper JSON with error handling
+   - Customer ticket reply endpoint returns JSON for asynchronous submissions
+   - Customer ticket details and replies are loaded into the ticket modal
+   - Agent details are loaded asynchronously into the agent workspace modal
+   - Result: Users can inspect ticket conversations without a page reload
+
+5. Agent Queue Scope (3 hours)
+   - Verified agent dashboards filter tickets by the logged-in agent department
+   - Verified queue tabs support all, submitted, under review, in progress, and resolved states
+   - Verified ticket updates assign the responding agent and can store resolution notes
+   - Result: Agents work within department-specific queues
+
+6. AI Engine Safe Fallback Mechanisms (4 hours)
+   - Added input validation for empty or malformed text in predict_and_retrieve()
+   - Wrapped ML model predictions in try-catch blocks for error handling
+   - Implemented safe fallback defaults: General Inquiry, Medium priority, Technical department
+   - Added error messages and logging for debugging
+   - System now degrades gracefully instead of crashing on model failures
+   - Result: System remains functional when input or model artifacts are invalid
+
+7. Demo Mode Polish (2 hours)
+   - Replaced dead "Forgot Password?" link with functional modal
+   - Modal displays academic demo message with admin contact information
+   - Shows the configured academic demonstration contact message for password resets
+   - Retained one-click demo credential autofill buttons for easy viva testing
+   - Modal uses existing alert-modal styling for consistency
+   - Result: Improved demo experience while maintaining academic focus
+
+8. Final Viva Documentation (3 hours)
+   - Updated all documentation files to reflect current system state
+   - Synchronized requirements.txt with actual dependencies
+   - Updated details.txt with new features and architecture changes
+   - Updated scrumnote.txt with Sprint 5 activities and timeline
+   - Updated project documentation to distinguish implemented features from retained compatibility structures
+   - Result: Documentation is aligned with the current source code
+
+Sprint 5 Outcomes:
+- Current routes, templates, database schema, and AI inference behavior reviewed
+- Demo configuration documented, including disabled CSRF validation
+- Customer and agent asynchronous ticket-detail workflows documented
+- System stability supported with AI fallback mechanisms
+- Admin metrics and category chart behavior verified
+- Documentation aligned with the current implementation and its limitations
+
+Sprint 5 Velocity:
+- Planned: 29 hours
+- Actual: Not independently verifiable from source code
+- Velocity: Not independently verifiable from source code
+
+Total Project Summary:
+- Total Sprints: 5
+- Total Development Time: 131 hours (project plan estimate)
+- Total Backlog Items: 22
+- Completed Features: Implemented scope described in this document
+- Overall Status: READY FOR ACADEMIC DEMONSTRATION
+- System Health: OPERATIONAL FOR ACADEMIC DEMONSTRATION
