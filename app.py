@@ -87,20 +87,32 @@ def load_logged_in_user():
     g.user = get_current_user()
 
 
+@app.after_request
+def add_header(response):
+    """
+    Add cache-control headers to prevent browser caching of authenticated pages.
+    This prevents users from navigating back to cached dashboard pages after logout.
+    """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 def login_required(f):
     """
     Decorator to protect routes that require user authentication.
-    Redirects to login page if user is not logged in or not approved.
+    Redirects to public landing page if user is not logged in or not approved.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if g.user is None:
             flash("Please sign in to access this page.", "warning")
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
         if g.user['account_status'] != 'APPROVED':
             session.clear()
             flash("Your account is not authorized to access this resource.", "danger")
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -115,7 +127,7 @@ def role_required(*roles):
         def decorated_function(*args, **kwargs):
             if g.user is None:
                 flash("Please sign in first.", "warning")
-                return redirect(url_for('login'))
+                return redirect(url_for('index'))
             if g.user['role'] not in roles:
                 flash("Access denied: You do not have permission to view this portal.", "danger")
                 return redirect(url_for('index'))
@@ -126,17 +138,17 @@ def role_required(*roles):
 
 def customer_required(f):
     """Decorator requiring customer role."""
-    return login_required(role_required('customer')(f))
+    return role_required('customer')(login_required(f))
 
 
 def agent_required(f):
     """Decorator requiring agent role."""
-    return login_required(role_required('agent')(f))
+    return role_required('agent')(login_required(f))
 
 
 def admin_required(f):
     """Decorator requiring admin role."""
-    return login_required(role_required('admin')(f))
+    return role_required('admin')(login_required(f))
 
 
 @app.route('/')
@@ -263,11 +275,10 @@ def login():
 def logout():
     """
     User logout route.
-    Clears session and redirects to login page.
+    Clears session and redirects to public landing page.
     """
     session.clear()
-    flash("You have been signed out successfully.", "info")
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 
 # ============================================================================
@@ -660,7 +671,9 @@ def admin_dashboard():
     Admin dashboard with system metrics and category distribution analytics.
     - Step 1: Calculate core metrics (Total Tickets, Open Tickets, Resolved Tickets)
     - Step 2: Fetch category distribution data for Chart.js visualization
-    - Returns simplified 3-card metrics + 1 category chart
+    - Step 3: Fetch all users for User Management
+    - Step 4: Fetch all system tickets for Ticket Registry
+    - Returns metrics, analytics data, user list, and ticket list
     """
     # Step 1: Calculate core metrics
     total_tickets = query_db("SELECT COUNT(*) as count FROM tickets", one=True)['count']
@@ -677,6 +690,20 @@ def admin_dashboard():
     dept_labels = [row['assigned_department'] for row in dept_stats]
     dept_data = [row['count'] for row in dept_stats]
 
+    # Step 3: Fetch all users for User Management
+    all_users = query_db(
+        """SELECT user_id, full_name, email, role, department, account_status, created_at
+           FROM users 
+           ORDER BY created_at DESC"""
+    )
+
+    # Step 4: Fetch all system tickets for Ticket Registry
+    all_tickets = query_db(
+        """SELECT ticket_id, subject, predicted_category, predicted_priority, status, created_at
+           FROM tickets 
+           ORDER BY created_at DESC"""
+    )
+
     return render_template(
         'admin_dashboard.html',
         metrics={
@@ -684,7 +711,9 @@ def admin_dashboard():
             'resolved_tickets': resolved_tickets
         },
         dept_labels=dept_labels,
-        dept_data=dept_data
+        dept_data=dept_data,
+        users=all_users,
+        tickets=all_tickets
     )
 
 

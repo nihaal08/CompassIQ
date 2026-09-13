@@ -165,7 +165,7 @@
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #374151; font-weight: 500;">Resolution Notes:</label>
+                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e1; font-weight: 500;">Resolution Notes:</label>
                         <input type="text" name="resolution_notes" class="form-input" placeholder="Add resolution notes (optional)">
                     </div>
                 </div>
@@ -334,13 +334,42 @@ document.getElementById('modalReplyForm').addEventListener('submit', function(e)
     })
     .then(() => {
         closeTicketModal();
-        // Show success message and reload
-        alert('Response submitted successfully!');
+        // Use system modal popup instead of browser alert
+        const modal = document.createElement('div');
+        modal.className = 'alert-modal-backdrop show';
+        modal.innerHTML = `
+            <div class="alert-modal-box">
+                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
+                <h3 class="alert-modal-title">
+                    <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
+                </h3>
+                <p class="alert-modal-message">Response submitted successfully!</p>
+                <div class="alert-modal-buttons">
+                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
         window.location.reload();
     })
     .catch(error => {
         console.error('Error submitting response:', error);
-        alert('Failed to submit response. Please try again.');
+        // Use system modal popup instead of browser alert
+        const modal = document.createElement('div');
+        modal.className = 'alert-modal-backdrop show';
+        modal.innerHTML = `
+            <div class="alert-modal-box">
+                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
+                <h3 class="alert-modal-title">
+                    <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Error
+                </h3>
+                <p class="alert-modal-message">Failed to submit response. Please try again.</p>
+                <div class="alert-modal-buttons">
+                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
         // Re-enable button
         submitBtn.disabled = false;
         submitBtn.textContent = 'Send Response & Update Status';

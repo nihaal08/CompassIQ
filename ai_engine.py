@@ -193,93 +193,79 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
             'similar_tickets': []
         }
 
+    # Step 2: Load models once if not already loaded (cached in memory)
+    if not _is_initialized:
+        load_ai_engine()
+
+    # Step 3: Text preprocessing
+    raw_combined = f"{subject} {description}"
+    cleaned = clean_text(raw_combined)
+
+    # Step 4: Use heuristic fallback if models unavailable
+    if not _is_initialized or vectorizer is None:
+        result = _heuristic_fallback(subject, description)
+        return result
+
+    # Step 5: Transform text using TF-IDF vectorizer (models already in memory)
+    input_tfidf = vectorizer.transform([cleaned])
+
+    # Step 6: Predict category and priority with confidence scoring
+    category_confidence = 0.0
+    priority_confidence = 0.0
+    low_confidence_flag = False
+    fraud_flagged = False
+
     try:
-        # Step 2: Load models if not already loaded
-        if not _is_initialized:
-            load_ai_engine()
+        # Category prediction with probability estimation
+        predicted_category = category_model.predict(input_tfidf)[0]
+        
+        # Calculate confidence score using predict_proba
+        cat_proba = category_model.predict_proba(input_tfidf)[0]
+        cat_classes = category_model.classes_
+        cat_max_idx = np.argmax(cat_proba)
+        category_confidence = float(cat_proba[cat_max_idx]) * 100.0
 
-        # Step 3: Text preprocessing
-        raw_combined = f"{subject} {description}"
-        cleaned = clean_text(raw_combined)
+        # Priority prediction with probability estimation
+        predicted_priority = priority_model.predict(input_tfidf)[0]
+        
+        # Calculate confidence score using predict_proba
+        prio_proba = priority_model.predict_proba(input_tfidf)[0]
+        prio_classes = priority_model.classes_
+        prio_max_idx = np.argmax(prio_proba)
+        priority_confidence = float(prio_proba[prio_max_idx]) * 100.0
 
-        # Step 4: Use heuristic fallback if models unavailable
-        if not _is_initialized or vectorizer is None:
-            result = _heuristic_fallback(subject, description)
-            return result
-
-        # Step 5: Transform text using TF-IDF vectorizer
-        input_tfidf = vectorizer.transform([cleaned])
-
-        # Step 6: Predict category and priority with confidence scoring
-        category_confidence = 0.0
-        priority_confidence = 0.0
-        low_confidence_flag = False
-        fraud_flagged = False
-
-        try:
-            # Category prediction with probability estimation
-            predicted_category = category_model.predict(input_tfidf)[0]
-            
-            # Calculate confidence score using predict_proba
-            cat_proba = category_model.predict_proba(input_tfidf)[0]
-            cat_classes = category_model.classes_
-            cat_max_idx = np.argmax(cat_proba)
-            category_confidence = float(cat_proba[cat_max_idx]) * 100.0
-
-            # Priority prediction with probability estimation
-            predicted_priority = priority_model.predict(input_tfidf)[0]
-            
-            # Calculate confidence score using predict_proba
-            prio_proba = priority_model.predict_proba(input_tfidf)[0]
-            prio_classes = priority_model.classes_
-            prio_max_idx = np.argmax(prio_proba)
-            priority_confidence = float(prio_proba[prio_max_idx]) * 100.0
-
-            # Low confidence flag for manual review (< 45% confidence)
-            if category_confidence < 45.0:
-                low_confidence_flag = True
-
-            # Map category to department (1:1 mapping for simplicity)
-            if predicted_category in ['Technical', 'Billing', 'Account', 'General Inquiry']:
-                assigned_dept = predicted_category
-            else:
-                assigned_dept = 'General Inquiry'
-
-        except Exception as e:
-            print(f"[AI Engine] ML prediction error: {e}, using safe fallback")
-            # Safe fallback on ML errors
-            predicted_category = 'General Inquiry'
-            predicted_priority = 'Medium'
-            assigned_dept = 'Technical'
-            category_confidence = 50.0
-            priority_confidence = 50.0
+        # Low confidence flag for manual review (< 45% confidence)
+        if category_confidence < 45.0:
             low_confidence_flag = True
-            fraud_flagged = False
 
-        # Step 7: Return clean prediction dictionary
-        return {
-            'predicted_category': predicted_category,
-            'predicted_priority': predicted_priority,
-            'assigned_department': assigned_dept,
-            'category_confidence': f"{category_confidence:.1f}%",
-            'priority_confidence': f"{priority_confidence:.1f}%",
-            'low_confidence': low_confidence_flag,
-            'fraud_flagged': fraud_flagged,
-            'similar_tickets': []  # Empty array for API compatibility
-        }
+        # Map category to department (1:1 mapping for simplicity)
+        if predicted_category in ['Technical', 'Billing', 'Account', 'General Inquiry']:
+            assigned_dept = predicted_category
+        else:
+            assigned_dept = 'General Inquiry'
 
     except Exception as e:
-        print(f"[AI Engine] Unexpected error in predict_and_retrieve: {e}, using safe fallback")
-        return {
-            'predicted_category': 'General Inquiry',
-            'predicted_priority': 'Medium',
-            'assigned_department': 'Technical',
-            'category_confidence': '50.0%',
-            'priority_confidence': '50.0%',
-            'low_confidence': True,
-            'fraud_flagged': False,
-            'similar_tickets': []
-        }
+        print(f"[AI Engine] ML prediction error: {e}, using safe fallback")
+        # Safe fallback on ML errors
+        predicted_category = 'General Inquiry'
+        predicted_priority = 'Medium'
+        assigned_dept = 'Technical'
+        category_confidence = 50.0
+        priority_confidence = 50.0
+        low_confidence_flag = True
+        fraud_flagged = False
+
+    # Step 7: Return clean prediction dictionary
+    return {
+        'predicted_category': predicted_category,
+        'predicted_priority': predicted_priority,
+        'assigned_department': assigned_dept,
+        'category_confidence': f"{category_confidence:.1f}%",
+        'priority_confidence': f"{priority_confidence:.1f}%",
+        'low_confidence': low_confidence_flag,
+        'fraud_flagged': fraud_flagged,
+        'similar_tickets': []  # Empty array for API compatibility
+    }
 
 
 # Note: AI engine loading is controlled explicitly in app.py to prevent

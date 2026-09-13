@@ -139,6 +139,24 @@ a:hover {
   box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
 
+.sign-out-pill {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sign-out-pill:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+  justify-content: center;
+  color: white;
+  font-weight: var(--font-weight-bold);
+  font-size: 0.9rem;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+}
+
 /* ========== MAIN CONTENT AREA ========== */
 .main-content {
   margin-left: 0;
@@ -277,7 +295,7 @@ a:hover {
     display: none;
   }
 
-  .sign-out-btn span {
+  .sign-out-pill span {
     display: none;
   }
 
@@ -434,29 +452,7 @@ a:hover {
 
 /* Split Layout for Department Dashboard - REMOVED - Now using full-width layout with modal */
 
-/* Sign Out Button (in Header) */
-.sign-out-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 8px 16px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-lg);
-  color: #fca5a5;
-  font-weight: var(--font-weight-semibold);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.sign-out-btn:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
-}
+/* Sign Out Button styling unified with user pill - see .sign-out-pill above */
 
 /* ========== AUTHENTICATION SCREENS ========== */
 .auth-container {

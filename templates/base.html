@@ -42,7 +42,7 @@
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
                             {% endif %}
                         </a>
-                        <button type="button" class="sign-out-btn" onclick="showLogoutModal()">
+                        <button type="button" class="user-profile-pill sign-out-pill" onclick="showLogoutModal()" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
                             <i class="bi bi-box-arrow-right"></i>
                             <span>Sign Out</span>
                         </button>
@@ -151,6 +151,13 @@
                     backdrop.classList.remove('show');
                     setTimeout(() => backdrop.remove(), 250);
                 }, 5000);
+            }
+        });
+
+        // Prevent browser back/forward cache navigation after logout
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
             }
         });
     </script>

@@ -63,16 +63,59 @@
         <p class="card-subtitle">Manage system users and permissions</p>
     </div>
     <div class="card-body">
-        <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
-            <i class="bi bi-people" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-            <p>User management interface - Auto-approval enabled for streamlined demo flow</p>
-        </div>
+        {% if users|length == 0 %}
+            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
+                <i class="bi bi-people" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
+                <p>No users found in system.</p>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="enterprise-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>{{ user.user_id }}</td>
+                                <td>{{ user.full_name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="badge badge-category-{{ user.role|replace(' ', '') }}">
+                                        {{ user.role|title }}
+                                    </span>
+                                </td>
+                                <td>{{ user.department or 'None' }}</td>
+                                <td>
+                                    {% if user.account_status == 'APPROVED' %}
+                                        <span class="badge badge-status-Resolved">Approved</span>
+                                    {% elif user.account_status == 'BANNED' %}
+                                        <span class="badge badge-status-Closed" style="background: var(--danger-bg); color: var(--danger);">Banned</span>
+                                    {% else %}
+                                        <span class="badge badge-status-UnderReview">{{ user.account_status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.created_at[:10] if user.created_at else 'N/A' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
     </div>
 </div>
 
 
 
-<!-- All Tickets Section (placeholder for full system ticket registry) -->
+<!-- All Tickets Section (System Ticket Registry) -->
 <div id="admin-all-tickets-section" style="margin-top: var(--spacing-3xl);">
     <div class="card">
         <div class="card-header">
@@ -80,10 +123,53 @@
             <p class="card-subtitle">Full overview of all tickets across all departments</p>
         </div>
         <div class="card-body">
-            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
-                <i class="bi bi-ticket-perforated" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-                <p>Full ticket registry view - to be implemented</p>
-            </div>
+            {% if tickets|length == 0 %}
+                <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
+                    <i class="bi bi-ticket-perforated" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
+                    <p>No tickets found in system.</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="enterprise-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Subject</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ticket in tickets %}
+                                <tr>
+                                    <td>
+                                        <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticket_id }}</span>
+                                    </td>
+                                    <td>{{ ticket.subject }}</td>
+                                    <td>
+                                        <span class="badge badge-category-{{ ticket.predicted_category|replace(' ', '') }}">
+                                            {{ ticket.predicted_category }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-priority-{{ ticket.predicted_priority }}">
+                                            {{ ticket.predicted_priority }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-status-{{ ticket.status|replace(' ', '') }}">
+                                            {{ ticket.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ ticket.created_at[:10] if ticket.created_at else 'N/A' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
