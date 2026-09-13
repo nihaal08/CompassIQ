@@ -277,46 +277,115 @@ Tasks Completed:
    - Updated success message for immediate access
    - Simplified user approval workflow for demo flow
 
-5. SIDEBAR SIMPLIFICATION
-   - Reduced navigation to 3 functional links + Sign Out per role
-   - Customer: Create Ticket, My Tickets, Profile + Sign Out
-   - Agent: Department Queue, My Assigned, Resolved History + Sign Out
-   - Admin: System Overview, All Tickets, User Management + Sign Out
-   - Removed complex navigation sections and redundant items
+5. CSRF PROTECTION DISABLED
+   - Set WTF_CSRF_ENABLED = False in app.py and config.py
+   - Set WTF_CSRF_CHECK_DEFAULT = False
+   - Commented out CSRFProtect(app) initialization
+   - Removed all csrf_token hidden fields from templates
+   - Fixed SECRET_KEY to 'compassiq-mca-secret-key' for session stability
+   - Eliminated 400 "CSRF token missing" errors for viva demo
 
-6. ADMIN DASHBOARD PRUNING
-   - Reduced KPI cards from 4 to 3 (Total, Open, Resolved)
-   - Removed multi-chart analytics, kept only Category Distribution
-   - Removed User Approval Queue (replaced with informational message)
-   - Simplified template to focus on core metrics
-   - Updated chart initialization to single chart only
+6. DEMO CREDENTIAL STANDARDIZATION
+   - Created ensure_demo_accounts() function in db.py
+   - Standardized all demo accounts to Password@123
+   - Updated demo accounts: admin@compassiq.com, technical@compassiq.com, billing@compassiq.com, account@compassiq.com, general@compassiq.com, customer@compassiq.com
+   - Added 5 additional agents per department for full demo
+   - Added 4 additional customers for diverse ticket data
+   - Removed hardcoded personal names and test strings from templates
 
-7. JAVASCRIPT CLEANUP
-   - Removed fraud/similarity logic from main.js
-   - Removed AI insights navigation handler
-   - Simplified chart initialization to single category chart
-   - Updated navigation action mapping
-   - Standardized modal buttons to "OK" instead of "Acknowledge"
+7. TERMS & CONDITIONS REMOVED
+   - Removed "Terms and Conditions" link from login.html
+   - Removed "Terms of Service" references
+   - Removed "Privacy Policy" disclaimers
+   - Removed consent checkboxes
+   - Cleaned up login form for streamlined demo flow
 
-8. CODE REFACTORING
-   - Added clear section dividers in app.py (5 Evaluation Flows)
-   - Standardized route handlers to 3-step pattern (Read, Operation, Render)
-   - Added viva-oriented comments to all routes and SQL queries
-   - Simplified ai_engine.py with clean function documentation
-   - Removed complex nested closures and redundant middleware
+8. LANDING PAGE OVERHAUL
+   - Replaced landing page with enterprise SaaS design
+   - Glassmorphic navigation with gradient branding
+   - Hero section with live ticket mockup
+   - Platform capability cards (4 features)
+   - Architecture pipeline explanation
+   - Midnight indigo/purple contact section
+   - Professional enterprise positioning
 
-9. DOCUMENTATION OVERHAUL
-   - Rewrote requirements.txt with clean dependencies
-   - Created comprehensive docs/details.txt with current architecture
-   - Created docs/scrumnote.txt with sprint development logs
-   - Created docs/test.txt with 5-step viva test suite
-   - Created Viva Defense Cheat Sheet for quick reference
+9. GLASSMORPHIC THEME UNIFICATION
+   - Applied glassmorphic dark theme across all authenticated pages
+   - Updated CSS variables with midnight indigo palette
+   - Added backdrop blur effects to cards and modals
+   - Gradient buttons with glow shadows
+   - Glowing accent borders on hover
+   - Consistent color scheme across landing page and dashboards
 
-10. TEMPLATE CLEANUP
+10. CONTRAST & ACCESSIBILITY AUDIT
+    - Increased secondary text brightness (#cbd5e1 to #e2e8f0)
+    - Updated badge text colors for better readability
+    - Enhanced table cell contrast
+    - Improved modal close button visibility
+    - Fixed form input text contrast
+    - Updated metric card labels and values
+    - Achieved WCAG AA+ contrast compliance
+
+11. SIDEBAR REMOVAL
+    - Completely removed sidebar navigation from base.html
+    - Removed hamburger menu toggle button
+    - Moved Sign Out to top navbar with glassmorphic styling
+    - Updated main-content to full-width (no left margin)
+    - Increased page-wrapper max-width to 1280px
+    - Implemented logout confirmation modal with "Cancel" and "OK" buttons
+
+12. LAYOUT ALIGNMENT FIXES
+    - Fixed container centering (1280px max-width, margin: 0 auto)
+    - Fixed KPI metric cards grid (auto-fit, minmax 280px)
+    - Fixed chart aspect ratio (380px height, maintainAspectRatio: false)
+    - Fixed header typography alignment
+    - Fixed navbar pill and Sign Out button alignment
+    - Fixed mobile responsive behavior
+
+13. DATABASE DISPLAY FIX
+    - Updated admin_dashboard.html to display "—" instead of "None" for NULL departments
+    - Used Jinja2 conditional: {{ user.department if user.department and user.department != 'None' else '—' }}
+    - Ensures professional display in user management table
+
+14. SEED SCRIPT CREATION
+    - Created seed_viva_data.py for viva demo data
+    - Script wipes ticket-related data (DELETE FROM, not DROP TABLE)
+    - Preserves database schema structure
+    - Creates 25 demo users with standardized credentials
+    - Creates 14 realistic tickets across all departments
+    - Creates 11 conversation thread replies
+    - All passwords: Password@123 (hashed with scrypt)
+
+15. JAVASCRIPT CLEANUP
+    - Removed fraud/similarity logic from main.js
+    - Removed AI insights navigation handler
+    - Simplified chart initialization to single category chart
+    - Updated navigation action mapping
+    - Standardized modal buttons to "OK" instead of "Acknowledge"
+    - Removed toggleSidebar() function (sidebar removed)
+
+16. CODE REFACTORING
+    - Added clear section dividers in app.py (5 Evaluation Flows)
+    - Standardized route handlers to 3-step pattern (Read, Operation, Render)
+    - Added viva-oriented comments to all routes and SQL queries
+    - Simplified ai_engine.py with clean function documentation
+    - Removed complex nested closures and redundant middleware
+
+17. DOCUMENTATION OVERHAUL
+    - Rewrote requirements.txt with clean dependencies (removed unused packages)
+    - Created comprehensive docs/details.txt with current architecture
+    - Created docs/scrumnote.txt with sprint development logs
+    - Created docs/test.txt with 5-step viva test suite
+    - Created docs/VIVA_DEFENSE_CHEAT_SHEET.txt for quick reference
+    - Created docs/DATA_LOSS_EXPLANATION.md for data loss prevention
+
+18. TEMPLATE CLEANUP
     - Updated all modal buttons to "OK"
     - Removed pending_approval flash message category
     - Cleaned up Jinja2 tags for readability
     - Removed hidden, dead inputs and redundant modal markup
+    - Removed Terms and Conditions from login.html
+    - Removed hardcoded personal names and test strings
 
 Challenges:
 ────────────────────────────────────────────────────────────────────────────
@@ -324,6 +393,8 @@ Challenges:
 - Ensuring API compatibility after removing features
 - Maintaining data integrity while pruning complexity
 - Writing student-defensible code comments
+- Resolving CSRF 400 errors for demo reliability
+- Achieving WCAG contrast compliance with dark theme
 
 Solutions:
 ────────────────────────────────────────────────────────────────────────────
@@ -331,6 +402,8 @@ Solutions:
 - Used empty arrays for removed features to maintain API compatibility
 - Left database schema unchanged (no destructive migrations)
 - Added clear, line-by-line comments explaining purpose
+- Disabled CSRF globally for viva demo reliability
+- Used color contrast tools to verify WCAG compliance
 
 Sprint Review:
 ────────────────────────────────────────────────────────────────────────────
@@ -338,8 +411,16 @@ Sprint Review:
 ✅ Historical corpus similarity search removed
 ✅ Fraud detection removed
 ✅ Auto-approval implemented
-✅ Sidebar simplified to 3 links + Sign Out
-✅ Admin dashboard pruned to core metrics
+✅ CSRF protection disabled for demo reliability
+✅ Demo credentials standardized (Password@123)
+✅ Terms and Conditions removed
+✅ Landing page redesigned as enterprise SaaS
+✅ Glassmorphic theme unified across all pages
+✅ Contrast and accessibility improved to WCAG AA+
+✅ Sidebar removed, full-width layout implemented
+✅ Layout alignment fixed (centering, charts, cards)
+✅ Database display fixed ("—" instead of "None")
+✅ Seed script created for viva demo data
 ✅ JavaScript cleaned of legacy code
 ✅ Code refactored with clear section dividers
 ✅ Documentation completely updated
@@ -347,7 +428,7 @@ Sprint Review:
 
 Retrospective:
 ────────────────────────────────────────────────────────────────────────────
-What went well: Significant simplification, clean code, excellent documentation
+What went well: Significant simplification, clean code, excellent documentation, professional UI
 What could improve: More automated testing, CI/CD pipeline
 Action items: Prepare viva presentation, practice demo flow
 

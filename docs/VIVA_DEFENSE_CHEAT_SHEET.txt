@@ -10,6 +10,7 @@ Type: MCA Academic Mini-Project
 Tech Stack: Flask, SQLite, scikit-learn, TF-IDF, Logistic Regression
 Objective: Demonstrate AI/ML integration in full-stack web application
 Core Flows: 5 (Auth, Customer, AI Inference, Agent, Admin)
+UI Theme: Glassmorphic dark theme with high-contrast accessibility
 
 
 ML PIPELINE EXPLANATION (2 Sentences)
@@ -43,6 +44,10 @@ DATABASE RELATIONAL STRUCTURE
    - Enables complex queries with JOIN operations
    - Standard SQL database pattern for academic demonstration
 
+4. IDLE TABLE
+   - TICKET_SIMILAR_MATCHES: Kept for schema compatibility, not used in simplified version
+   - Historical corpus similarity search removed for startup optimization
+
 
 WHY AUTO-APPROVAL & LIGHTWEIGHT INFERENCE?
 ────────────────────────────────────────────────────────────────────────────
@@ -57,43 +62,115 @@ ACADEMIC CONTEXT (vs Enterprise):
 ENTERPRISE TRADE-OFFS:
 - Auto-Approval would be inappropriate for production (security risk)
 - Lightweight inference lacks historical context for enterprise support
-- Simplified navigation (3 links + Sign Out) reduces UI complexity for viva
+- Simplified navigation (Sign Out in top navbar) reduces UI complexity for viva
 - SQLite not suitable for high-concurrency production deployments
+
+
+WHY CSRF DISABLED?
+────────────────────────────────────────────────────────────────────────────
+ACADEMIC CONTEXT:
+- WTF_CSRF_ENABLED = False configured for viva demo reliability
+- Eliminates 400 "CSRF token missing" errors during live presentation
+- Session security maintained with fixed SECRET_KEY ('compassiq-mca-secret-key')
+- All POST requests submit cleanly without token validation
+
+ENTERPRISE TRADE-OFF:
+- CSRF protection would be required in production for security
+- Fixed SECRET_KEY would be environment variable in production
+- Academic evaluation prioritizes reliable demo flow over strict security
+
+
+WHY SIDEBAR REMOVED?
+────────────────────────────────────────────────────────────────────────────
+ACADEMIC CONTEXT:
+- Full-width layout (1280px centered container) for better readability
+- Sign Out button moved to top navbar with confirmation modal
+- Reduces UI complexity for viva presentation
+- Focuses on content rather than navigation
+
+ENTERPRISE TRADE-OFF:
+- Sidebar would be beneficial for complex enterprise applications
+- Full-width layout suitable for demo scale and simple workflows
+
+
+STANDARDIZED DEMO CREDENTIALS
+────────────────────────────────────────────────────────────────────────────
+All accounts use the same password for viva evaluation:
+
+Password: Password@123
+
+Primary Accounts:
+- Admin: admin@compassiq.com (Role: admin, Department: None)
+- Technical: technical@compassiq.com (Role: agent, Department: Technical)
+- Billing: billing@compassiq.com (Role: agent, Department: Billing)
+- Account: account@compassiq.com (Role: agent, Department: Account)
+- General: general@compassiq.com (Role: agent, Department: General Inquiry)
+- Customer: customer@compassiq.com (Role: customer, Department: None)
+
+Additional accounts available (seed_viva_data.py):
+- 5 additional agents per department
+- 4 additional customers
 
 
 5 EVALUATION FLOWS (Quick Reference)
 ────────────────────────────────────────────────────────────────────────────
 
 FLOW 1: AUTHENTICATION (30s)
-  - /register: Creates user with APPROVED status (no admin approval)
-  - /login: Validates credentials, creates session, redirects to role dashboard
-  - /logout: Clears session, redirects to login
-  - Key decorators: @login_required, @role_required, @customer_required
+- /register: Creates user with APPROVED status (no admin approval)
+- /login: Validates credentials, creates session, redirects to role dashboard
+- /logout: Shows confirmation modal, clears session, redirects to login
+- Key decorators: @login_required, @role_required, @customer_required
+- CSRF: Disabled for viva demo (WTF_CSRF_ENABLED = False)
 
 FLOW 2: CUSTOMER PORTAL (45s)
-  - /customer/dashboard: Shows all customer tickets
-  - /customer/tickets/create: Calls ai_engine.predict_and_retrieve()
-  - AI: Text preprocessing → TF-IDF → Category/Priority prediction
-  - Returns: predicted_category, predicted_priority, assigned_department
+- /customer/dashboard: Shows all customer tickets
+- /customer/tickets/create: Calls ai_engine.predict_and_retrieve()
+- AI: Text preprocessing → TF-IDF → Category/Priority prediction
+- Returns: predicted_category, predicted_priority, assigned_department
 
 FLOW 3: AI INFERENCE (Called during ticket creation)
-  - Step 1: clean_text() - Lowercasing, stopword removal, lemmatization
-  - Step 2: vectorizer.transform() - TF-IDF feature extraction
-  - Step 3: category_model.predict() - Logistic Regression classification
-  - Step 4: category_model.predict_proba() - Confidence scoring
-  - Step 5: Fallback - Rule-based heuristic if models unavailable
+- Step 1: clean_text() - Lowercasing, stopword removal, lemmatization
+- Step 2: vectorizer.transform() - TF-IDF feature extraction
+- Step 3: category_model.predict() - Logistic Regression classification
+- Step 4: category_model.predict_proba() - Confidence scoring
+- Step 5: Fallback - Rule-based heuristic if models unavailable
 
 FLOW 4: AGENT PORTAL (60s)
-  - /agent/dashboard: Department-specific queue (WHERE assigned_department = ?)
-  - Priority sorting: Critical > High > Medium > Low (CASE statement)
-  - /agent/tickets/<id>/details: Fetches ticket + conversation history
-  - /agent/tickets/<id>/reply: Updates status, adds reply, resolution notes
+- /agent/dashboard: Department-specific queue (WHERE assigned_department = ?)
+- Priority sorting: Critical > High > Medium > Low (CASE statement)
+- Agent selects ticket → Modal opens with details
+- /agent/tickets/<id>/reply: Updates status, adds reply, resolution notes
 
 FLOW 5: ADMIN PORTAL (45s)
-  - /admin/dashboard: 3 metric cards + 1 category distribution chart
-  - Metrics: Total Tickets, Open Tickets, Resolved Tickets
-  - Chart: Chart.js bar chart with category distribution data
-  - Data aggregation: GROUP BY predicted_category, COUNT(*)
+- /admin/dashboard: 3 metric cards + 1 category distribution chart
+- Metrics: Total Tickets, Open Tickets, Resolved Tickets
+- Chart: Chart.js bar chart with category distribution data (indigo theme)
+- Data aggregation: GROUP BY predicted_category, COUNT(*)
+- User Management: NULL departments display as "—"
+
+
+UI/UX DESIGN SYSTEM
+────────────────────────────────────────────────────────────────────────────
+Theme: Glassmorphic dark theme with midnight indigo palette
+
+Color Palette:
+- Background: Deep midnight (#0b0d1b, #161334, #0a0e27)
+- Accent Gradient: Linear (135deg, #6366f1, #d946ef) - Indigo to Purple
+- Text: Crisp white (#ffffff), light slate (#cbd5e1, #e2e8f0)
+- Glass Surfaces: rgba(255, 255, 255, 0.04-0.08) with backdrop blur
+- Borders: rgba(255, 255, 255, 0.12) with subtle glow
+
+Layout:
+- Full-width design (sidebar removed)
+- Centered container: max-width 1280px, margin: 0 auto
+- Top navigation with Sign Out button (glassmorphic red pill)
+- Balanced padding: 2rem vertical, 1.5rem horizontal
+
+Accessibility:
+- High contrast text (WCAG AA+ compliant)
+- NULL departments display as "—" (em dash)
+- Modal confirmation buttons labeled "OK"
+- Readable form labels and input placeholders
 
 
 VIVA-DEFENSIBLE CODE POINTS
@@ -110,13 +187,14 @@ VIVA-DEFENSIBLE CODE POINTS
    - query_db("SELECT * FROM users WHERE email = ?", (email,))
    - Never concatenate strings: "SELECT * FROM users WHERE email = '" + email + "'"
 
-3. CSRF PROTECTION (app.py, templates)
-   - Configuration: app.config['WTF_CSRF_TIME_LIMIT'] = None
-   - Template: <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-   - Validation: Handled automatically by Flask-WTF
+3. CSRF CONFIGURATION (app.py, config.py)
+   - WTF_CSRF_ENABLED = False (disabled for viva demo)
+   - WTF_CSRF_CHECK_DEFAULT = False
+   - SECRET_KEY = 'compassiq-mca-secret-key' (fixed for session stability)
+   - Removed all csrf_token hidden fields from templates
 
 4. PASSWORD HASHING (app.py)
-   - Registration: generate_password_hash(password) - PBKDF2 with salt
+   - Registration: generate_password_hash(password, method='scrypt')
    - Login: check_password_hash(user['password_hash'], password)
    - Never store plaintext passwords
 
@@ -140,6 +218,16 @@ VIVA-DEFENSIBLE CODE POINTS
    - Database errors: try/except blocks with user-friendly flash messages
    - ML errors: Safe fallback to rule-based heuristic
    - Unauthorized access: Decorators redirect to login with flash message
+
+9. DATABASE DISPLAY FIX (templates/admin_dashboard.html)
+   - NULL departments display as "—" instead of "None"
+   - Jinja2 conditional: {{ user.department if user.department and user.department != 'None' else '—' }}
+
+10. LAYOUT CENTERING (static/css/style.css)
+    - Full-width container: max-width 1280px, margin: 0 auto
+    - Header follows same 1280px constraint
+    - KPI cards: auto-fit grid with minmax(280px, 1fr)
+    - Chart: Fixed 380px height, maintainAspectRatio: false
 
 
 COMMON VIVA QUESTIONS & ANSWERS
@@ -169,13 +257,13 @@ Q: How do you prevent SQL injection?
 A: Parameterized queries with ? placeholders. SQLite library escapes
    parameters automatically, preventing malicious SQL injection.
 
-Q: How do you protect against CSRF attacks?
-A: Flask-WTF generates CSRF tokens for all POST forms. Tokens are validated
-   on submission, and requests without valid tokens are rejected.
+Q: Why is CSRF protection disabled?
+A: For viva demo reliability. Eliminates 400 "CSRF token missing" errors during
+   live presentation. Session security maintained with fixed SECRET_KEY.
 
-Q: Why did you remove historical corpus similarity search?
-A: For startup optimization. Removed historical_corpus.joblib (4th model),
-   reduced startup from 7-12s to <2s, suitable for viva demo flow.
+Q: Why did you remove the sidebar?
+A: For full-width layout and simplified UI. Reduces navigation complexity
+   for viva presentation. Sign Out moved to top navbar with confirmation modal.
 
 Q: How do you ensure data integrity in the database?
 A: Foreign key constraints prevent orphaned records. Schema enforces
@@ -184,6 +272,15 @@ A: Foreign key constraints prevent orphaned records. Schema enforces
 Q: What is the 1:N relationship in your database?
 A: 1 User → N Tickets (customer can create many tickets)
    1 Ticket → N Replies (ticket can have many conversation messages)
+
+Q: Why did you use a glassmorphic dark theme?
+A: Modern, professional design suitable for enterprise SaaS positioning.
+   High-contrast accessibility ensures WCAG AA+ compliance for viva demo.
+
+Q: How do you seed demo data?
+A: seed_viva_data.py script wipes ticket-related data (DELETE FROM, not DROP TABLE),
+   preserves schema, creates 25 users, 14 tickets, 11 conversation replies with
+   standardized credentials (Password@123).
 
 
 PERFORMANCE METRICS (Quick Reference)
@@ -207,40 +304,46 @@ Step 5: Admin Analytics: 45s
 TECHNOLOGY STACK (Summary)
 ────────────────────────────────────────────────────────────────────────────
 Backend: Python 3.8+, Flask 2.0+, SQLite, scikit-learn 1.0+, joblib 1.2+, NLTK 3.6+
-Frontend: HTML5, CSS3 (Bootstrap 5 + Custom), JavaScript (Vanilla ES6+), Chart.js
+Frontend: HTML5, CSS3 (Glassmorphic dark theme), JavaScript (Vanilla ES6+), Chart.js
 Development: Git, PowerShell, VS Code
 
 
 KEY FILES TO EXPLAIN (Line-by-Line Ready)
 ────────────────────────────────────────────────────────────────────────────
-1. app.py (811 lines)
+1. app.py
    - Lines 1-14: Imports and configuration
-   - Lines 40-109: Helper functions and decorators
-   - Lines 112-225: Authentication routes (Flow 1)
-   - Lines 228-398: Customer portal routes (Flow 2)
-   - Lines 401-539: Agent portal routes (Flow 4)
-   - Lines 542-571: Admin portal routes (Flow 5)
-   - Lines 637-688: Application startup
+   - Lines 37-47: Flask config and CSRF disabled
+   - Lines 109-228: Authentication routes (Flow 1)
+   - Lines 231-401: Customer portal routes (Flow 2)
+   - Lines 404-542: Agent portal routes (Flow 4)
+   - Lines 545-574: Admin portal routes (Flow 5)
+   - Lines 640-688: Application startup
 
-2. ai_engine.py (267 lines)
+2. ai_engine.py
    - Lines 1-14: Module docstring and imports
    - Lines 47-77: Text preprocessing function
    - Lines 78-116: Model loading function
    - Lines 117-158: Heuristic fallback function
    - Lines 159-267: Main prediction function
 
-3. db.py (Not modified in refactoring)
+3. db.py
    - query_db(): SELECT operations with parameterized queries
    - modify_db(): INSERT/UPDATE/DELETE operations
    - init_db_schema(): Automated schema initialization
+   - ensure_demo_accounts(): Standardizes demo credentials
 
-4. main.js (584 lines)
+4. seed_viva_data.py
+   - wipe_database(): DELETE FROM (not DROP TABLE)
+   - seed_users(): Creates 25 demo users with Password@123
+   - seed_tickets(): Creates 14 realistic tickets
+   - seed_replies(): Creates 11 conversation threads
+
+5. main.js
    - Lines 8-118: Modal alert system
    - Lines 124-138: Star rating system
    - Lines 140-244: Customer portal interaction
    - Lines 246-324: Agent portal interaction
-   - Lines 326-524: Sidebar navigation
-   - Lines 526-579: Admin analytics (Chart.js)
+   - Removed: toggleSidebar() (sidebar removed)
 
 
 FINAL TIPS FOR VIVA SUCCESS

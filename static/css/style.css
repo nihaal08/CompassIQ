@@ -26,6 +26,60 @@ body {
   min-height: 100vh;
 }
 
+/* ========== CENTERED CONTAINER SYSTEM ========== */
+.main-content {
+  width: 100%;
+  background: var(--bg-canvas-solid);
+}
+
+.dashboard-container,
+.page-wrapper {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  box-sizing: border-box;
+}
+
+/* ========== HEADER WITH CENTERED CONTAINER ========== */
+.header {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-breadcrumb {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
 /* ========== TYPOGRAPHY ========== */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-main);
@@ -65,44 +119,6 @@ a:hover {
 /* ========== SIDEBAR NAVIGATION (REMOVED - NOW USING TOP NAVIGATION) ========== */
 /* Sidebar functionality removed - all navigation moved to top header */
 
-/* ========== HEADER / TOP BAR ========== */
-.header {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  width: 100%;
-  height: var(--header-height);
-  background: rgba(11, 13, 27, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-lg);
-  z-index: 10;
-  box-shadow: var(--shadow-sm);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-}
-
-.header-breadcrumb {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
 .user-profile-pill {
   display: flex;
   align-items: center;
@@ -140,6 +156,17 @@ a:hover {
 }
 
 .sign-out-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  color: #fca5a5;
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -150,11 +177,17 @@ a:hover {
   color: #ffffff;
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
-  justify-content: center;
-  color: white;
-  font-weight: var(--font-weight-bold);
-  font-size: 0.9rem;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+
+.sign-out-pill {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sign-out-pill:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
 }
 
 /* ========== MAIN CONTENT AREA ========== */
@@ -168,19 +201,115 @@ a:hover {
 }
 
 .page-wrapper {
-  padding: 24px 32px;
-  max-width: 1600px;
+  padding: 2rem 1.5rem;
+  max-width: 1280px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .page-header {
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: 2rem;
 }
 
 .page-title {
-  font-size: 1.875rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--text-main);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+}
+
+.page-subtitle {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ========== KPI METRIC CARDS GRID ========== */
+.kpi-grid,
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: rgba(18, 22, 38, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+}
+
+.metric-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.metric-content {
+  flex: 1;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.metric-trend {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* ========== CHART CARD & CONTAINER ========== */
+.chart-card {
+  background: rgba(18, 22, 38, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 380px;
+  width: 100%;
+}
+
+.chart-container {
+  position: relative;
+  height: 380px;
+  width: 100%;
   margin-bottom: var(--spacing-md);
 }
 

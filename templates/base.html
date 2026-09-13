@@ -28,25 +28,27 @@
         <main class="main-content">
             <!-- Scrolling Header -->
             <header class="header">
-                <div class="header-left">
-                    <div class="header-breadcrumb">
-                        {% block breadcrumb %}Dashboard{% endblock %}
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="header-breadcrumb">
+                            {% block breadcrumb %}Dashboard{% endblock %}
+                        </div>
                     </div>
-                </div>
-                <div class="header-actions">
-                    {% if g.user %}
-                        <a href="#" class="user-profile-pill">
-                            <div class="user-avatar">{{ g.user.full_name[0].upper() }}</div>
-                            <span>{{ g.user.role|title }}</span>
-                            {% if g.user.department and g.user.department != 'None' %}
-                                <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
-                            {% endif %}
-                        </a>
-                        <button type="button" class="user-profile-pill sign-out-pill" onclick="showLogoutModal()" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
-                            <i class="bi bi-box-arrow-right"></i>
-                            <span>Sign Out</span>
-                        </button>
-                    {% endif %}
+                    <div class="header-actions">
+                        {% if g.user %}
+                            <a href="#" class="user-profile-pill">
+                                <div class="user-avatar">{{ g.user.full_name[0].upper() }}</div>
+                                <span>{{ g.user.role|title }}</span>
+                                {% if g.user.department and g.user.department != 'None' %}
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
+                                {% endif %}
+                            </a>
+                            <button type="button" class="user-profile-pill sign-out-pill" onclick="showLogoutModal()" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Sign Out</span>
+                            </button>
+                        {% endif %}
+                    </div>
                 </div>
             </header>
 

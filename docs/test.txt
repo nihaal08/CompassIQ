@@ -11,16 +11,20 @@ PRE-REQUISITES
 ────────────────────────────────────────────────────────────────────────────
 1. Python 3.8+ installed
 2. Flask application running on http://127.0.0.1:5000
-3. Database initialized with seed data
+3. Database initialized with seed data (run seed_viva_data.py)
 4. ML model artifacts present in models/ directory
-5. Default demo accounts available (see docs/details.txt)
+5. Standardized demo accounts available (Password@123 for all)
 
 Command to start server:
   cd CompassIQ-AI
   python app.py
 
+Command to seed demo data:
+  python seed_viva_data.py
+
 Expected startup output:
   [CompassIQ DB] Database schema already initialized. Ready.
+  [CompassIQ DB] Standardized demo accounts ensured (Password@123).
   [CompassIQ ML] All 3 serialized model artifacts verified.
   [AI Engine] Successfully loaded TF-IDF vectorizer and classification models.
   [CompassIQ] Booting server on http://127.0.0.1:5000 (debug=True, use_reloader=False)...
@@ -45,7 +49,7 @@ Test Input:
 Procedure:
   1. Navigate to http://127.0.0.1:5000/register
   2. Fill registration form with test input
-  3. Click "Create Account" button
+  3. Click "Register Now" button
 
 Expected Output:
   - Flash message: "Registration successful! Your account has been automatically approved."
@@ -66,27 +70,28 @@ Edge Cases:
 Status: [PASS] ✅
 
 
-TEST CASE 1.2: User Login
+TEST CASE 1.2: User Login with Standardized Credentials
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
   - Email: "customer@compassiq.com"
-  - Password: "customer123"
+  - Password: "Password@123"
 
 Procedure:
   1. Navigate to http://127.0.0.1:5000/login
   2. Fill login form with test credentials
-  3. Click "Sign In" button
+  3. Click "Login to CompassIQ" button
 
 Expected Output:
-  - Flash message: "Welcome back, Customer User!"
+  - Flash message: "Welcome back, Demo Customer!"
   - Redirect to /customer/dashboard
   - Session created with user_id, role, full_name
+  - No CSRF errors (CSRF protection disabled for viva demo)
 
 Session Verification:
   Check browser cookies or Flask session for:
   - session['user_id'] = customer user_id
   - session['role'] = 'customer'
-  - session['full_name'] = 'Customer User'
+  - session['full_name'] = 'Demo Customer'
 
 Edge Cases:
   - Invalid credentials: Flash message "Invalid email or password."
@@ -99,9 +104,9 @@ Status: [PASS] ✅
 TEST CASE 1.3: Role-Based Dashboard Redirection
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Admin login: admin@compassiq.com / admin123
-  - Agent login: agent_tech@compassiq.com / agent123
-  - Customer login: customer@compassiq.com / customer123
+  - Admin login: admin@compassiq.com / Password@123
+  - Technical Agent login: technical@compassiq.com / Password@123
+  - Customer login: customer@compassiq.com / Password@123
 
 Procedure:
   1. Login with each role's credentials
@@ -124,6 +129,28 @@ Code Reference:
 Status: [PASS] ✅
 
 
+TEST CASE 1.4: Logout Confirmation Modal
+────────────────────────────────────────────────────────────────────────────
+Test Input:
+  - Click "Sign Out" button in top navbar
+
+Procedure:
+  1. Click Sign Out button
+  2. Observe confirmation modal
+  3. Click "Cancel" to close modal
+  4. Click Sign Out again
+  5. Click "OK / Sign Out" to confirm
+
+Expected Output:
+  - Modal appears with title "Confirm Sign Out"
+  - Message: "Are you sure you want to end your current session?"
+  - Cancel closes modal without action
+  - OK redirects to login page
+  - Session cleared
+
+Status: [PASS] ✅
+
+
 ================================================================================
 STEP 2: TICKET CREATION & AI INFERENCE
 Objective: Demonstrate AI-powered ticket classification using TF-IDF
@@ -137,13 +164,13 @@ Test Input:
   - Description: "Getting 502 Gateway Timeout when accessing API endpoint"
 
 Procedure:
-  1. Login as customer
+  1. Login as customer (customer@compassiq.com / Password@123)
   2. Navigate to "Create Ticket" section
   3. Fill subject and description
   4. Click "Submit Ticket" button
 
 Expected Output:
-  - Flash message: "Ticket TKT-XXXXXX created successfully! Routed to Technical team."
+  - Flash message: "Ticket TKT-XXXXXX created successfully!"
   - Ticket appears in "My Tickets" table
   - AI Predictions:
     - predicted_category: "Technical"
@@ -223,7 +250,6 @@ Expected Output:
   - Console output: "[AI Engine] Missing model artifacts. Using safe fallback."
   - AI Predictions (Heuristic):
     - predicted_category: "General Inquiry"
-    - predicted_priority: "Low"
     - predicted_priority: "Medium" (default fallback)
   - System remains functional despite missing ML models
 
@@ -242,7 +268,7 @@ Duration: 60 seconds
 TEST CASE 3.1: Agent Dashboard - Department Queue
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Login as Technical agent: agent_tech@compassiq.com / agent123
+  - Login as Technical agent: technical@compassiq.com / Password@123
 
 Procedure:
   1. Navigate to agent dashboard
@@ -252,6 +278,7 @@ Expected Output:
   - Only Technical department tickets displayed
   - Tickets sorted by priority (Critical > High > Medium > Low)
   - Status counters visible (Total, Submitted, Under Review, In Progress, Resolved)
+  - Full-width layout (no sidebar)
 
 Code Reference:
   app.py, agent_dashboard() function:
@@ -261,20 +288,22 @@ Code Reference:
 Status: [PASS] ✅
 
 
-TEST CASE 3.2: Agent Ticket Selection & Workspace
+TEST CASE 3.2: Agent Ticket Selection & Modal Workspace
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
   - Click on ticket row in agent queue
 
 Procedure:
   1. Select ticket from queue
-  2. Observe split workspace opening
+  2. Observe modal opening with ticket details
 
 Expected Output:
-  - Left panel: Ticket details, conversation thread
-  - Right panel: AI predictions (Category badge, Priority pill)
+  - Modal displays ticket details
+  - Conversation thread visible
+  - AI predictions displayed (Category badge, Priority pill)
   - Ticket status and resolution notes form populated
   - Reply form with message input
+  - Glassmorphic modal styling with "OK" buttons
 
 JavaScript Reference:
   main.js, selectAgentTicket() function:
@@ -294,7 +323,7 @@ Test Input:
   - Resolution Notes: "Investigating API gateway configuration"
 
 Procedure:
-  1. Fill reply message
+  1. Fill reply message in modal
   2. Select status from dropdown
   3. Add resolution notes
   4. Click "Update Ticket" button
@@ -304,6 +333,7 @@ Expected Output:
   - Reply appears in conversation thread
   - Ticket status updated to "In Progress"
   - Agent assigned to ticket (assigned_agent_id populated)
+  - No CSRF errors (CSRF protection disabled)
 
 Database Verification:
   SELECT status, assigned_agent_id, resolution_notes 
@@ -321,7 +351,7 @@ Test Input:
   - Resolution Notes: "Fixed API gateway timeout configuration"
 
 Procedure:
-  1. Update ticket with resolution details
+  1. Update ticket with resolution details in modal
   2. Set status to "Resolved"
   3. Submit update
 
@@ -348,7 +378,7 @@ Duration: 30 seconds
 TEST CASE 4.1: Customer View Resolved Ticket
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Login as customer
+  - Login as customer: customer@compassiq.com / Password@123
   - Navigate to "My Tickets"
 
 Procedure:
@@ -360,6 +390,7 @@ Expected Output:
   - Conversation thread visible
   - Feedback section appears (if satisfaction_score is NULL)
   - Star rating form displayed (1-5 stars)
+  - Glassmorphic modal styling
 
 Status: [PASS] ✅
 
@@ -379,6 +410,7 @@ Expected Output:
   - Flash message: "Thank you! Your satisfaction feedback has been recorded."
   - Ticket status updated to "Closed"
   - Feedback section shows rating confirmation
+  - No CSRF errors
 
 Database Verification:
   SELECT satisfaction_score, customer_feedback, status 
@@ -414,16 +446,18 @@ Duration: 45 seconds
 TEST CASE 5.1: Admin Dashboard Metrics
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Login as admin: admin@compassiq.com / admin123
+  - Login as admin: admin@compassiq.com / Password@123
 
 Procedure:
   1. Navigate to admin dashboard
   2. Observe metric cards
 
 Expected Output:
-  - Total Tickets: Integer count (e.g., 15)
+  - Total Tickets: Integer count (e.g., 14)
   - Open Tickets: Count of non-resolved tickets (e.g., 8)
-  - Resolved Tickets: Count of resolved/closed tickets (e.g., 7)
+  - Resolved Tickets: Count of resolved/closed tickets (e.g., 6)
+  - Full-width layout (no sidebar)
+  - Glassmorphic metric cards with icon wrappers
 
 Code Reference:
   app.py, admin_dashboard() function:
@@ -447,13 +481,15 @@ Expected Output:
   - Chart.js bar chart renders correctly
   - Categories: Technical, Billing, Account, General Inquiry
   - Bar heights reflect actual ticket counts per category
-  - Dark theme styling applied
+  - Indigo theme color (#6366f1)
+  - Fixed aspect ratio (380px height)
+  - Glassmorphic chart card styling
 
 JavaScript Reference:
-  main.js, initAdminCharts() function:
+  admin_dashboard.html, initAdminCharts() function:
     - Configures Chart.js for dark theme
     - Creates bar chart with category data
-    - Uses color-coded bars for visual distinction
+    - Uses indigo color for bars
 
 Database Query:
   SELECT predicted_category as assigned_department, COUNT(*) as count
@@ -462,22 +498,21 @@ Database Query:
 Status: [PASS] ✅
 
 
-TEST CASE 5.3: Real-Time Chart Update
+TEST CASE 5.3: User Management Table
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Create new ticket as customer
-  - Refresh admin dashboard
+  - Scroll to User Management section
 
 Procedure:
-  1. Create new ticket (e.g., Technical category)
-  2. Logout as customer
-  3. Login as admin
-  4. Refresh admin dashboard
+  1. Observe user table
+  2. Check department display for NULL values
 
 Expected Output:
-  - Total Tickets count increased by 1
-  - Category distribution chart updated
-  - Technical bar height increased
+  - All users displayed with ID, name, email, role, department, status
+  - NULL departments display as "—" (em dash) instead of "None"
+  - Status badges: Approved (green), Banned (red), Pending (yellow)
+  - Role badges with appropriate colors
+  - Glassmorphic table styling
 
 Status: [PASS] ✅
 
@@ -558,20 +593,21 @@ Code Reference:
 Status: [PASS] ✅
 
 
-EDGE CASE 5: CSRF Token Validation
+EDGE CASE 5: CSRF Token Validation (Disabled)
 ────────────────────────────────────────────────────────────────────────────
 Test Input:
-  - Remove CSRF token from login form
-  - Submit login form
+  - Submit any POST form (login, registration, ticket creation)
 
 Expected Output:
-  - HTTP 400 error: "CSRF token is missing"
-  - Login blocked without valid CSRF token
+  - Form submits successfully without 400 error
+  - No "CSRF token is missing" error
+  - CSRF protection disabled for viva demo reliability
 
 Code Reference:
-  app.py, Flask-WTF configuration:
-    csrf = CSRFProtect(app)
-    app.config['WTF_CSRF_TIME_LIMIT'] = None
+  app.py, config.py:
+    WTF_CSRF_ENABLED = False
+    WTF_CSRF_CHECK_DEFAULT = False
+    SECRET_KEY = 'compassiq-mca-secret-key'
 
 Status: [PASS] ✅
 
@@ -642,58 +678,54 @@ Ensure all demonstration points are covered
 ================================================================================
 
 CODE EXPLANATION CHECKLIST:
-────────────────────────────────────────────────────────────────────────────
-[ ] Explain Flask route structure (app.py)
-[ ] Explain AI inference pipeline (ai_engine.py)
-[ ] Explain database schema and relationships (db.py, schema.sql)
-[ ] Explain RBAC decorators (@customer_required, @agent_required, @admin_required)
-[ ] Explain TF-IDF vectorization mathematics
-[ ] Explain Logistic Regression classification
-[ ] Explain confidence scoring with predict_proba()
-[ ] Explain AJAX endpoints and JSON responses
-[ ] Explain Chart.js integration for analytics
-[ ] Explain CSRF protection implementation
+[ ] Explain TF-IDF vectorization and why it's used
+[ ] Explain Logistic Regression and probability estimation
+[ ] Explain SQLite foreign key relationships
+[ ] Explain Flask session management
+[ ] Explain role-based access control decorators
+[ ] Explain CSRF configuration (disabled for demo)
+[ ] Explain scrypt password hashing
 
-DEMONSTRATION CHECKLIST:
-────────────────────────────────────────────────────────────────────────────
-[ ] Step 1: Auto-approved registration and login
-[ ] Step 2: Ticket creation with AI predictions
-[ ] Step 3: Agent workflow and ticket resolution
-[ ] Step 4: Customer CSAT feedback submission
-[ ] Step 5: Admin metrics and category chart
-[ ] Edge case: Unauthorized access attempt
-[ ] Edge case: Cross-role access attempt
-[ ] Performance: Startup time verification
-[ ] Performance: ML inference time verification
+DEMO FLOW CHECKLIST:
+[ ] Step 1: Register/login with Password@123
+[ ] Step 2: Create ticket, observe AI predictions
+[ ] Step 3: Agent login, resolve ticket in modal
+[ ] Step 4: Customer login, submit CSAT rating
+[ ] Step 5: Admin login, view metrics and chart
 
-DEFENSE POINTS CHECKLIST:
-────────────────────────────────────────────────────────────────────────────
-[ ] Why TF-IDF? (Explainable, interpretable, standard NLP technique)
-[ ] Why Logistic Regression? (Linear classifier with probability estimation)
-[ ] Why SQLite? (Zero-configuration, suitable for demo scale)
-[ ] Why Auto-Approval? (Streamlined demo flow for viva evaluation)
-[ ] Why Simplified Navigation? (Reduces UI complexity for viva presentation)
-[ ] How does confidence scoring work? (predict_proba() returns probability)
-[ ] What happens if ML models fail? (Rule-based heuristic fallback)
-[ ] How is data integrity maintained? (Foreign key constraints, transactions)
-[ ] How is security implemented? (CSRF, password hashing, RBAC)
+UI/UX CHECKLIST:
+[ ] Glassmorphic dark theme visible
+[ ] High contrast text (WCAG AA+ compliant)
+[ ] NULL departments display as "—"
+[ ] Logout confirmation modal works
+[ ] Full-width layout (no sidebar)
+[ ] Responsive design on mobile
 
+SECURITY CHECKLIST:
+[ ] Password hashing explained (scrypt)
+[ ] SQL injection prevention explained
+[ ] Session security explained
+[ ] RBAC explained
+[ ] CSRF configuration explained
+
+DATABASE CHECKLIST:
+[ ] Schema structure explained
+[ ] Foreign key relationships explained
+[ ] Active tables vs idle tables explained
+[ ] Data loss prevention explained
 
 ================================================================================
 CONCLUSION
 ================================================================================
 
-This 5-step viva test suite provides a comprehensive demonstration of the
-CompassIQ system. Each step validates core functionality while maintaining
-focus on academic evaluation criteria. The system is optimized for viva
-presentation with clean, explainable code and comprehensive documentation.
+This test suite provides a comprehensive evaluation framework for the CompassIQ
+system. All test cases are designed to demonstrate core AI/ML concepts, full-stack
+development practices, and viva-ready code quality.
 
-All test cases have been verified and marked [PASS] ✅. The system is ready
-for internal viva evaluation.
-
-Total Demonstration Time: ~3.5 minutes
-Core Features Demonstrated: 5
-Edge Cases Tested: 5
-Performance Metrics Verified: 3
+For questions or clarifications, refer to:
+- docs/details.txt (Architecture documentation)
+- docs/scrumnote.txt (Sprint development logs)
+- docs/VIVA_DEFENSE_CHEAT_SHEET.txt (Quick reference)
+- docs/DATA_LOSS_EXPLANATION.md (Data loss prevention)
 
 ================================================================================

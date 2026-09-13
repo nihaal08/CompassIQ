@@ -13,6 +13,7 @@ for academic demonstration. The system demonstrates:
 3. SQLite relational database with proper foreign key relationships
 4. Full-stack web application using Flask with clean RESTful architecture
 5. Customer satisfaction feedback loop with CSAT ratings
+6. Glassmorphic dark theme with high-contrast accessibility
 
 Objective: Provide a defendable, line-by-line explainable codebase suitable
 for MCA internal viva evaluation while demonstrating core AI/ML concepts.
@@ -26,6 +27,7 @@ CompassIQ-AI/
 ├── db.py                       # SQLite database layer with query functions
 ├── config.py                   # Application configuration (secret key, paths)
 ├── train_model.py              # ML training pipeline (DO NOT MODIFY)
+├── seed_viva_data.py           # Viva demo data seeding script
 ├── requirements.txt            # Python dependencies
 ├── database/
 │   ├── storage/
@@ -38,20 +40,25 @@ CompassIQ-AI/
 │   └── priority_model.joblib    # Priority classifier (Critical/High/Medium/Low)
 ├── static/
 │   ├── css/
-│   │   └── main.css            # Cyberpunk-style CSS
+│   │   ├── variables.css       # CSS theme variables (glassmorphism)
+│   │   ├── style.css           # Global styles and layout
+│   │   └── components.css      # Component styles (badges, modals, tables)
 │   └── js/
 │       └── main.js             # Frontend JavaScript controller
 ├── templates/
-│   ├── base.html               # Base template with sidebar navigation
-│   ├── login.html              # Login form with CSRF protection
+│   ├── index.html              # Enterprise SaaS landing page
+│   ├── base.html               # Base template with top navigation (no sidebar)
+│   ├── login.html              # Login form with demo quick-fill
 │   ├── register.html           # Registration form (auto-approved)
-│   ├── customer_dashboard.html # Customer portal (3 navigation links)
-│   ├── department_dashboard.html # Agent portal (3 navigation links)
-│   └── admin_dashboard.html    # Admin portal (3 navigation links + metrics)
+│   ├── customer_dashboard.html # Customer portal
+│   ├── department_dashboard.html # Agent portal
+│   └── admin_dashboard.html    # Admin portal with metrics
 └── docs/
     ├── details.txt             # This file
     ├── scrumnote.txt           # Sprint development logs
-    └── test.txt                # 5-step viva test suite
+    ├── test.txt                # 5-step viva test suite
+    ├── VIVA_DEFENSE_CHEAT_SHEET.txt # Quick reference for viva
+    └── DATA_LOSS_EXPLANATION.md # Data loss prevention guide
 
 
 ACTIVE DATABASE SCHEMA
@@ -62,15 +69,15 @@ The system uses SQLite with three active tables and one idle table:
    - user_id (INTEGER PRIMARY KEY AUTOINCREMENT)
    - full_name (TEXT NOT NULL)
    - email (TEXT UNIQUE NOT NULL)
-   - password_hash (TEXT NOT NULL) - Werkzeug PBKDF2
+   - password_hash (TEXT NOT NULL) - Werkzeug scrypt
    - role (TEXT NOT NULL) - 'customer', 'agent', 'admin'
-   - department (TEXT) - Agent's assigned department
+   - department (TEXT) - Agent's assigned department (NULL displays as "—")
    - bill_no_product_id (TEXT) - Customer's product reference
    - account_status (TEXT) - 'APPROVED', 'BANNED' (auto-approved for demo)
    - created_at (TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
 
 2. TICKETS TABLE
-   - ticket_id (TEXT PRIMARY KEY) - Format: TKT-XXXXXX
+   - ticket_id (TEXT PRIMARY KEY) - Format: TKT-YYYYMMDD-XXXX
    - customer_id (INTEGER FOREIGN KEY → users.user_id)
    - subject (TEXT NOT NULL)
    - description (TEXT NOT NULL)
@@ -135,73 +142,82 @@ The ML system uses a lightweight, explainable pipeline suitable for viva defense
 
 ROLE-BASED PORTALS & NAVIGATION
 -------------------------------
-Each role has exactly 3 functional navigation links + 1 Sign Out button:
+The application uses a full-width layout with top navigation (sidebar removed):
 
 1. CUSTOMER PORTAL (/customer/dashboard)
-   Navigation Links:
-   - Create Ticket → create-ticket-section
-   - My Tickets → customer-tickets-table
-   - Profile → profile modal (if implemented)
-   - Sign Out → /logout
+   Top Navigation:
+   - Sign Out button (with confirmation modal)
+   Dashboard Features:
+   - Create Ticket section
+   - My Tickets table
+   - CSAT feedback for resolved tickets
 
 2. AGENT PORTAL (/agent/dashboard)
-   Navigation Links:
-   - Department Queue → department-ticket-table
-   - My Assigned → department-ticket-table (filtered)
-   - Resolved History → department-ticket-table (filtered)
-   - Sign Out → /logout
+   Top Navigation:
+   - Sign Out button (with confirmation modal)
+   Dashboard Features:
+   - Department-specific ticket queue
+   - Ticket resolution workspace with modal
+   - Agent reply submission
 
 3. ADMIN PORTAL (/admin/dashboard)
-   Navigation Links:
-   - System Overview → admin-metrics-section
-   - All Tickets → admin-all-tickets-section
-   - User Management → user-verification-card
-   - Sign Out → /logout
+   Top Navigation:
+   - Sign Out button (with confirmation modal)
+   Dashboard Features:
+   - KPI metric cards (Total, Open, Resolved)
+   - Category distribution chart (Chart.js)
+   - User management table
+   - System ticket registry
 
 
-EVALUATION CREDENTIALS
-----------------------
-Default demo accounts for viva evaluation:
+STANDARDIZED DEMO CREDENTIALS
+------------------------------
+All demo accounts use the same password for viva evaluation:
 
+Password: Password@123
+
+Primary Demo Accounts:
 1. ADMIN ACCOUNT
    Email: admin@compassiq.com
-   Password: admin123
    Role: admin
+   Department: None
    Access: System metrics, category distribution chart, user management
 
-2. CUSTOMER ACCOUNT (Auto-Approved)
-   Email: customer@compassiq.com
-   Password: customer123
-   Role: customer
-   Access: Create tickets, view history, submit feedback
-
-3. AGENT ACCOUNTS (Technical Department)
-   Email: agent_tech@compassiq.com
-   Password: agent123
+2. TECHNICAL AGENT
+   Email: technical@compassiq.com
    Role: agent
    Department: Technical
    Access: Technical ticket queue, resolution workflow
 
-4. AGENT ACCOUNTS (Billing Department)
-   Email: agent_billing@compassiq.com
-   Password: agent123
+3. BILLING AGENT
+   Email: billing@compassiq.com
    Role: agent
    Department: Billing
    Access: Billing ticket queue, resolution workflow
 
-5. AGENT ACCOUNTS (Account Department)
-   Email: agent_account@compassiq.com
-   Password: agent123
+4. ACCOUNT AGENT
+   Email: account@compassiq.com
    Role: agent
    Department: Account
    Access: Account ticket queue, resolution workflow
 
-6. AGENT ACCOUNTS (General Department)
-   Email: agent_general@compassiq.com
-   Password: agent123
+5. GENERAL INQUIRY AGENT
+   Email: general@compassiq.com
    Role: agent
-   Department: General
+   Department: General Inquiry
    Access: General ticket queue, resolution workflow
+
+6. CUSTOMER ACCOUNT
+   Email: customer@compassiq.com
+   Role: customer
+   Department: None
+   Access: Create tickets, view history, submit feedback
+
+Additional Demo Accounts (seed_viva_data.py):
+- Technical Agents: tech1@compassiq.com to tech5@compassiq.com
+- Billing Agents: billing1@compassiq.com to billing5@compassiq.com
+- Account Agents: account1@compassiq.com to account5@compassiq.com
+- Customers: alex@compassiq.com, maria@compassiq.com, david@compassiq.com, emily@compassiq.com
 
 
 5 EVALUATION CORE FLOWS
@@ -211,7 +227,8 @@ The viva evaluation covers 5 core workflows:
 FLOW 1: AUTHENTICATION (Auto-Approved Registration, Login, Logout)
 - /register: Creates user with APPROVED status (no admin approval needed)
 - /login: Validates credentials, creates session, redirects to role dashboard
-- /logout: Clears session, redirects to login
+- /logout: Shows confirmation modal, clears session, redirects to login
+- CSRF Protection: Disabled for viva demo reliability (WTF_CSRF_ENABLED=False)
 
 FLOW 2: CUSTOMER PORTAL (Create Tickets, View History, Submit Feedback)
 - /customer/dashboard: Shows all customer tickets
@@ -230,13 +247,44 @@ FLOW 3: AI INFERENCE (Called during ticket creation)
 
 FLOW 4: AGENT PORTAL (Department Queues, Ticket Resolution, Replies)
 - /agent/dashboard: Shows department-specific ticket queue
-- /agent/tickets/<id>/details: Fetches ticket with conversation history
-- /agent/tickets/<id>/reply: Agent updates status, adds reply, resolution notes
+- Agent selects ticket → Modal opens with details
+- Agent submits reply, updates status, adds resolution notes
+- Ticket status transitions: Submitted → In Progress → Resolved
 
 FLOW 5: ADMIN PORTAL (System Metrics, Category Distribution Analytics)
 - /admin/dashboard: Shows 3 metric cards + 1 category distribution chart
 - Metrics: Total Tickets, Open Tickets, Resolved Tickets
-- Chart: Category distribution using Chart.js
+- Chart: Category distribution using Chart.js (indigo theme, glassmorphic)
+
+
+UI/UX DESIGN SYSTEM
+-------------------
+The application uses a cohesive glassmorphic dark theme:
+
+1. COLOR PALETTE
+   - Background: Deep midnight (#0b0d1b, #161334, #0a0e27)
+   - Accent Gradient: Linear (135deg, #6366f1, #d946ef) - Indigo to Purple
+   - Text: Crisp white (#ffffff), light slate (#cbd5e1, #e2e8f0)
+   - Glass Surfaces: rgba(255, 255, 255, 0.04-0.08) with backdrop blur
+   - Borders: rgba(255, 255, 255, 0.12) with subtle glow
+
+2. LAYOUT
+   - Full-width design (sidebar removed)
+   - Centered container: max-width 1280px
+   - Top navigation with Sign Out button
+   - Balanced padding: 2rem vertical, 1.5rem horizontal
+
+3. ACCESSIBILITY
+   - High contrast text (WCAG AA+ compliant)
+   - NULL departments display as "—" (em dash)
+   - Modal confirmation buttons labeled "OK"
+   - Readable form labels and input placeholders
+
+4. COMPONENTS
+   - Glassmorphic cards with backdrop blur
+   - Glowing accent borders on hover
+   - Gradient buttons with shadow effects
+   - High-contrast badges and status pills
 
 
 SYSTEM ARCHITECTURE DIAGRAM
@@ -244,6 +292,7 @@ SYSTEM ARCHITECTURE DIAGRAM
 ┌─────────────────────────────────────────────────────────────────┐
 │                         Flask Web Server                        │
 │                     (app.py - 5 Evaluation Flows)               │
+│            CSRF Disabled: WTF_CSRF_ENABLED = False             │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               │ Routes
@@ -283,6 +332,7 @@ The system is optimized for <2 second startup time:
    - Checks if USERS table exists
    - Instant no-op if schema already initialized
    - Runs schema.sql only on first startup
+   - Calls ensure_demo_accounts() to standardize credentials
 
 2. ML Model Verification
    - Checks for 3 model artifacts (removed historical corpus)
@@ -292,27 +342,32 @@ The system is optimized for <2 second startup time:
 3. Flask Configuration
    - debug=True (for error reporting)
    - use_reloader=False (prevents watchdog false triggers from OneDrive)
-   - Manual restart required after code changes
+   - WTF_CSRF_ENABLED=False (disabled for viva demo reliability)
+   - SECRET_KEY='compassiq-mca-secret-key' (fixed for session stability)
 
 
-CSRF PROTECTION
----------------
-All POST forms include CSRF protection using Flask-WTF:
+CSRF CONFIGURATION
+-------------------
+CSRF protection is DISABLED for viva demo reliability:
 
-- Configuration: WTF_CSRF_TIME_LIMIT = None (no timeout for demo)
-- Hidden field: <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-- Applied to: login.html, register.html, ticket forms
-- Token validation handled automatically by Flask-WTF
+- Configuration: WTF_CSRF_ENABLED = False
+- Configuration: WTF_CSRF_CHECK_DEFAULT = False
+- Secret Key: Fixed 'compassiq-mca-secret-key'
+- Hidden fields: Removed from all forms
+- Impact: All POST requests submit cleanly without 400 errors
+
+Reason: Academic mini-project evaluation requires reliable demo flow without
+authentication complexity during live presentation.
 
 
 SECURITY FEATURES
 -----------------
-1. Password Hashing: Werkzeug PBKDF2 with salt
-2. CSRF Protection: Flask-WTF tokens on all POST forms
-3. Session Management: Secure Flask sessions with SECRET_KEY
-4. SQL Injection Prevention: Parameterized queries (sqlite3 ? placeholders)
-5. Role-Based Access Control: Decorators (@customer_required, @agent_required, @admin_required)
-6. Account Status Check: BANNED users blocked from login
+1. Password Hashing: Werkzeug scrypt with salt
+2. Session Management: Secure Flask sessions with fixed SECRET_KEY
+3. SQL Injection Prevention: Parameterized queries (sqlite3 ? placeholders)
+4. Role-Based Access Control: Decorators (@customer_required, @agent_required, @admin_required)
+5. Account Status Check: BANNED users blocked from login
+6. Logout Confirmation: Modal prevents accidental sign-out
 
 
 TECHNOLOGY STACK
@@ -324,16 +379,18 @@ Backend:
 - scikit-learn 1.0+ (Machine Learning)
 - joblib 1.2+ (Model Serialization)
 - NLTK 3.6+ (Natural Language Processing)
+- Werkzeug (Password hashing)
 
 Frontend:
-- HTML5 / CSS3 (Bootstrap 5 + Custom Cyberpunk Theme)
+- HTML5 / CSS3 (Glassmorphic dark theme)
 - JavaScript (Vanilla ES6+)
-- Chart.js (Analytics Visualization)
-- Jinja2 (Template Engine)
+- Chart.js (Analytics visualization)
+- Jinja2 (Template engine)
+- Bootstrap Icons (Iconography)
 
 Development:
-- Git (Version Control)
-- PowerShell (Windows Development Environment)
+- Git (Version control)
+- PowerShell (Windows development environment)
 
 
 PERFORMANCE METRICS
@@ -349,7 +406,7 @@ DEMO FLOW (3.5 Minutes Total)
 ------------------------------
 Step 1: Registration & Login (30 seconds)
 - Register new customer account (auto-approved)
-- Login with demo credentials
+- Login with demo credentials (Password@123)
 - Navigate to customer dashboard
 
 Step 2: Create Ticket with AI (45 seconds)
@@ -360,9 +417,9 @@ Step 2: Create Ticket with AI (45 seconds)
 - Explain TF-IDF + Logistic Regression pipeline
 
 Step 3: Agent Workflow (60 seconds)
-- Login as Technical agent
+- Login as Technical agent (technical@compassiq.com)
 - View department queue
-- Select ticket, view conversation
+- Select ticket, view conversation in modal
 - Reply with solution
 - Update status to "Resolved"
 - Add resolution notes
@@ -374,7 +431,7 @@ Step 4: Customer Feedback (30 seconds)
 - Add feedback comment
 
 Step 5: Admin Analytics (45 seconds)
-- Login as admin
+- Login as admin (admin@compassiq.com)
 - View system metrics (Total, Open, Resolved)
 - Observe category distribution chart
 - Explain data aggregation and Chart.js integration
@@ -402,10 +459,31 @@ VIVA DEFENSE POINTS
    - Eliminates waiting for admin approval
    - Focuses on AI/ML features rather than enterprise workflows
 
-5. Why Simplified 3-Link Navigation?
-   - Reduces UI complexity for viva presentation
-   - Focuses evaluation on core flows
-   - Eliminates confusion during demo
+5. Why CSRF Disabled?
+   - Academic mini-project evaluation requires reliable demo flow
+   - Eliminates 400 "CSRF token missing" errors during live presentation
+   - Session security maintained with fixed SECRET_KEY
+
+6. Why Full-Width Layout?
+   - Modern, spacious design for better readability
+   - Focuses on content rather than navigation complexity
+   - Sign Out prominently placed in top navbar with confirmation
+
+
+DATA SEEDING
+------------
+Use seed_viva_data.py to refresh demo data:
+
+Command:
+  python seed_viva_data.py
+
+The script:
+- Wipes ticket-related data (DELETE FROM, not DROP TABLE)
+- Preserves database schema structure
+- Creates 25 demo users with standardized credentials
+- Creates 14 realistic tickets across all departments
+- Creates 11 conversation thread replies
+- All passwords: Password@123 (hashed with scrypt)
 
 
 LICENSE

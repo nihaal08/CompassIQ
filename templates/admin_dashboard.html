@@ -45,19 +45,19 @@
 </div>
 
 <!-- Analytics Chart -->
-<div id="admin-analytics-section" class="card mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div id="admin-analytics-section" class="chart-card">
     <div class="card-header">
         <h3 class="card-title">Category Distribution</h3>
     </div>
     <div class="card-body">
-        <div class="chart-container">
+        <div class="chart-wrapper">
             <canvas id="deptVolumeChart"></canvas>
         </div>
     </div>
 </div>
 
 <!-- User Management -->
-<div id="user-verification-card" class="card mb-2xl" style="margin-bottom: var(--spacing-3xl);">
+<div id="user-verification-card" class="card">
     <div class="card-header">
         <h3 class="card-title">User Management</h3>
         <p class="card-subtitle">Manage system users and permissions</p>
@@ -93,7 +93,7 @@
                                         {{ user.role|title }}
                                     </span>
                                 </td>
-                                <td>{{ user.department or 'None' }}</td>
+                                <td>{{ user.department if user.department and user.department != 'None' else '—' }}</td>
                                 <td>
                                     {% if user.account_status == 'APPROVED' %}
                                         <span class="badge badge-status-Resolved">Approved</span>
@@ -201,8 +201,8 @@
                     datasets: [{
                         label: 'Ticket Volume',
                         data: deptData,
-                        backgroundColor: 'rgba(27, 67, 50, 0.8)',
-                        borderColor: '#1b4332',
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: '#6366f1',
                         borderWidth: 1
                     }]
                 },
@@ -213,7 +213,24 @@
                         legend: { display: false }
                     },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            ticks: { 
+                                color: '#94a3b8',
+                                stepSize: 1
+                            },
+                            grid: { 
+                                color: 'rgba(255, 255, 255, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: { 
+                                color: '#cbd5e1'
+                            },
+                            grid: { 
+                                display: false
+                            }
+                        }
                     }
                 }
             });
