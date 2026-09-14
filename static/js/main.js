@@ -154,7 +154,7 @@ function openCustomerTicketModal(ticketId) {
 
     // Reset thread with loading indicator
     const threadContainer = document.getElementById('custChatThread');
-    threadContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-cyan" role="status"></div></div>';
+    threadContainer.innerHTML = '<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>';
     
     document.getElementById('custModalTicketId').textContent = ticketId;
     document.getElementById('custReplyForm').action = `/customer/tickets/${ticketId}/reply`;
@@ -186,7 +186,7 @@ function openCustomerTicketModal(ticketId) {
                         const bubble = document.createElement('div');
                         bubble.className = `chat-bubble ${isCustomer ? 'chat-bubble-customer' : 'chat-bubble-agent'}`;
                         bubble.innerHTML = `
-                            <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#00D2FF'};">
+                            <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#D5D5D5'};">
                                 ${escapeHtml(r.sender_name)} ${isCustomer ? '(You)' : '(Support Agent)'}
                             </div>
                             <div style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
@@ -208,7 +208,7 @@ function openCustomerTicketModal(ticketId) {
                     } else if (ticket.satisfaction_score) {
                         feedbackSection.style.display = 'block';
                         feedbackSection.innerHTML = `
-                            <div class="alert alert-info py-2 px-3 mb-0" style="background: rgba(0, 210, 255, 0.1); border: 1px solid #00D2FF; color: #FFF;">
+                            <div class="alert alert-info py-2 px-3 mb-0" style="background: #202126; border: 1px solid rgba(255, 255, 255, 0.12); color: #FFF;">
                                 <i class="bi bi-star-fill text-warning me-2"></i> You rated this ticket <strong>${ticket.satisfaction_score} / 5 Stars</strong>.
                             </div>
                         `;
@@ -268,7 +268,7 @@ function selectAgentTicket(ticketId, clickedElement) {
     if (workspace) workspace.style.display = 'flex';
 
     // Show loading indicator
-    document.getElementById('agentThreadContainer').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-cyan"></div></div>';
+    document.getElementById('agentThreadContainer').innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
 
     // Fetch ticket details via AJAX
     fetch(`/agent/tickets/${ticketId}/details`)
@@ -301,7 +301,7 @@ function selectAgentTicket(ticketId, clickedElement) {
                     const bubble = document.createElement('div');
                     bubble.className = `chat-bubble ${isCustomer ? 'chat-bubble-customer' : 'chat-bubble-agent'}`;
                     bubble.innerHTML = `
-                        <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#00D2FF'};">
+                        <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#D5D5D5'};">
                             ${escapeHtml(r.sender_name)} ${isCustomer ? '(Customer)' : '(Agent)'}
                         </div>
                         <div style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
@@ -538,18 +538,18 @@ function initAdminCharts(deptLabels, deptData) {
                     label: 'Tickets',
                     data: deptData,
                     backgroundColor: [
-                        'rgba(0, 210, 255, 0.65)',
-                        'rgba(0, 102, 255, 0.65)',
-                        'rgba(121, 40, 202, 0.65)',
-                        'rgba(0, 230, 118, 0.65)',
-                        'rgba(255, 51, 102, 0.65)'
+                        'rgba(232, 232, 232, 0.65)',
+                        'rgba(209, 213, 219, 0.65)',
+                        'rgba(156, 163, 175, 0.65)',
+                        'rgba(107, 114, 128, 0.65)',
+                        'rgba(75, 85, 99, 0.65)'
                     ],
                     borderColor: [
-                        '#00D2FF',
-                        '#0066FF',
-                        '#7928CA',
-                        '#00E676',
-                        '#FF3366'
+                        '#E8E8E8',
+                        '#D1D5DB',
+                        '#9CA3AF',
+                        '#6B7280',
+                        '#4B5563'
                     ],
                     borderWidth: 1.5,
                     borderRadius: 6

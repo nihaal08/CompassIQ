@@ -240,6 +240,21 @@ def seed_tickets(conn, user_id_map):
             'created_at': datetime.now() - timedelta(days=6),
             'resolved_at': datetime.now() - timedelta(days=5)
         },
+        {
+            'customer_email': 'alex@compassiq.com',
+            'assigned_agent_email': 'billing@compassiq.com',
+            'subject': 'Duplicate billing charge on my card statement',
+            'description': 'I checked my bank statement today and noticed I was charged twice for my subscription renewal. Please refund the duplicate transaction immediately.',
+            'category': 'Billing',
+            'priority': 'High',
+            'department': 'Billing',
+            'status': 'Submitted',
+            'csat_score': None,
+            'feedback': None,
+            'resolution_notes': None,
+            'created_at': datetime.now() - timedelta(hours=2),
+            'resolved_at': None
+        },
         
         # Account Department Tickets
         {
@@ -467,6 +482,57 @@ def seed_replies(conn, ticket_id_map, user_id_map):
     
     conn.commit()
     print(f"[Seed] Created {len(replies)} conversation replies.")
+    
+    # Get actual ticket IDs from database
+    actual_tickets = conn.execute("SELECT ticket_id, subject FROM tickets ORDER BY ticket_id").fetchall()
+    ticket_data = {t[0]: t[1] for t in actual_tickets}
+    ticket_ids = list(ticket_data.keys())
+    
+    if len(ticket_ids) < 14:
+        print(f"[Seed] Warning: Expected 14 tickets, found {len(ticket_ids)}")
+        # Use the tickets we have
+        ticket_ids = ticket_ids
+    
+    # Create sample similar matches for demo tickets using actual ticket IDs
+    print("[Seed] Creating similar historical matches...")
+    similar_matches = []
+    
+    # Find the specific billing ticket for the demo
+    billing_ticket_id = None
+    for tid, subject in ticket_data.items():
+        if 'Duplicate billing charge' in subject or 'duplicate' in subject.lower():
+            billing_ticket_id = tid
+            break
+    
+    # If we found the billing ticket, add the specific demo matches
+    if billing_ticket_id:
+        similar_matches.extend([
+            (billing_ticket_id, 'HIST-BILL-801', 0.924, 'Double charge on annual subscription invoice', 'Customer was billed twice for the annual renewal fee on transaction TXN-9942. Identified gateway sync duplicate charge. Initiated automated reversal for invoice INV-9942 and credited 500 reward points to the customer wallet.', 2),
+            (billing_ticket_id, 'HIST-BILL-802', 0.868, 'Subscription renewal payment deducted twice', 'My credit card was debited two times during auto-renewal of the premium plan. Verified payment processor log. Issued immediate refund for the secondary debit transaction within 3-5 business days.', 3),
+            (billing_ticket_id, 'HIST-BILL-803', 0.795, 'Duplicate transaction on billing cycle checkout', 'Payment gateway timed out but card statement shows duplicate charges for the same order. Canceled redundant pending authorization capture at the acquirer bank level and updated customer ledger.', 4),
+        ])
+        print(f"[Seed] Added specific demo matches for billing ticket: {billing_ticket_id}")
+    
+    # Add generic matches for other tickets
+    for i, ticket_id in enumerate(ticket_ids):
+        if ticket_id == billing_ticket_id:
+            continue  # Skip the billing ticket as we already added specific matches
+            
+        similar_matches.extend([
+            (ticket_id, f'HIST-{i+1}-001', 0.92 - (i * 0.01), f'Similar issue pattern {i+1}', f'Historical resolution for issue pattern {i+1}', 4 + i),
+            (ticket_id, f'HIST-{i+1}-002', 0.87 - (i * 0.01), f'Related problem {i+1}', f'Historical context for problem {i+1}', 6 + i),
+            (ticket_id, f'HIST-{i+1}-003', 0.81 - (i * 0.01), f'Prior case {i+1}', f'Historical solution for case {i+1}', 3 + i),
+        ])
+    
+    for match in similar_matches:
+        conn.execute(
+            """INSERT INTO ticket_similar_matches (ticket_id, similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            match
+        )
+    
+    conn.commit()
+    print(f"[Seed] Created {len(similar_matches)} similar historical matches.")
 
 
 def main():

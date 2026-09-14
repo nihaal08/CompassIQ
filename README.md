@@ -17,7 +17,7 @@ An end-to-end, production-grade, AI-powered customer support ticket intelligence
    - **Department Agent Portal**: Dedicated department-scoped queue (`Technical`, `Billing`, `Account`, `General Inquiry`), dual-pane split workspace (conversation + AI similarity panel), one-click "Use Solution" macro.
    - **Administrator Console**: Real-time system analytics telemetry, User Verification Queue (`PENDING` customer approvals/rejections), and AI Fraud Escalation Center (one-click user bans / ticket closures).
 4. **Futuristic Glassmorphism Theme**:
-   - Dark charcoal palette (`#121824`), electric blue accents (`#0066FF` / `#00D2FF`), translucent glass cards with `backdrop-filter: blur(16px)`, neon borders, and centered modal alerts with dedicated top-left `X` close buttons.
+   - Black/charcoal palette (`#111214`, `#18191C`, `#202126`), neutral monochrome accents (`#E8E8E8`, `#D5D5D5`, `#FFFFFF`), translucent glass cards with `backdrop-filter: blur(16px)`, subtle borders, and centered modal alerts with dedicated top-left `X` close buttons.
 
 ---
 

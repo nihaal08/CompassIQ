@@ -144,19 +144,19 @@ FLOW 4: AGENT PORTAL (60s)
 FLOW 5: ADMIN PORTAL (45s)
 - /admin/dashboard: 3 metric cards + 1 category distribution chart
 - Metrics: Total Tickets, Open Tickets, Resolved Tickets
-- Chart: Chart.js bar chart with category distribution data (indigo theme)
+- Chart: Chart.js bar chart with category distribution data (monochrome theme)
 - Data aggregation: GROUP BY predicted_category, COUNT(*)
 - User Management: NULL departments display as "—"
 
 
 UI/UX DESIGN SYSTEM
 ────────────────────────────────────────────────────────────────────────────
-Theme: Glassmorphic dark theme with midnight indigo palette
+Theme: Glassmorphic dark theme with black/charcoal monochrome palette
 
 Color Palette:
-- Background: Deep midnight (#0b0d1b, #161334, #0a0e27)
-- Accent Gradient: Linear (135deg, #6366f1, #d946ef) - Indigo to Purple
-- Text: Crisp white (#ffffff), light slate (#cbd5e1, #e2e8f0)
+- Background: Deep black/charcoal (#111214, #18191C, #202126)
+- Accent: Neutral monochrome (#E8E8E8, #D5D5D5, #FFFFFF)
+- Text: Crisp white (#F5F5F5), gray (#B5B5B5, #858585)
 - Glass Surfaces: rgba(255, 255, 255, 0.04-0.08) with backdrop blur
 - Borders: rgba(255, 255, 255, 0.12) with subtle glow
 

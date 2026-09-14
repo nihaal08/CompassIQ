@@ -1,6 +1,6 @@
 /* ==========================================================================
    CompassIQ — CSS Variables & Design Tokens
-   Glassmorphism Dark Theme — Midnight Indigo/Purple Enterprise Palette
+   Premium Dark Monochrome Theme — Black/Charcoal Palette
    ========================================================================== */
 
 :root {
@@ -12,126 +12,126 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* ====== COLOR PALETTE — Glassmorphism Dark Theme ====== */
-  /* Primary Accent Gradient */
-  --accent-gradient: linear-gradient(135deg, #6366f1, #d946ef);
-  --accent-primary: #6366f1;            /* Electric indigo */
-  --accent-secondary: #a855f7;         /* Neon purple */
-  --accent-tertiary: #d946ef;           /* Soft magenta/pink */
+  /* ====== COLOR PALETTE — Premium Dark Monochrome ====== */
+  /* Primary Accent — Neutral Monochrome */
+  --accent-gradient: linear-gradient(135deg, #E8E8E8, #FFFFFF);
+  --accent-primary: #E8E8E8;            /* Light gray */
+  --accent-secondary: #D5D5D5;         /* Neutral gray */
+  --accent-tertiary: #C5C5C5;           /* Muted gray */
 
-  /* Backgrounds — Deep Midnight Dark Indigo/Slate */
-  --bg-primary: #0b0d1b;                /* Deep midnight background */
-  --bg-secondary: #161334;              /* Dark indigo secondary */
-  --bg-canvas: linear-gradient(135deg, #0b0d1b 0%, #161334 100%);
-  --bg-canvas-solid: #0a0e27;           /* Solid fallback */
+  /* Backgrounds — Deep Black/Charcoal */
+  --bg-primary: #111214;                /* Deep black background */
+  --bg-secondary: #18191C;              /* Dark charcoal secondary */
+  --bg-canvas: radial-gradient(circle at top, #1A1B1F 0%, #111214 45%, #0D0E10 100%);
+  --bg-canvas-solid: #111214;           /* Solid fallback */
 
-  /* Surface & Cards — Glassmorphism Translucent */
-  --card-bg: rgba(255, 255, 255, 0.04);  /* Translucent dark glass */
-  --card-bg-hover: rgba(255, 255, 255, 0.07);
-  --card-bg-solid: rgba(255, 255, 255, 0.08);
+  /* Surface & Cards — Dark Charcoal */
+  --card-bg: #18191C;                   /* Dark charcoal surface */
+  --card-bg-hover: #1D1E22;             /* Slightly lighter charcoal */
+  --card-bg-solid: #202126;             /* Input/card background */
 
-  /* Borders & Dividers — Subtle Glowing Edge Strokes */
-  --border-color: rgba(255, 255, 255, 0.12);
+  /* Borders & Dividers — Subtle Gray */
+  --border-color: rgba(255, 255, 255, 0.10);
   --border-color-hover: rgba(255, 255, 255, 0.18);
-  --border-accent: rgba(99, 102, 241, 0.3);
+  --border-accent: rgba(255, 255, 255, 0.12);
 
-  /* Typography — Crisp White & Muted Lavender/Slate */
-  --text-main: #ffffff;                 /* Crisp white headings */
-  --text-secondary: #e2e8f0;           /* Light slate secondary text (increased contrast) */
-  --text-muted: #a5b4fc;               /* Light lavender text (increased contrast) */
+  /* Typography — White/Off-White/Gray */
+  --text-main: #F5F5F5;                 /* Primary white headings */
+  --text-secondary: #B5B5B5;           /* Light gray secondary text */
+  --text-muted: #858585;                /* Muted gray text */
   --text-light: rgba(255, 255, 255, 0.7);
 
-  /* Semantic Feedback Colors with Glow */
-  --success: #22c55e;                  /* Vibrant emerald/teal glow */
-  --success-bg: rgba(34, 197, 94, 0.15);
-  --success-border: rgba(34, 197, 94, 0.3);
+  /* Semantic Feedback Colors — Muted Neutral */
+  --success: #9CA3AF;                   /* Muted gray-green */
+  --success-bg: rgba(156, 163, 175, 0.15);
+  --success-border: rgba(156, 163, 175, 0.3);
   
-  --warning: #f59e0b;                  /* Amber/gold glow */
-  --warning-bg: rgba(245, 158, 11, 0.15);
-  --warning-border: rgba(245, 158, 11, 0.3);
+  --warning: #D1D5DB;                   /* Light gray */
+  --warning-bg: rgba(209, 213, 219, 0.15);
+  --warning-border: rgba(209, 213, 219, 0.3);
   
-  --danger: #ef4444;                    /* Ruby/crimson glow */
-  --danger-bg: rgba(239, 68, 68, 0.15);
-  --danger-border: rgba(239, 68, 68, 0.3);
+  --danger: #9CA3AF;                    /* Muted gray-red */
+  --danger-bg: rgba(156, 163, 175, 0.15);
+  --danger-border: rgba(156, 163, 175, 0.3);
   
-  --info: #3b82f6;                      /* Blue glow */
-  --info-bg: rgba(59, 130, 246, 0.15);
-  --info-border: rgba(59, 130, 246, 0.3);
+  --info: #9CA3AF;                      /* Muted gray */
+  --info-bg: rgba(156, 163, 175, 0.15);
+  --info-border: rgba(156, 163, 175, 0.3);
 
-  /* Status Colors */
-  --status-submitted: #22c55e;
-  --status-submitted-bg: rgba(34, 197, 94, 0.15);
-  --status-submitted-border: rgba(34, 197, 94, 0.3);
+  /* Status Colors — Muted Neutral Variants */
+  --status-submitted: #9CA3AF;
+  --status-submitted-bg: rgba(156, 163, 175, 0.15);
+  --status-submitted-border: rgba(156, 163, 175, 0.3);
   
-  --status-review: #f59e0b;
-  --status-review-bg: rgba(245, 158, 11, 0.15);
-  --status-review-border: rgba(245, 158, 11, 0.3);
+  --status-review: #D1D5DB;
+  --status-review-bg: rgba(209, 213, 219, 0.15);
+  --status-review-border: rgba(209, 213, 219, 0.3);
   
-  --status-progress: #a855f7;
-  --status-progress-bg: rgba(168, 85, 247, 0.15);
-  --status-progress-border: rgba(168, 85, 247, 0.3);
+  --status-progress: #A1A1AA;
+  --status-progress-bg: rgba(161, 161, 170, 0.15);
+  --status-progress-border: rgba(161, 161, 170, 0.3);
   
-  --status-resolved: #22c55e;
-  --status-resolved-bg: rgba(34, 197, 94, 0.15);
-  --status-resolved-border: rgba(34, 197, 94, 0.3);
+  --status-resolved: #9CA3AF;
+  --status-resolved-bg: rgba(156, 163, 175, 0.15);
+  --status-resolved-border: rgba(156, 163, 175, 0.3);
   
-  --status-closed: #64748b;
-  --status-closed-bg: rgba(100, 116, 139, 0.15);
-  --status-closed-border: rgba(100, 116, 139, 0.3);
+  --status-closed: #6B7280;
+  --status-closed-bg: rgba(107, 114, 128, 0.15);
+  --status-closed-border: rgba(107, 114, 128, 0.3);
 
-  /* Priority Colors */
-  --priority-low: #22c55e;
-  --priority-low-bg: rgba(34, 197, 94, 0.15);
-  --priority-low-border: rgba(34, 197, 94, 0.3);
+  /* Priority Colors — Muted Neutral Variants */
+  --priority-low: #9CA3AF;
+  --priority-low-bg: rgba(156, 163, 175, 0.15);
+  --priority-low-border: rgba(156, 163, 175, 0.3);
   
-  --priority-medium: #f59e0b;
-  --priority-medium-bg: rgba(245, 158, 11, 0.15);
-  --priority-medium-border: rgba(245, 158, 11, 0.3);
+  --priority-medium: #D1D5DB;
+  --priority-medium-bg: rgba(209, 213, 219, 0.15);
+  --priority-medium-border: rgba(209, 213, 219, 0.3);
   
-  --priority-high: #f97316;
-  --priority-high-bg: rgba(249, 115, 22, 0.15);
-  --priority-high-border: rgba(249, 115, 22, 0.3);
+  --priority-high: #E5E7EB;
+  --priority-high-bg: rgba(229, 231, 235, 0.15);
+  --priority-high-border: rgba(229, 231, 235, 0.3);
   
-  --priority-critical: #ef4444;
-  --priority-critical-bg: rgba(239, 68, 68, 0.15);
-  --priority-critical-border: rgba(239, 68, 68, 0.3);
+  --priority-critical: #F3F4F6;
+  --priority-critical-bg: rgba(243, 244, 246, 0.15);
+  --priority-critical-border: rgba(243, 244, 246, 0.3);
 
-  /* Category Colors */
-  --category-technical: #3b82f6;
-  --category-technical-bg: rgba(59, 130, 246, 0.15);
-  --category-technical-border: rgba(59, 130, 246, 0.3);
+  /* Category Colors — Muted Neutral Variants */
+  --category-technical: #9CA3AF;
+  --category-technical-bg: rgba(156, 163, 175, 0.15);
+  --category-technical-border: rgba(156, 163, 175, 0.3);
   
-  --category-billing: #f59e0b;
-  --category-billing-bg: rgba(245, 158, 11, 0.15);
-  --category-billing-border: rgba(245, 158, 11, 0.3);
+  --category-billing: #D1D5DB;
+  --category-billing-bg: rgba(209, 213, 219, 0.15);
+  --category-billing-border: rgba(209, 213, 219, 0.3);
   
-  --category-account: #a855f7;
-  --category-account-bg: rgba(168, 85, 247, 0.15);
-  --category-account-border: rgba(168, 85, 247, 0.3);
+  --category-account: #A1A1AA;
+  --category-account-bg: rgba(161, 161, 170, 0.15);
+  --category-account-border: rgba(161, 161, 170, 0.3);
   
-  --category-inquiry: #64748b;
-  --category-inquiry-bg: rgba(100, 116, 139, 0.15);
-  --category-inquiry-border: rgba(100, 116, 139, 0.3);
+  --category-inquiry: #6B7280;
+  --category-inquiry-bg: rgba(107, 114, 128, 0.15);
+  --category-inquiry-border: rgba(107, 114, 128, 0.3);
 
   /* Legacy color aliases for compatibility */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: rgba(99, 102, 241, 0.15);
-  --accent-green: #22c55e;
-  --accent-lime: #22c55e;
-  --accent-teal: #14b8a6;
-  --accent-hover: #a855f7;
-  --surface-mint: rgba(99, 102, 241, 0.15);
-  --surface-mint-light: rgba(99, 102, 241, 0.2);
-  --surface-white: rgba(255, 255, 255, 0.04);
-  --surface-subtle: rgba(255, 255, 255, 0.02);
-  --surface-hover: rgba(99, 102, 241, 0.2);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-mint: rgba(99, 102, 241, 0.3);
-  --border-strong: rgba(255, 255, 255, 0.15);
-  --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --primary: #E8E8E8;
+  --primary-dark: #D1D5DB;
+  --primary-light: rgba(232, 232, 232, 0.15);
+  --accent-green: #9CA3AF;
+  --accent-lime: #9CA3AF;
+  --accent-teal: #9CA3AF;
+  --accent-hover: #D5D5D5;
+  --surface-mint: rgba(156, 163, 175, 0.15);
+  --surface-mint-light: rgba(156, 163, 175, 0.2);
+  --surface-white: #18191C;
+  --surface-subtle: #141518;
+  --surface-hover: #292A2E;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-mint: rgba(156, 163, 175, 0.3);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --text-primary: #F5F5F5;
+  --text-secondary: #B5B5B5;
+  --text-muted: #858585;
   --text-light: rgba(255, 255, 255, 0.5);
 
   /* ====== SPACING ====== */
@@ -156,7 +156,7 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.6);
   --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.3);
 
   /* ====== LAYOUT ====== */
   --sidebar-width: 260px;

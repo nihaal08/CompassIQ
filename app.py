@@ -591,11 +591,22 @@ def agent_ticket_details(ticket_id):
         (ticket_id,)
     )
 
+    # Step 3: Fetch similar historical matches (top 3)
+    similar_matches = query_db(
+        """SELECT similar_ticket_ref_id, similarity_score, similar_subject, 
+                  similar_description, historical_resolution_hours
+           FROM ticket_similar_matches
+           WHERE ticket_id = ?
+           ORDER BY similarity_score DESC
+           LIMIT 3""",
+        (ticket_id,)
+    )
+
     return jsonify({
         'status': 'success',
         'ticket': ticket,
         'replies': replies,
-        'similar_matches': []  # Empty array for API compatibility
+        'similar_matches': similar_matches or []
     })
 
 

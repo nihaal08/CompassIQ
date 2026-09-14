@@ -59,7 +59,7 @@
                 <p class="card-subtitle">Our AI engine will automatically classify and route your request</p>
             </div>
             <div style="display: flex; gap: var(--spacing-md);">
-                <button class="btn btn-secondary" onclick="toggleCreateForm()">Cancel</button>
+                <button class="btn btn-secondary" onclick="toggleCreateForm()">Create / Close</button>
             </div>
         </div>
     </div>
@@ -139,7 +139,7 @@
                             <td class="no-wrap">{{ ticket.created_at[:10] }}</td>
                             <td>
                                 {% if ticket.satisfaction_score %}
-                                    <div style="color: #fbbf24;">{{ '★' * ticket.satisfaction_score }}</div>
+                                    <div style="color: #D5D5D5;">{{ '★' * ticket.satisfaction_score }}</div>
                                 {% else %}
                                     <span class="text-muted">—</span>
                                 {% endif %}
@@ -396,7 +396,7 @@ function openTicketDetail(ticketId) {
                         ${ticket.satisfaction_score ? `
                             <div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--success-bg); border-radius: var(--radius-md); border: 1px solid var(--border-mint);">
                                 <div class="form-label">Your Rating</div>
-                                <div style="color: #fbbf24; font-size: 1.2rem;">${'★' * ticket.satisfaction_score}</div>
+                                <div style="color: #D5D5D5; font-size: 1.2rem;">${'★' * ticket.satisfaction_score}</div>
                                 ${ticket.customer_feedback ? `<p class="text-secondary" style="margin-top: var(--spacing-sm);">${ticket.customer_feedback}</p>` : ''}
                             </div>
                         ` : ''}

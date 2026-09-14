@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CompassIQ — Modern Forest Green Theme Stylesheet
+   CompassIQ — Premium Dark Monochrome Theme Stylesheet
    Enterprise SaaS Design Standard - Clean, Minimalist, Accessible
    ========================================================================== */
 
@@ -43,7 +43,7 @@ body {
 
 /* ========== HEADER WITH CENTERED CONTAINER ========== */
 .header {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(17, 18, 20, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -137,22 +137,22 @@ a:hover {
 .user-profile-pill:hover {
   background: var(--card-bg-hover);
   color: var(--text-main);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--accent-gradient);
+  background: #25262A;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #F2F2F2;
   font-weight: var(--font-weight-bold);
   font-size: 0.9rem;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .sign-out-pill {
@@ -160,11 +160,11 @@ a:hover {
   align-items: center;
   gap: var(--spacing-sm);
   padding: 6px 12px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: #2A2B2F;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   font-size: 0.9rem;
-  color: #fca5a5;
+  color: #F2F2F2;
   text-decoration: none;
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
@@ -172,10 +172,10 @@ a:hover {
 }
 
 .sign-out-pill:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  background: #292A2E;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .sign-out-pill {
@@ -184,10 +184,10 @@ a:hover {
 }
 
 .sign-out-pill:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  background: #292A2E;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 /* ========== MAIN CONTENT AREA ========== */
@@ -219,7 +219,7 @@ a:hover {
 }
 
 .page-subtitle {
-  color: #94a3b8;
+  color: #9CA3AF;
   font-size: 0.95rem;
   margin: 0;
 }
@@ -234,10 +234,10 @@ a:hover {
 }
 
 .metric-card {
-  background: rgba(18, 22, 38, 0.7);
+  background: #18191C;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
@@ -247,8 +247,8 @@ a:hover {
 }
 
 .metric-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-2px);
 }
 
@@ -256,12 +256,12 @@ a:hover {
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: rgba(99, 102, 241, 0.15);
+  background: #202126;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: var(--accent-primary);
+  color: #D5D5D5;
   flex-shrink: 0;
 }
 
@@ -271,7 +271,7 @@ a:hover {
 
 .metric-label {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #9CA3AF;
   font-weight: var(--font-weight-medium);
   margin-bottom: 0.25rem;
 }
@@ -285,16 +285,16 @@ a:hover {
 
 .metric-trend {
   font-size: 0.8rem;
-  color: #64748b;
+  color: #6B7280;
   margin-top: 0.25rem;
 }
 
 /* ========== CHART CARD & CONTAINER ========== */
 .chart-card {
-  background: rgba(18, 22, 38, 0.7);
+  background: #18191C;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -498,9 +498,9 @@ a:hover {
 
 .chat-bubble-customer {
   align-self: flex-end;
-  background: var(--accent-gradient);
-  color: white;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  background: #2A2B2F;
+  color: #F2F2F2;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
 }
 
 .chat-meta {
@@ -525,15 +525,15 @@ a:hover {
 }
 
 .ai-recommendation-card:hover {
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-glow);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   background: var(--card-bg-hover);
 }
 
 .similarity-pill {
-  background: var(--surface-mint);
-  color: var(--accent-primary);
-  border: 1px solid var(--border-accent);
+  background: #202126;
+  color: #D5D5D5;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   padding: 3px 9px;
   font-size: 0.75rem;
@@ -563,7 +563,7 @@ a:hover {
 .star-rating input:checked ~ label,
 .star-rating label:hover,
 .star-rating label:hover ~ label {
-  color: #fbbf24;
+  color: #D5D5D5;
 }
 
 /* Chart Container */
@@ -598,7 +598,7 @@ a:hover {
 
 .auth-left {
   flex: 1;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, var(--bg-canvas-solid) 100%);
+  background: #18191C;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -615,15 +615,15 @@ a:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 70% 30%, rgba(217, 70, 239, 0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
   pointer-events: none;
 }
 
 .auth-right {
   flex: 1;
-  background: linear-gradient(135deg, #161334 0%, #0b0d1b 100%);
+  background: #111214;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -639,7 +639,7 @@ a:hover {
   left: -100px;
   width: 200px;
   height: 200px;
-  background: var(--accent-secondary);
+  background: #25262A;
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.15;
@@ -655,15 +655,15 @@ a:hover {
 .auth-logo-icon {
   width: 64px;
   height: 64px;
-  background: var(--accent-gradient);
+  background: #25262A;
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #F2F2F2;
   font-size: 2rem;
   margin: 0 auto var(--spacing-md);
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
 }
 
 .auth-logo-text {
@@ -700,31 +700,31 @@ a:hover {
   width: 100%;
   height: 48px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid var(--border-color);
+  background: #202126;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: var(--radius-full);
-  color: var(--text-main);
+  color: #F2F2F2;
   font-size: 0.95rem;
   margin-bottom: var(--spacing-lg);
   transition: all 0.2s ease;
 }
 
 .auth-input::placeholder {
-  color: var(--text-light);
+  color: #858585;
 }
 
 .auth-input:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  border-color: rgba(255, 255, 255, 0.30);
+  background: #27282D;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .auth-button {
   width: 100%;
   height: 48px;
-  background: var(--accent-gradient);
-  color: white;
+  background: #E8E8E8;
+  color: #111214;
   border: none;
   border-radius: var(--radius-full);
   font-size: 1rem;
@@ -732,13 +732,14 @@ a:hover {
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: var(--spacing-lg);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .auth-button:hover {
+  background: #FFFFFF;
   transform: translateY(-2px);
-  box-shadow: 0 6px 30px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
 }
 
 .auth-links {
@@ -748,13 +749,13 @@ a:hover {
 }
 
 .auth-links a {
-  color: var(--accent-primary);
+  color: #BDBDBD;
   text-decoration: none;
   font-weight: var(--font-weight-medium);
 }
 
 .auth-links a:hover {
-  color: var(--accent-secondary);
+  color: #FFFFFF;
   text-decoration: underline;
 }
 

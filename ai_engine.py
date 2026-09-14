@@ -20,6 +20,7 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Ensure NLTK resources are available
 for resource in ['stopwords', 'wordnet', 'punkt', 'punkt_tab', 'omw-1.4']:
@@ -270,3 +271,61 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
 
 # Note: AI engine loading is controlled explicitly in app.py to prevent
 # double-loading during Flask debug reloader parent/child process spawning
+
+
+def compute_similar_tickets(subject: str, description: str, historical_tickets: list, top_k: int = 3) -> list:
+    """
+    Computes similar historical tickets using TF-IDF and cosine similarity.
+    
+    This function can be used for real-time similarity computation when
+    historical ticket data is available. For the current implementation,
+    similar matches are stored in the ticket_similar_matches table.
+    
+    Args:
+        subject: Current ticket subject
+        description: Current ticket description
+        historical_tickets: List of historical ticket dictionaries with subject and description
+        top_k: Number of top similar matches to return
+        
+    Returns:
+        List of similar ticket dictionaries with similarity scores
+    """
+    global vectorizer, _is_initialized
+    
+    if not _is_initialized or vectorizer is None:
+        print("[AI Engine] Warning: Vectorizer not loaded, cannot compute similar tickets")
+        return []
+    
+    if not historical_tickets:
+        return []
+    
+    try:
+        # Preprocess current ticket
+        current_text = clean_text(f"{subject} {description}")
+        current_tfidf = vectorizer.transform([current_text])
+        
+        # Preprocess historical tickets
+        historical_texts = [clean_text(f"{t['subject']} {t['description']}") for t in historical_tickets]
+        historical_tfidf = vectorizer.transform(historical_texts)
+        
+        # Compute cosine similarity
+        similarities = cosine_similarity(current_tfidf, historical_tfidf)[0]
+        
+        # Create list of tickets with similarity scores
+        scored_tickets = []
+        for idx, ticket in enumerate(historical_tickets):
+            scored_tickets.append({
+                'ticket_id': ticket.get('ticket_id', 'UNKNOWN'),
+                'subject': ticket['subject'],
+                'description': ticket['description'],
+                'similarity_score': float(similarities[idx]),
+                'resolution_hours': ticket.get('resolution_hours', None)
+            })
+        
+        # Sort by similarity score and return top_k
+        scored_tickets.sort(key=lambda x: x['similarity_score'], reverse=True)
+        return scored_tickets[:top_k]
+        
+    except Exception as e:
+        print(f"[AI Engine] Error computing similar tickets: {e}")
+        return []

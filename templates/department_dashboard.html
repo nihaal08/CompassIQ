@@ -130,12 +130,17 @@
         <!-- Section 2: AI Intelligence & Similar Matches -->
         <div id="ai-insights-section" style="margin-bottom: var(--spacing-xl);">
             <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">AI Intelligence & Similar Matches</h4>
-            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md);">
+            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md); align-items: center;">
                 <span id="modalCategory" class="badge badge-category">Category</span>
                 <span id="modalAiPriority" class="badge badge-priority-Medium">Priority</span>
+                <button type="button" id="toggleSimilarTicketsBtn" class="btn btn-secondary btn-sm" onclick="toggleSimilarTickets()" style="margin-left: auto;">
+                    <i class="bi bi-search"></i> View Similar Tickets (Top-3)
+                </button>
             </div>
-            <div id="modalSimilarTickets" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-                <!-- Similar tickets will be loaded here -->
+            <div id="similarTicketsTray" style="display: none; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: var(--spacing-md); max-height: 400px; overflow-y: auto;">
+                <div id="modalSimilarTickets" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <!-- Similar tickets will be loaded here -->
+                </div>
             </div>
         </div>
         
@@ -230,26 +235,35 @@ function openTicketModal(ticketId) {
                 similarContainer.innerHTML = '';
                 
                 if (similarMatches && similarMatches.length > 0) {
-                    similarMatches.forEach(match => {
-                        const similarityPercent = Math.round(match.similarity_score * 100) / 100;
+                    similarMatches.forEach((match, index) => {
+                        const similarityPercent = (match.similarity_score * 100).toFixed(1);
+                        const rank = index + 1;
                         similarContainer.innerHTML += `
                             <div class="ai-recommendation-card">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">${match.similar_ticket_ref_id}</span>
-                                    <span class="similarity-pill">${similarityPercent}%</span>
+                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                        <span class="rank-badge" style="background: #25262A; color: #D5D5D5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">#${rank}</span>
+                                        <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">${match.similar_ticket_ref_id}</span>
+                                    </div>
+                                    <span class="similarity-pill" style="background: rgba(156, 163, 175, 0.15); color: #9CA3AF; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(156, 163, 175, 0.3);">${similarityPercent}%</span>
                                 </div>
-                                <h6 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.9rem;">${match.similar_subject}</h6>
-                                <p class="text-secondary" style="margin: 0 0 var(--spacing-sm) 0; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                <h6 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.9rem; color: #F5F5F5; font-weight: 500;">${match.similar_subject}</h6>
+                                <p class="text-secondary" style="margin: 0 0 var(--spacing-sm) 0; font-size: 0.85rem; color: #B5B5B5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
                                     ${match.similar_description}
                                 </p>
-                                <div style="font-size: 0.8rem; color: var(--text-muted);">
-                                    <i class="bi bi-clock"></i> Resolved in ${match.historical_resolution_hours || 'N/A'} hours
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-sm);">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                        <i class="bi bi-clock"></i> Resolved in ${match.historical_resolution_hours || 'N/A'} hours
+                                    </div>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="useSolutionContext('${match.similar_description.replace(/'/g, "\\'")}')" style="font-size: 0.75rem; padding: 4px 8px;">
+                                        <i class="bi bi-clipboard"></i> Use Solution Context
+                                    </button>
                                 </div>
                             </div>
                         `;
                     });
                 } else {
-                    similarContainer.innerHTML = '<p class="text-muted">No similar tickets found in database.</p>';
+                    similarContainer.innerHTML = '<p class="text-muted" style="text-align: center; padding: var(--spacing-md); color: #858585;">No similar tickets found in database.</p>';
                 }
                 
                 // Load chat history
@@ -292,6 +306,45 @@ function closeTicketModal() {
     const modal = document.getElementById('ticketModal');
     modal.classList.remove('show');
     document.body.style.overflow = '';
+    
+    // Reset similar tickets tray visibility
+    const tray = document.getElementById('similarTicketsTray');
+    const btn = document.getElementById('toggleSimilarTicketsBtn');
+    if (tray) tray.style.display = 'none';
+    if (btn) btn.innerHTML = '<i class="bi bi-search"></i> View Similar Tickets (Top-3)';
+}
+
+function toggleSimilarTickets() {
+    const tray = document.getElementById('similarTicketsTray');
+    const btn = document.getElementById('toggleSimilarTicketsBtn');
+    
+    if (tray.style.display === 'none' || tray.style.display === '') {
+        tray.style.display = 'block';
+        btn.innerHTML = '<i class="bi bi-chevron-up"></i> Hide Similar Tickets';
+    } else {
+        tray.style.display = 'none';
+        btn.innerHTML = '<i class="bi bi-search"></i> View Similar Tickets (Top-3)';
+    }
+}
+
+function useSolutionContext(solutionText) {
+    const textarea = document.querySelector('#modalReplyForm textarea[name="message"]');
+    if (textarea) {
+        const currentText = textarea.value;
+        const prefix = currentText ? currentText + '\n\n' : '';
+        textarea.value = prefix + 'Based on similar historical case: ' + solutionText;
+        textarea.focus();
+        
+        // Show brief feedback
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 1500);
+    }
 }
 
 // Close modal via X button
