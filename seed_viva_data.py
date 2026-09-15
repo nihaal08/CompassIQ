@@ -31,7 +31,7 @@ def get_connection():
 
 def wipe_database(conn):
     """
-    Wipe all ticket-related data while preserving users table structure.
+    Wipe all ticket-related data while preserving customers table structure.
     This ensures a clean slate for viva demo data.
     """
     print("[Seed] Wiping existing data...")
@@ -39,8 +39,8 @@ def wipe_database(conn):
     # Delete in order of foreign key dependencies
     conn.execute("DELETE FROM ticket_replies")
     conn.execute("DELETE FROM ticket_similar_matches")
-    conn.execute("DELETE FROM tickets")
-    conn.execute("DELETE FROM users")
+    conn.execute("DELETE FROM complaints")
+    conn.execute("DELETE FROM customers")
     
     conn.commit()
     print("[Seed] All data wiped successfully.")
@@ -53,56 +53,56 @@ def seed_users(conn):
     users = [
         # Admin
         {
-            'full_name': 'System Administrator',
+            'custname': 'System Administrator',
             'email': 'admin@compassiq.com',
             'role': 'admin',
-            'department': None,
+            'deptid': None,
             'account_status': 'APPROVED'
         },
         
-        # Technical Department (5 agents + primary)
-        {'full_name': 'Technical Support Lead', 'email': 'technical@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
-        {'full_name': 'Tech Agent 1', 'email': 'tech1@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
-        {'full_name': 'Tech Agent 2', 'email': 'tech2@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
-        {'full_name': 'Tech Agent 3', 'email': 'tech3@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
-        {'full_name': 'Tech Agent 4', 'email': 'tech4@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
-        {'full_name': 'Tech Agent 5', 'email': 'tech5@compassiq.com', 'role': 'agent', 'department': 'Technical', 'account_status': 'APPROVED'},
+        # Technical Department (deptid = 1)
+        {'custname': 'Technical Support Lead', 'email': 'technical@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
+        {'custname': 'Tech Agent 1', 'email': 'tech1@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
+        {'custname': 'Tech Agent 2', 'email': 'tech2@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
+        {'custname': 'Tech Agent 3', 'email': 'tech3@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
+        {'custname': 'Tech Agent 4', 'email': 'tech4@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
+        {'custname': 'Tech Agent 5', 'email': 'tech5@compassiq.com', 'role': 'agent', 'deptid': 1, 'account_status': 'APPROVED'},
         
-        # Billing Department (5 agents + primary)
-        {'full_name': 'Billing Support Lead', 'email': 'billing@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
-        {'full_name': 'Billing Agent 1', 'email': 'billing1@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
-        {'full_name': 'Billing Agent 2', 'email': 'billing2@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
-        {'full_name': 'Billing Agent 3', 'email': 'billing3@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
-        {'full_name': 'Billing Agent 4', 'email': 'billing4@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
-        {'full_name': 'Billing Agent 5', 'email': 'billing5@compassiq.com', 'role': 'agent', 'department': 'Billing', 'account_status': 'APPROVED'},
+        # Billing Department (deptid = 2)
+        {'custname': 'Billing Support Lead', 'email': 'billing@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
+        {'custname': 'Billing Agent 1', 'email': 'billing1@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
+        {'custname': 'Billing Agent 2', 'email': 'billing2@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
+        {'custname': 'Billing Agent 3', 'email': 'billing3@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
+        {'custname': 'Billing Agent 4', 'email': 'billing4@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
+        {'custname': 'Billing Agent 5', 'email': 'billing5@compassiq.com', 'role': 'agent', 'deptid': 2, 'account_status': 'APPROVED'},
         
-        # Account Department (5 agents + primary)
-        {'full_name': 'Account Support Lead', 'email': 'account@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
-        {'full_name': 'Account Agent 1', 'email': 'account1@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
-        {'full_name': 'Account Agent 2', 'email': 'account2@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
-        {'full_name': 'Account Agent 3', 'email': 'account3@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
-        {'full_name': 'Account Agent 4', 'email': 'account4@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
-        {'full_name': 'Account Agent 5', 'email': 'account5@compassiq.com', 'role': 'agent', 'department': 'Account', 'account_status': 'APPROVED'},
+        # Account Department (deptid = 3)
+        {'custname': 'Account Support Lead', 'email': 'account@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
+        {'custname': 'Account Agent 1', 'email': 'account1@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
+        {'custname': 'Account Agent 2', 'email': 'account2@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
+        {'custname': 'Account Agent 3', 'email': 'account3@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
+        {'custname': 'Account Agent 4', 'email': 'account4@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
+        {'custname': 'Account Agent 5', 'email': 'account5@compassiq.com', 'role': 'agent', 'deptid': 3, 'account_status': 'APPROVED'},
         
-        # General Inquiry Agent
-        {'full_name': 'General Inquiry Agent', 'email': 'general@compassiq.com', 'role': 'agent', 'department': 'General Inquiry', 'account_status': 'APPROVED'},
+        # General Inquiry Agent (deptid = 4)
+        {'custname': 'General Inquiry Agent', 'email': 'general@compassiq.com', 'role': 'agent', 'deptid': 4, 'account_status': 'APPROVED'},
         
         # Customers
-        {'full_name': 'Demo Customer', 'email': 'customer@compassiq.com', 'role': 'customer', 'department': None, 'account_status': 'APPROVED'},
-        {'full_name': 'Alex Johnson', 'email': 'alex@compassiq.com', 'role': 'customer', 'department': None, 'account_status': 'APPROVED'},
-        {'full_name': 'Maria Garcia', 'email': 'maria@compassiq.com', 'role': 'customer', 'department': None, 'account_status': 'APPROVED'},
-        {'full_name': 'David Chen', 'email': 'david@compassiq.com', 'role': 'customer', 'department': None, 'account_status': 'APPROVED'},
-        {'full_name': 'Emily Wilson', 'email': 'emily@compassiq.com', 'role': 'customer', 'department': None, 'account_status': 'APPROVED'},
+        {'custname': 'Demo Customer', 'email': 'customer@compassiq.com', 'role': 'customer', 'deptid': None, 'account_status': 'APPROVED'},
+        {'custname': 'Alex Johnson', 'email': 'alex@compassiq.com', 'role': 'customer', 'deptid': None, 'account_status': 'APPROVED'},
+        {'custname': 'Maria Garcia', 'email': 'maria@compassiq.com', 'role': 'customer', 'deptid': None, 'account_status': 'APPROVED'},
+        {'custname': 'David Chen', 'email': 'david@compassiq.com', 'role': 'customer', 'deptid': None, 'account_status': 'APPROVED'},
+        {'custname': 'Emily Wilson', 'email': 'emily@compassiq.com', 'role': 'customer', 'deptid': None, 'account_status': 'APPROVED'},
     ]
     
     user_id_map = {}
     
     for user in users:
         cursor = conn.execute(
-            """INSERT INTO users (full_name, email, password_hash, role, department, account_status)
+            """INSERT INTO customers (custname, email, password, role, deptid, account_status)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            (user['full_name'], user['email'], DEMO_PASSWORD_HASH, 
-             user['role'], user['department'], user['account_status'])
+            (user['custname'], user['email'], DEMO_PASSWORD_HASH, 
+             user['role'], user['deptid'], user['account_status'])
         )
         user_id_map[user['email']] = cursor.lastrowid
     

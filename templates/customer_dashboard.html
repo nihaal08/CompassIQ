@@ -6,7 +6,7 @@
 {% block content %}
 <!-- Page Header -->
 <div class="page-header">
-    <h1 class="page-title">Welcome, {{ g.user.full_name }}</h1>
+    <h1 class="page-title">Welcome, {{ g.user.custname }}</h1>
     <p class="page-subtitle">Manage your support tickets and track resolutions in real-time</p>
 </div>
 
@@ -112,17 +112,17 @@
                 </thead>
                 <tbody>
                     {% for ticket in tickets %}
-                        <tr style="cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticket_id }}')">
+                        <tr style="cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticketno }}')">
                             <td class="text-ellipsis">
-                                <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">{{ ticket.ticket_id }}</span>
+                                <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                             </td>
                             <td>
                                 <div style="font-weight: var(--font-weight-medium); color: var(--text-primary);">{{ ticket.subject }}</div>
                                 <div style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">{{ ticket.description }}</div>
                             </td>
                             <td>
-                                <span class="badge badge-category-{{ ticket.predicted_category.replace(' ', '') }}">
-                                    {{ ticket.predicted_category }}
+                                <span class="badge badge-category-{{ ticket.department_name.replace(' ', '') }}">
+                                    {{ ticket.department_name }}
                                 </span>
                             </td>
                             <td>
@@ -135,8 +135,8 @@
                                     {{ ticket.status }}
                                 </span>
                             </td>
-                            <td>{{ ticket.assigned_department }}</td>
-                            <td class="no-wrap">{{ ticket.created_at[:10] }}</td>
+                            <td>{{ ticket.department_name }}</td>
+                            <td class="no-wrap">{{ ticket.submitdate[:10] }}</td>
                             <td>
                                 {% if ticket.satisfaction_score %}
                                     <div style="color: #D5D5D5;">{{ '★' * ticket.satisfaction_score }}</div>
@@ -169,10 +169,10 @@
         <div class="card-body">
             <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
                 <div style="width: 64px; height: 64px; background: var(--surface-mint); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary);">
-                    {{ g.user.full_name[0].upper() }}
+                    {{ g.user.custname[0].upper() }}
                 </div>
                 <div>
-                    <div style="font-size: 1.1rem; font-weight: var(--font-weight-semibold); color: var(--text-primary);">{{ g.user.full_name }}</div>
+                    <div style="font-size: 1.1rem; font-weight: var(--font-weight-semibold); color: var(--text-primary);">{{ g.user.custname }}</div>
                     <div style="font-size: 0.9rem; color: var(--text-muted);">{{ g.user.role|title }}</div>
                 </div>
             </div>
@@ -183,12 +183,6 @@
                     <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
                         <i class="bi bi-envelope me-2"></i>{{ g.user.email }}
                         <i class="bi bi-check-circle-fill" style="color: var(--success); margin-left: var(--spacing-sm);"></i> Verified
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Bill No / Product ID</div>
-                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
-                        <i class="bi bi-tag me-2"></i>{{ g.user.bill_no_product_id or 'Not provided' }}
                     </div>
                 </div>
                 <div>
@@ -319,7 +313,7 @@ function openTicketDetail(ticketId) {
                     <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h3 class="card-title">${ticket.ticket_id}</h3>
+                                <h3 class="card-title">${ticket.ticketno}</h3>
                                 <p class="card-subtitle">${ticket.subject}</p>
                             </div>
                             <button type="button" class="modal-close-btn" onclick="closeTicketModal()">
@@ -344,7 +338,7 @@ function openTicketDetail(ticketId) {
                             </div>
                             <div>
                                 <div class="form-label">Department</div>
-                                <span class="text-secondary">${ticket.assigned_department}</span>
+                                <span class="text-secondary">${ticket.department_name}</span>
                             </div>
                         </div>
                         
@@ -359,7 +353,7 @@ function openTicketDetail(ticketId) {
                         ${ticket.status === 'Resolved' && !ticket.satisfaction_score ? `
                             <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
                                 <h4 class="card-title" style="font-size: 1rem;">Rate Your Experience</h4>
-                                <form method="POST" action="/customer/tickets/${ticket.ticket_id}/feedback" style="margin-top: var(--spacing-md);" onsubmit="handleFeedbackSubmit(event, this)">
+                                <form method="POST" action="/customer/tickets/${ticket.ticketno}/feedback" style="margin-top: var(--spacing-md);" onsubmit="handleFeedbackSubmit(event, this)">
                                     <div class="form-group">
                                         <label class="form-label">Satisfaction Score (1-5)</label>
                                         <select name="satisfaction_score" class="form-select">
@@ -383,7 +377,7 @@ function openTicketDetail(ticketId) {
                         ${ticket.status !== 'Resolved' && ticket.status !== 'Closed' ? `
                             <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
                                 <h4 class="card-title" style="font-size: 1rem;">Add Reply</h4>
-                                <form method="POST" action="/customer/tickets/${ticket.ticket_id}/reply" style="margin-top: var(--spacing-md);" onsubmit="handleCustomerReply(event, this)">
+                                <form method="POST" action="/customer/tickets/${ticket.ticketno}/reply" style="margin-top: var(--spacing-md);" onsubmit="handleCustomerReply(event, this)">
                                     <div class="form-group">
                                         <label class="form-label">Your Message</label>
                                         <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required></textarea>

@@ -103,14 +103,14 @@ def init_db_schema(schema_path: str = None):
             print(f"[CompassIQ DB Error] Failed to create database file: {e}")
             raise e
 
-    # 3. Check if users table exists (even if db file exists, tables might not)
+    # 3. Check if customers table exists (even if db file exists, tables might not)
     conn = get_connection()
     try:
         cursor = conn.cursor()
         cursor.execute("""
             SELECT COUNT(*) as count 
             FROM sqlite_master 
-            WHERE type='table' AND name='users'
+            WHERE type='table' AND name='customers'
         """)
         table_exists = cursor.fetchone()['count'] > 0
 
@@ -150,56 +150,61 @@ def init_db_schema(schema_path: str = None):
 
 def ensure_demo_accounts(conn):
     """
-    Ensures standardized demo accounts exist with Password@123.
+    Ensures standardized demo accounts exist with password123.
     Updates existing accounts if they have different credentials.
     This is called during database initialization for viva demo reliability.
+    Separates staff (department_agents) from clients (customers).
     """
     from werkzeug.security import generate_password_hash
     
     # Generate hash for standard demo password
-    demo_password_hash = generate_password_hash('Password@123', method='scrypt')
+    demo_password_hash = generate_password_hash('password123', method='scrypt')
     
-    demo_accounts = [
+    # Department Agents & Admin (staff accounts)
+    agent_accounts = [
         {
             'email': 'admin@compassiq.com',
-            'full_name': 'System Administrator',
+            'agent_name': 'System Administrator',
             'role': 'admin',
-            'department': 'None',
+            'deptid': None,
             'account_status': 'APPROVED'
         },
         {
-            'email': 'technical@compassiq.com',
-            'full_name': 'Technical Support Agent',
+            'email': 'tech.support@compassiq.com',
+            'agent_name': 'Technical Support Agent',
             'role': 'agent',
-            'department': 'Technical',
+            'deptid': 1,  # Technical Support
             'account_status': 'APPROVED'
         },
         {
-            'email': 'billing@compassiq.com',
-            'full_name': 'Billing Support Agent',
+            'email': 'billing.support@compassiq.com',
+            'agent_name': 'Billing Support Agent',
             'role': 'agent',
-            'department': 'Billing',
+            'deptid': 2,  # Billing Support
             'account_status': 'APPROVED'
         },
         {
-            'email': 'account@compassiq.com',
-            'full_name': 'Account Support Agent',
+            'email': 'account.support@compassiq.com',
+            'agent_name': 'Account Support Agent',
             'role': 'agent',
-            'department': 'Account',
+            'deptid': 3,  # Account Support
             'account_status': 'APPROVED'
         },
         {
-            'email': 'general@compassiq.com',
-            'full_name': 'General Inquiry Agent',
+            'email': 'general.support@compassiq.com',
+            'agent_name': 'General Inquiry Agent',
             'role': 'agent',
-            'department': 'General Inquiry',
+            'deptid': 4,  # General Inquiry
             'account_status': 'APPROVED'
-        },
+        }
+    ]
+    
+    # Customer Accounts (external clients)
+    customer_accounts = [
         {
-            'email': 'customer@compassiq.com',
-            'full_name': 'Demo Customer',
-            'role': 'customer',
-            'department': 'None',
+            'email': 'alex.morgan@customer.com',
+            'custname': 'Alex Morgan',
+            'phone_no': '9876543210',
             'account_status': 'APPROVED'
         }
     ]
@@ -207,30 +212,63 @@ def ensure_demo_accounts(conn):
     try:
         cursor = conn.cursor()
         
-        for account in demo_accounts:
-            # Check if account exists
-            cursor.execute("SELECT user_id FROM users WHERE email = ?", (account['email'],))
+        # Ensure department_agents table exists before inserting
+        cursor.execute("""
+            SELECT COUNT(*) as count 
+            FROM sqlite_master 
+            WHERE type='table' AND name='department_agents'
+        """)
+        agents_table_exists = cursor.fetchone()['count'] > 0
+        
+        # Insert/update department agents
+        if agents_table_exists:
+            for account in agent_accounts:
+                # Check if agent exists
+                cursor.execute("SELECT agent_id FROM department_agents WHERE email = ?", (account['email'],))
+                existing = cursor.fetchone()
+                
+                if existing:
+                    # Update existing agent to ensure correct password and status
+                    cursor.execute("""
+                        UPDATE department_agents 
+                        SET password = ?, account_status = ?
+                        WHERE email = ?
+                    """, (demo_password_hash, account['account_status'], account['email']))
+                    print(f"[CompassIQ DB] Updated demo agent: {account['email']}")
+                else:
+                    # Insert new demo agent
+                    cursor.execute("""
+                        INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (account['agent_name'], account['email'], demo_password_hash, 
+                          account['deptid'], account['role'], account['account_status']))
+                    print(f"[CompassIQ DB] Created demo agent: {account['email']}")
+        
+        # Insert/update customers
+        for account in customer_accounts:
+            # Check if customer exists
+            cursor.execute("SELECT custid FROM customers WHERE email = ?", (account['email'],))
             existing = cursor.fetchone()
             
             if existing:
-                # Update existing account to ensure correct password and status
+                # Update existing customer to ensure correct password and status
                 cursor.execute("""
-                    UPDATE users 
-                    SET password_hash = ?, account_status = ?
+                    UPDATE customers 
+                    SET password = ?, account_status = ?
                     WHERE email = ?
                 """, (demo_password_hash, account['account_status'], account['email']))
-                print(f"[CompassIQ DB] Updated demo account: {account['email']}")
+                print(f"[CompassIQ DB] Updated demo customer: {account['email']}")
             else:
-                # Insert new demo account
+                # Insert new demo customer
                 cursor.execute("""
-                    INSERT INTO users (full_name, email, password_hash, role, department, account_status)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (account['full_name'], account['email'], demo_password_hash, 
-                      account['role'], account['department'], account['account_status']))
-                print(f"[CompassIQ DB] Created demo account: {account['email']}")
+                    INSERT INTO customers (custname, email, password, phone_no, account_status)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (account['custname'], account['email'], demo_password_hash, 
+                      account['phone_no'], account['account_status']))
+                print(f"[CompassIQ DB] Created demo customer: {account['email']}")
         
         conn.commit()
-        print(f"[CompassIQ DB] Standardized demo accounts ensured (Password@123).")
+        print(f"[CompassIQ DB] Standardized demo accounts ensured (password123).")
         
     except Exception as e:
         if conn:

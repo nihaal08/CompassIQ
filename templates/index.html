@@ -592,186 +592,7 @@
             font-size: 0.85rem;
             color: rgba(255, 255, 255, 0.5);
         }
-        
-        /* ====== CONTACT SECTION (Glassmorphism) ====== */
-        .contact {
-            padding: 6rem 0;
-            background: #111214;
-            position: relative;
-        }
-        
-        .contact::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        
-        .contact-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .contact-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 22px;
-            padding: 2.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .contact-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.02);
-            pointer-events: none;
-        }
-        
-        .contact-card-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .contact-title {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .contact-subtitle {
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.6);
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-        
-        .contact-info-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .contact-info-icon {
-            width: 48px;
-            height: 48px;
-            background: #202126;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #D5D5D5;
-            font-size: 1.25rem;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            flex-shrink: 0;
-        }
-        
-        .contact-info-text {
-            flex: 1;
-        }
-        
-        .contact-info-label {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .contact-info-value {
-            font-size: 1rem;
-            color: #ffffff;
-            font-weight: 500;
-        }
-        
-        .contact-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .form-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
-            font-weight: 500;
-        }
-        
-        .form-input {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            padding: 1rem 1.5rem;
-            color: #ffffff;
-            font-size: 0.95rem;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-        
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .form-input:focus {
-            border-color: rgba(255, 255, 255, 0.30);
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-            background: #27282D;
-        }
-        
-        .form-textarea {
-            min-height: 120px;
-            border-radius: 16px;
-            resize: vertical;
-        }
-        
-        .btn-submit {
-            background: #25262A;
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-submit:hover {
-            transform: scale(1.02);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-        }
-        
+
         /* ====== FOOTER ====== */
         .footer {
             background: #111214;
@@ -857,38 +678,7 @@
             color: rgba(255, 255, 255, 0.4);
             font-size: 0.85rem;
         }
-        
-        /* ====== TOAST NOTIFICATION ====== */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: #202126;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        
-        .toast-icon {
-            font-size: 1.25rem;
-        }
-        
+
         /* ====== ANIMATIONS ====== */
         @keyframes fadeInUp {
             from {
@@ -928,10 +718,6 @@
             }
             
             .architecture-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .contact-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -993,11 +779,24 @@
                 <a href="#overview" class="navbar-link">Overview</a>
                 <a href="#capabilities" class="navbar-link">Platform Capabilities</a>
                 <a href="#architecture" class="navbar-link">Architecture</a>
-                <a href="#contact" class="navbar-link">Contact</a>
-                {% if g.user %}
-                    <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="navbar-cta">
-                        <i class="bi bi-speedometer2"></i>
-                        Open Dashboard
+                {% if session.get('custid') or session.get('user_id') %}
+                    <!-- Role-aware Dashboard Button -->
+                    {% if session.get('role') == 'admin' %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="navbar-cta">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    {% elif session.get('role') == 'agent' %}
+                        <a href="{{ url_for('agent_dashboard') }}" class="navbar-cta">
+                            <i class="bi bi-briefcase"></i> Workspace
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('customer_dashboard') }}" class="navbar-cta">
+                            <i class="bi bi-person"></i> My Tickets
+                        </a>
+                    {% endif %}
+                    <!-- Sign Out Button -->
+                    <a href="{{ url_for('logout') }}" class="navbar-cta" style="background: #EF4444; color: #ffffff; border-color: rgba(239, 68, 68, 0.3);">
+                        <i class="bi bi-box-arrow-right"></i> Sign Out
                     </a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="navbar-cta">
@@ -1019,10 +818,24 @@
             <a href="#overview" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Overview</a>
             <a href="#capabilities" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Platform Capabilities</a>
             <a href="#architecture" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Architecture</a>
-            <a href="#contact" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Contact</a>
-            {% if g.user %}
-                <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
-                    Open Dashboard
+            {% if session.get('custid') or session.get('user_id') %}
+                <!-- Role-aware Dashboard Button -->
+                {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                {% elif session.get('role') == 'agent' %}
+                    <a href="{{ url_for('agent_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
+                        <i class="bi bi-briefcase"></i> Workspace
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('customer_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
+                        <i class="bi bi-person"></i> My Tickets
+                    </a>
+                {% endif %}
+                <!-- Sign Out Button -->
+                <a href="{{ url_for('logout') }}" class="navbar-cta" style="background: #EF4444; color: #ffffff; border-color: rgba(239, 68, 68, 0.3); text-align: center; margin-top: 0.5rem;" onclick="toggleMobileMenu()">
+                    <i class="bi bi-box-arrow-right"></i> Sign Out
                 </a>
             {% else %}
                 <a href="{{ url_for('login') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
@@ -1248,97 +1061,7 @@
         </div>
     </section>
     
-    <!-- Contact Section (Glassmorphism) -->
-    <section id="contact" class="contact">
-        <div class="section-container">
-            <div class="section-header">
-                <span class="section-badge">Contact</span>
-                <h2 class="section-title">Get in Touch</h2>
-                <p class="section-subtitle">
-                    Enterprise deployment and integration inquiries
-                </p>
-            </div>
-            
-            <div class="contact-grid">
-                <!-- Left Card: Contact Info -->
-                <div class="contact-card">
-                    <div class="contact-card-content">
-                        <h3 class="contact-title">Contact Info</h3>
-                        <p class="contact-subtitle">
-                            Speak with our solutions team to discuss deployment, enterprise integrations, or custom support queue configurations.
-                        </p>
-                        
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-envelope"></i>
-                            </div>
-                            <div class="contact-info-text">
-                                <span class="contact-info-label">Email</span>
-                                <span class="contact-info-value">support@compassiq.com</span>
-                            </div>
-                        </div>
-                        
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-envelope"></i>
-                            </div>
-                            <div class="contact-info-text">
-                                <span class="contact-info-label">Sales Inquiries</span>
-                                <span class="contact-info-value">inquiries@compassiq.com</span>
-                            </div>
-                        </div>
-                        
-                        <div class="contact-info-item">
-                            <div class="contact-info-icon">
-                                <i class="bi bi-code-slash"></i>
-                            </div>
-                            <div class="contact-info-text">
-                                <span class="contact-info-label">Technology Stack</span>
-                                <span class="contact-info-value">Flask, SQLite, scikit-learn, TF-IDF</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Right Card: Contact Form -->
-                <div class="contact-card">
-                    <div class="contact-card-content">
-                        <h3 class="contact-title">Send a Message</h3>
-                        <p class="contact-subtitle">
-                            Complete the form below and our support engineering desk will respond shortly.
-                        </p>
-                        
-                        <form class="contact-form" onsubmit="handleContactSubmit(event)">
-                            <div class="form-group">
-                                <label class="form-label">Your Name *</label>
-                                <input type="text" class="form-input" placeholder="Enter your full name" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Corporate Email Address *</label>
-                                <input type="email" class="form-input" placeholder="name@company.com" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Organization / Department (Optional)</label>
-                                <input type="text" class="form-input" placeholder="Your organization name">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Write your inquiry...</label>
-                                <textarea class="form-input form-textarea" placeholder="Describe your requirements or questions" required></textarea>
-                            </div>
-                            
-                            <button type="submit" class="btn-submit">
-                                <i class="bi bi-send"></i>
-                                Send Message
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+
     
     <!-- Footer -->
     <footer class="footer">
@@ -1359,7 +1082,6 @@
                 <div class="footer-links">
                     <a href="{{ url_for('login') }}" class="footer-link">Support Portal</a>
                     <a href="#capabilities" class="footer-link">Documentation</a>
-                    <a href="#contact" class="footer-link">Contact</a>
                 </div>
             </div>
             
@@ -1368,13 +1090,7 @@
             </div>
         </div>
     </footer>
-    
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">
-        <i class="bi bi-check-circle-fill toast-icon"></i>
-        <span id="toastMessage">Inquiry received. Our support engineering desk will respond shortly.</span>
-    </div>
-    
+
     <script>
         // Mobile menu toggle
         function toggleMobileMenu() {
@@ -1391,24 +1107,7 @@
                 navbar.classList.remove('scrolled');
             }
         });
-        
-        // Contact form handler with toast
-        function handleContactSubmit(event) {
-            event.preventDefault();
-            
-            // Show toast notification
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            
-            // Hide toast after 4 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
-            
-            // Reset form
-            event.target.reset();
-        }
-        
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {

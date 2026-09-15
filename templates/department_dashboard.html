@@ -57,7 +57,7 @@
                         {% for ticket in tickets %}
                             <tr>
                                 <td>
-                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticket_id }}</span>
+                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                                 </td>
                                 <td>
                                     <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -77,10 +77,10 @@
                                     <span class="badge badge-status-{{ ticket.status|replace(' ', '') }}">{{ ticket.status }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.created_at[:10] if ticket.created_at else '' }}</span>
+                                    <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.submitdate[:10] if ticket.submitdate else '' }}</span>
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openTicketModal('{{ ticket.ticket_id }}')">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openTicketModal('{{ ticket.ticketno }}')">
                                         <i class="bi bi-eye"></i> View Details
                                     </button>
                                 </td>
@@ -212,7 +212,7 @@ function openTicketModal(ticketId) {
                 const similarMatches = data.similar_matches;
                 
                 // Update modal header
-                document.getElementById('modalTicketId').textContent = ticket.ticket_id;
+                document.getElementById('modalTicketId').textContent = ticket.ticketno;
                 document.getElementById('modalStatus').textContent = ticket.status;
                 document.getElementById('modalStatus').className = `badge badge-status-${ticket.status.replace(' ', '')}`;
                 document.getElementById('modalPriority').textContent = ticket.predicted_priority;

@@ -283,7 +283,6 @@ function selectAgentTicket(ticketId, clickedElement) {
                 document.getElementById('agentTicketSubject').textContent = ticket.subject;
                 document.getElementById('agentCustomerName').textContent = ticket.customer_name;
                 document.getElementById('agentCustomerEmail').textContent = ticket.customer_email;
-                document.getElementById('agentCustomerProduct').textContent = ticket.customer_product_id || 'N/A';
 
                 // Update status and resolution notes
                 const statusSelect = document.getElementById('agentStatusSelect');

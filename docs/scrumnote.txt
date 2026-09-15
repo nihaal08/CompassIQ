@@ -305,23 +305,36 @@ Version 2.1 (14/09/2026) - AI Similar Historical Tickets Feature
 • Seeded 3 historical matches with similarity scores: 92.4%, 86.8%, 79.5%
 • Updated documentation to reflect active ticket_similar_matches table usage
 
+Version 2.2 (15/09/2026) - Dual-Table User Architecture Refactor
+• Refactored database schema to split user accounts into dedicated tables
+• Created `customers` table for external client accounts (custid, custname, email, password, phone_no, account_status)
+• Created `department_agents` table for internal staff and administrators (agent_id, agent_name, email, password, deptid, role, account_status)
+• Updated `complaints` table with `assigned_agent_id` foreign key to department_agents
+• Removed legacy `users` table and consolidated role/deptid logic into separate tables
+• Implemented unified login that checks both customers and department_agents tables
+• Updated authentication flow to route based on role (customer → customer_dashboard, agent → agent_dashboard, admin → admin_dashboard)
+• Updated session management to support both custid and agent_id with backward compatibility
+• Removed all product/bill references from schema (bill_no_product_id column eliminated)
+• Updated registration to only create customer accounts (staff accounts seeded separately)
+• Updated admin dashboard to show separate tables for customers and department agents
+• Updated login.html demo credentials to match new email addresses (tech.support@compassiq.com, billing.support@compassiq.com, etc.)
+• Updated demo password to "password123" across all accounts
+• Updated db.py ensure_demo_accounts to populate both tables with proper role/deptid assignments
+• Updated ticket_replies queries to support senders from both customers and agents using COALESCE
+• Removed Contact section from landing page templates/index.html
+• Enhanced browser cache invalidation for live session data on back navigation
+
 
 * Database and UI Design
  Database Design:
 Table                  | Attributes [PK/FK]                 | Purpose
 -----------------------+------------------------------------+--------------------------------------------------
-users                  | user_id (PK), full_name, email,    | Stores user credentials, roles (customer/agent/
-                       | password_hash, role, department,   | admin), department, product reference, and status.
-                       | bill_no_product_id, account_status |
-tickets                | ticket_id (PK), customer_id (FK),  | Stores complaints, AI predictions, department,
-                       | subject, description, category,    | status, agent assignment, resolution, and CSAT.
-                       | priority, status, assigned_agent   |
-ticket_replies         | reply_id (PK), ticket_id (FK),     | Stores two-way communication threads between
-                       | sender_id (FK), message, timestamp | customers and assigned support agents.
-ticket_similar_matches | match_id (PK), ticket_id (FK),     | Stores historical similar ticket recommendations
-                       | similar_ref_id, similarity_score,  | with TF-IDF cosine similarity scores for agent
-                       | similar_subject, similar_desc,     | assistance in resolution workflow.
-                       | resolution_hours, timestamp        |
+departments            | deptid (PK), deptname, sla_target_hours | Stores department definitions (Technical, Billing, Account, General Inquiry)
+customers              | custid (PK), custname, email, password, phone_no, account_status, created_at | Stores external client accounts with auto-approval workflow
+department_agents      | agent_id (PK), agent_name, email, password, deptid (FK), role, account_status, created_at | Stores internal staff and administrator accounts with department assignments
+complaints              | ticketno (PK), custid (FK), deptid (FK), assigned_agent_id (FK), subject, description, predicted_priority, status, submitdate, resolved_at, resolution_notes, satisfaction_score | Stores customer complaints with AI predictions, routing, and resolution tracking
+ticket_replies         | reply_id (PK), ticketno (FK), sender_id, message, created_at | Stores two-way communication threads between customers and agents (sender_id references both custid and agent_id)
+ticket_similar_matches | match_id (PK), ticketno (FK), similar_ticket_ref_id, similarity_score, similar_subject, similar_description, historical_resolution_hours, created_at | Stores historical similar ticket recommendations with TF-IDF cosine similarity scores for agent assistance
 
 
 => UI Design:

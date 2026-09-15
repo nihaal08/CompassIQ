@@ -37,9 +37,9 @@
                     <div class="header-actions">
                         {% if g.user %}
                             <a href="#" class="user-profile-pill">
-                                <div class="user-avatar">{{ g.user.full_name[0].upper() }}</div>
+                                <div class="user-avatar">{{ g.user.custname[0].upper() }}</div>
                                 <span>{{ g.user.role|title }}</span>
-                                {% if g.user.department and g.user.department != 'None' %}
+                                {% if g.user.deptid %}
                                     <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
                                 {% endif %}
                             </a>

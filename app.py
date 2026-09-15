@@ -62,17 +62,40 @@ def generate_ticket_id():
 def get_current_user():
     """
     Retrieves current logged in user from database using session user_id.
+    Checks both customers and department_agents tables.
     Returns user dictionary or None if not logged in.
     """
-    if 'user_id' not in session:
+    # Support both old and new session keys for backward compatibility
+    user_id = session.get('user_id') or session.get('custid') or session.get('agent_id')
+    if not user_id:
         return None
+    
     try:
+        # First check customers table
         user = query_db(
-            "SELECT user_id, full_name, email, role, department, bill_no_product_id, account_status FROM users WHERE user_id = ?",
-            (session['user_id'],),
+            "SELECT custid, custname, email, account_status FROM customers WHERE custid = ?",
+            (user_id,),
             one=True
         )
-        return user
+        if user:
+            # Add role for customers
+            user['role'] = 'customer'
+            user['deptid'] = None
+            return user
+        
+        # Then check department_agents table
+        agent = query_db(
+            "SELECT agent_id, agent_name, email, deptid, role, account_status FROM department_agents WHERE agent_id = ?",
+            (user_id,),
+            one=True
+        )
+        if agent:
+            # Map agent fields to consistent names for template compatibility
+            agent['custid'] = agent['agent_id']
+            agent['custname'] = agent['agent_name']
+            return agent
+        
+        return None
     except Exception as e:
         print(f"[Auth Helper Error] {e}")
         return None
@@ -92,10 +115,11 @@ def add_header(response):
     """
     Add cache-control headers to prevent browser caching of authenticated pages.
     This prevents users from navigating back to cached dashboard pages after logout.
+    Ensures landing page reflects live session data when using browser back button.
     """
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
     return response
 
 
@@ -164,24 +188,25 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """
-    User registration route with auto-approval for streamlined demo flow.
+    Customer registration route with auto-approval for streamlined demo flow.
     - GET: Renders registration form
-    - POST: Creates new user with APPROVED status (no admin approval needed)
-    - Validates input, checks for existing email, hashes password
+    - POST: Creates new customer with APPROVED status (no admin approval needed)
+    - Validates input, checks for existing email in both customers and department_agents tables
+    - Only creates customer accounts (staff accounts are created separately)
     """
     if g.user:
         return redirect(url_for('index'))
 
     if request.method == 'POST':
         # Step 1: Read and validate form data
-        full_name = request.form.get('full_name', '').strip()
+        custname = request.form.get('full_name', '').strip()
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
-        bill_no_product_id = request.form.get('bill_no_product_id', '').strip()
+        phone_no = request.form.get('phone_no', '').strip()
 
         # Form validation
-        if not full_name or not email or not password:
+        if not custname or not email or not password:
             flash("Please fill in all required fields.", "danger")
             return render_template('register.html')
 
@@ -193,20 +218,22 @@ def register():
             flash("Password must be at least 6 characters long.", "danger")
             return render_template('register.html')
 
-        # Step 2: Check for existing user
-        existing_user = query_db("SELECT user_id FROM users WHERE email = ?", (email,), one=True)
-        if existing_user:
+        # Step 2: Check for existing email in both tables
+        existing_customer = query_db("SELECT custid FROM customers WHERE email = ?", (email,), one=True)
+        existing_agent = query_db("SELECT agent_id FROM department_agents WHERE email = ?", (email,), one=True)
+        
+        if existing_customer or existing_agent:
             flash("An account with this email address already exists.", "danger")
             return render_template('register.html')
 
-        # Step 3: Create user with auto-approval
+        # Step 3: Create customer with auto-approval
         hashed_password = generate_password_hash(password)
 
         try:
             modify_db(
-                """INSERT INTO users (full_name, email, password_hash, role, department, bill_no_product_id, account_status)
-                   VALUES (?, ?, ?, 'customer', 'None', ?, 'APPROVED')""",
-                (full_name, email, hashed_password, bill_no_product_id)
+                """INSERT INTO customers (custname, email, password, phone_no, account_status)
+                   VALUES (?, ?, ?, ?, 'APPROVED')""",
+                (custname, email, hashed_password, phone_no)
             )
             flash(
                 "Registration successful! Your account has been automatically approved.",
@@ -225,7 +252,8 @@ def login():
     """
     User authentication route.
     - GET: Renders login form
-    - POST: Validates credentials, creates session, redirects to role-specific dashboard
+    - POST: Validates credentials against both customers and department_agents tables
+    - Creates session, redirects to role-specific dashboard
     - Checks account status (BANNED users are blocked)
     """
     if g.user:
@@ -240,33 +268,67 @@ def login():
             flash("Please enter both email and password.", "warning")
             return render_template('login.html')
 
-        # Step 2: Authenticate user
-        user = query_db("SELECT * FROM users WHERE email = ?", (email,), one=True)
+        # Step 2: Check customers table first
+        customer = query_db(
+            "SELECT custid, custname, email, password, account_status FROM customers WHERE LOWER(email) = ?",
+            (email,),
+            one=True
+        )
 
-        if not user or not check_password_hash(user['password_hash'], password):
-            flash("Invalid email or password. Please verify your credentials.", "danger")
-            return render_template('login.html')
+        if customer and check_password_hash(customer['password'], password):
+            # Step 3: Check account status
+            if customer['account_status'] == 'BANNED':
+                flash("Your account has been suspended by administration. Please contact support.", "danger")
+                return render_template('login.html')
 
-        # Step 3: Check account status
-        if user['account_status'] == 'BANNED':
-            flash("Your account has been suspended by administration. Please contact support.", "danger")
-            return render_template('login.html')
+            # Step 4: Create session for customer
+            session.clear()
+            session['custid'] = customer['custid']
+            session['user_id'] = customer['custid']  # Backward compatibility
+            session['custname'] = customer['custname']
+            session['full_name'] = customer['custname']  # Backward compatibility
+            session['email'] = customer['email']
+            session['role'] = 'customer'
+            session['deptid'] = None
 
-        # Step 4: Create session and redirect
-        session.clear()
-        session['user_id'] = user['user_id']
-        session['role'] = user['role']
-        session['full_name'] = user['full_name']
-
-        flash(f"Welcome back, {user['full_name']}!", "success")
-
-        # Role-based redirect
-        if user['role'] == 'customer':
+            flash(f"Welcome back, {customer['custname']}!", "success")
             return redirect(url_for('customer_dashboard'))
-        elif user['role'] == 'agent':
-            return redirect(url_for('agent_dashboard'))
-        elif user['role'] == 'admin':
-            return redirect(url_for('admin_dashboard'))
+
+        # Step 5: Check department_agents table
+        agent = query_db(
+            "SELECT agent_id, agent_name, email, password, deptid, role, account_status FROM department_agents WHERE LOWER(email) = ?",
+            (email,),
+            one=True
+        )
+
+        if agent and check_password_hash(agent['password'], password):
+            # Step 6: Check account status
+            if agent['account_status'] == 'BANNED':
+                flash("Your account has been suspended by administration. Please contact support.", "danger")
+                return render_template('login.html')
+
+            # Step 7: Create session for agent/admin
+            session.clear()
+            session['agent_id'] = agent['agent_id']
+            session['user_id'] = agent['agent_id']  # Backward compatibility
+            session['custid'] = agent['agent_id']  # Backward compatibility
+            session['custname'] = agent['agent_name']
+            session['full_name'] = agent['agent_name']  # Backward compatibility
+            session['email'] = agent['email']
+            session['role'] = agent['role']
+            session['deptid'] = agent['deptid']
+
+            flash(f"Welcome back, {agent['agent_name']}!", "success")
+
+            # Role-based redirect
+            if agent['role'] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('agent_dashboard'))
+
+        # Step 8: Invalid credentials
+        flash("Invalid email or password. Please verify your credentials.", "danger")
+        return render_template('login.html')
 
     return render_template('login.html')
 
@@ -290,16 +352,18 @@ def logout():
 def customer_dashboard():
     """
     Customer dashboard showing all tickets created by the current customer.
-    Displays ticket list with agent assignment and status information.
+    Displays ticket list with department assignment and status information.
     """
-    # Fetch all tickets created by customer with agent details
+    # Fetch all tickets created by customer with department details
+    # Support both old and new session keys for backward compatibility
+    user_id = g.user.get('custid') or g.user.get('user_id')
     tickets = query_db(
-        """SELECT t.*, u.full_name as agent_name
-           FROM tickets t
-           LEFT JOIN users u ON t.assigned_agent_id = u.user_id
-           WHERE t.customer_id = ?
-           ORDER BY t.created_at DESC""",
-        (g.user['user_id'],)
+        """SELECT c.*, d.deptname as department_name
+           FROM complaints c
+           LEFT JOIN departments d ON c.deptid = d.deptid
+           WHERE c.custid = ?
+           ORDER BY c.submitdate DESC""",
+        (user_id,)
     )
     return render_template('customer_dashboard.html', tickets=tickets)
 
@@ -312,8 +376,9 @@ def create_ticket():
     Ticket creation route with AI-powered classification.
     - Step 1: Read and validate form data (subject, description)
     - Step 2: Call AI engine for category and priority prediction
-    - Step 3: Insert ticket with AI predictions into database
-    - Step 4: Create initial reply message
+    - Step 3: Map category to deptid (Technical→1, Billing→2, Account→3, General→4)
+    - Step 4: Insert complaint with AI predictions into database
+    - Step 5: Create initial reply message
     """
     # Step 1: Read and validate form data
     subject = request.form.get('subject', '').strip()
@@ -328,29 +393,42 @@ def create_ticket():
     
     predicted_category = ai_result['predicted_category']
     predicted_priority = ai_result['predicted_priority']
-    assigned_dept = ai_result['assigned_department']
+
+    # Step 3: Map category to deptid
+    category_to_deptid = {
+        'Technical': 1,
+        'Billing': 2,
+        'Account': 3,
+        'General Inquiry': 4
+    }
+    deptid = category_to_deptid.get(predicted_category, 4)  # Default to General Inquiry
 
     ticket_id = generate_ticket_id()
 
+    # Support both old and new session keys for backward compatibility
+    user_id = g.user.get('custid') or g.user.get('user_id')
+
     try:
-        # Step 3: Insert ticket with AI predictions
+        # Step 4: Insert complaint with AI predictions
         modify_db(
-            """INSERT INTO tickets (ticket_id, customer_id, subject, description,
-                                   predicted_category, predicted_priority,
-                                   assigned_department, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, 'Submitted')""",
-            (ticket_id, g.user['user_id'], subject, description,
-             predicted_category, predicted_priority, assigned_dept)
+            """INSERT INTO complaints (ticketno, custid, deptid, subject, description,
+                                   predicted_priority, status)
+               VALUES (?, ?, ?, ?, ?, ?, 'Submitted')""",
+            (ticket_id, user_id, deptid, subject, description, predicted_priority)
         )
 
-        # Step 4: Insert initial ticket reply message
+        # Step 5: Insert initial ticket reply message
         modify_db(
-            """INSERT INTO ticket_replies (ticket_id, sender_id, message)
+            """INSERT INTO ticket_replies (ticketno, sender_id, message)
                VALUES (?, ?, ?)""",
-            (ticket_id, g.user['user_id'], description)
+            (ticket_id, user_id, description)
         )
 
-        flash(f"Ticket {ticket_id} created successfully! Routed to {assigned_dept} team.", "success")
+        # Get department name for flash message
+        dept = query_db("SELECT deptname FROM departments WHERE deptid = ?", (deptid,), one=True)
+        dept_name = dept['deptname'] if dept else 'General Inquiry'
+
+        flash(f"Ticket {ticket_id} created successfully! Routed to {dept_name} team.", "success")
 
     except Exception as e:
         flash(f"Failed to submit ticket: {e}", "danger")
@@ -367,12 +445,13 @@ def view_customer_ticket(ticket_id):
     Used for populating ticket detail modals.
     """
     # Step 1: Fetch ticket with ownership verification
+    user_id = g.user.get('custid') or g.user.get('user_id')
     ticket = query_db(
-        """SELECT t.*, u.full_name as agent_name
-           FROM tickets t
-           LEFT JOIN users u ON t.assigned_agent_id = u.user_id
-           WHERE t.ticket_id = ? AND t.customer_id = ?""",
-        (ticket_id, g.user['user_id']),
+        """SELECT c.*, d.deptname as department_name
+           FROM complaints c
+           LEFT JOIN departments d ON c.deptid = d.deptid
+           WHERE c.ticketno = ? AND c.custid = ?""",
+        (ticket_id, user_id),
         one=True
     )
     if not ticket:
@@ -381,12 +460,15 @@ def view_customer_ticket(ticket_id):
             'message': 'Ticket not found or unauthorized'
         }), 404
 
-    # Step 2: Fetch conversation replies
+    # Step 2: Fetch conversation replies (from both customers and agents)
     replies = query_db(
-        """SELECT r.*, u.full_name as sender_name, u.role as sender_role
+        """SELECT r.*, 
+                  COALESCE(c.custname, a.agent_name) as sender_name,
+                  COALESCE(c.role, a.role) as sender_role
            FROM ticket_replies r
-           JOIN users u ON r.sender_id = u.user_id
-           WHERE r.ticket_id = ?
+           LEFT JOIN customers c ON r.sender_id = c.custid
+           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           WHERE r.ticketno = ?
            ORDER BY r.created_at ASC""",
         (ticket_id,)
     )
@@ -416,9 +498,10 @@ def customer_ticket_reply(ticket_id):
         return jsonify({'success': False, 'message': 'Reply message cannot be empty.'}), 400
 
     # Step 2: Verify ownership and status
+    user_id = g.user.get('custid') or g.user.get('user_id')
     ticket = query_db(
-        "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
-        (ticket_id, g.user['user_id']),
+        "SELECT status FROM complaints WHERE ticketno = ? AND custid = ?",
+        (ticket_id, user_id),
         one=True
     )
     if not ticket:
@@ -428,17 +511,21 @@ def customer_ticket_reply(ticket_id):
         return jsonify({'success': False, 'message': 'This ticket is resolved or closed. Replies are locked.'}), 403
 
     # Step 3: Insert reply
+    user_id = g.user.get('custid') or g.user.get('user_id')
     modify_db(
-        "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
-        (ticket_id, g.user['user_id'], message)
+        "INSERT INTO ticket_replies (ticketno, sender_id, message) VALUES (?, ?, ?)",
+        (ticket_id, user_id, message)
     )
     
-    # Step 4: Fetch new reply for UI update
+    # Step 4: Fetch new reply for UI update (from both customers and agents)
     new_reply = query_db(
-        """SELECT r.*, u.full_name as sender_name, u.role as sender_role
+        """SELECT r.*, 
+                  COALESCE(c.custname, a.agent_name) as sender_name,
+                  COALESCE(c.role, a.role) as sender_role
            FROM ticket_replies r
-           JOIN users u ON r.sender_id = u.user_id
-           WHERE r.ticket_id = ? 
+           LEFT JOIN customers c ON r.sender_id = c.custid
+           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           WHERE r.ticketno = ? 
            ORDER BY r.created_at DESC LIMIT 1""",
         (ticket_id,),
         one=True
@@ -458,7 +545,7 @@ def submit_feedback(ticket_id):
     Customer satisfaction feedback submission.
     - Step 1: Validate rating (1-5 stars)
     - Step 2: Verify ticket is resolved
-    - Step 3: Update ticket with satisfaction score and feedback
+    - Step 3: Update complaint with satisfaction score and feedback
     """
     # Step 1: Read and validate rating
     score = request.form.get('satisfaction_score', type=int)
@@ -469,21 +556,23 @@ def submit_feedback(ticket_id):
         return redirect(url_for('customer_dashboard'))
 
     # Step 2: Verify ticket status
+    user_id = g.user.get('custid') or g.user.get('user_id')
     ticket = query_db(
-        "SELECT status FROM tickets WHERE ticket_id = ? AND customer_id = ?",
-        (ticket_id, g.user['user_id']),
+        "SELECT status FROM complaints WHERE ticketno = ? AND custid = ?",
+        (ticket_id, user_id),
         one=True
     )
     if not ticket or ticket['status'] not in ['Resolved', 'Closed']:
         flash("Feedback can only be submitted for resolved tickets.", "danger")
         return redirect(url_for('customer_dashboard'))
 
-    # Step 3: Update ticket with feedback
+    # Step 3: Update complaint with feedback
+    user_id = g.user.get('custid') or g.user.get('user_id')
     modify_db(
-        """UPDATE tickets
-           SET satisfaction_score = ?, customer_feedback = ?, status = 'Closed'
-           WHERE ticket_id = ? AND customer_id = ?""",
-        (score, feedback, ticket_id, g.user['user_id'])
+        """UPDATE complaints
+           SET satisfaction_score = ?, resolution_notes = ?, status = 'Closed'
+           WHERE ticketno = ? AND custid = ?""",
+        (score, feedback, ticket_id, user_id)
     )
     flash("Thank you! Your satisfaction feedback has been recorded.", "success")
     return redirect(url_for('customer_dashboard'))
@@ -510,42 +599,66 @@ def agent_dashboard():
     - Shows summary statistics (total, submitted, in progress, resolved)
     - Prioritizes tickets by predicted priority (Critical > High > Medium > Low)
     """
-    agent_dept = g.user['department']
+    # Support both old and new session keys for backward compatibility
+    agent_deptid = g.user.get('deptid') or None
     status_filter = request.args.get('status', 'all')
+
+    # Get department name
+    agent_dept = 'General Inquiry'
+    if agent_deptid:
+        dept = query_db("SELECT deptname FROM departments WHERE deptid = ?", (agent_deptid,), one=True)
+        agent_dept = dept['deptname'] if dept else 'General Inquiry'
 
     # Build dynamic SQL query with optional status filter
     sql = """
-        SELECT t.*, u.full_name as customer_name, u.email as customer_email,
-               a.full_name as agent_name
-        FROM tickets t
-        JOIN users u ON t.customer_id = u.user_id
-        LEFT JOIN users a ON t.assigned_agent_id = a.user_id
-        WHERE t.assigned_department = ?
+        SELECT c.*, u.custname as customer_name, u.email as customer_email,
+               d.deptname as department_name
+        FROM complaints c
+        JOIN customers u ON c.custid = u.custid
+        LEFT JOIN departments d ON c.deptid = d.deptid
     """
-    params = [agent_dept]
+    params = []
+
+    # Only filter by department if agent has a deptid
+    if agent_deptid:
+        sql += " WHERE c.deptid = ?"
+        params.append(agent_deptid)
 
     if status_filter != 'all':
-        sql += " AND t.status = ?"
+        sql += " AND c.status = ?" if agent_deptid else " WHERE c.status = ?"
         params.append(status_filter)
 
     # Order by priority (Critical first) then by creation date
-    sql += " ORDER BY CASE t.predicted_priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 WHEN 'Low' THEN 4 ELSE 5 END, t.created_at DESC"
+    sql += " ORDER BY CASE c.predicted_priority WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 WHEN 'Low' THEN 4 ELSE 5 END, c.submitdate DESC"
 
     tickets = query_db(sql, tuple(params))
     
     # Fetch summary statistics for dashboard counters
-    counts = query_db(
-        """SELECT
-            COUNT(*) as total,
-            SUM(status = 'Submitted') as count_submitted,
-            SUM(status = 'Under Review') as count_under_review,
-            SUM(status = 'In Progress') as count_in_progress,
-            SUM(status = 'Resolved') as count_resolved
-           FROM tickets
-           WHERE assigned_department = ?""",
-        (agent_dept,),
-        one=True
-    )
+    if agent_deptid:
+        counts = query_db(
+            """SELECT
+                COUNT(*) as total,
+                SUM(status = 'Submitted') as count_submitted,
+                SUM(status = 'Under Review') as count_under_review,
+                SUM(status = 'In Progress') as count_in_progress,
+                SUM(status = 'Resolved') as count_resolved
+               FROM complaints
+               WHERE deptid = ?""",
+            (agent_deptid,),
+            one=True
+        )
+    else:
+        # Admin sees all tickets
+        counts = query_db(
+            """SELECT
+                COUNT(*) as total,
+                SUM(status = 'Submitted') as count_submitted,
+                SUM(status = 'Under Review') as count_under_review,
+                SUM(status = 'In Progress') as count_in_progress,
+                SUM(status = 'Resolved') as count_resolved
+               FROM complaints""",
+            one=True
+        )
 
     return render_template(
         'department_dashboard.html',
@@ -564,18 +677,19 @@ def agent_ticket_details(ticket_id):
     Returns ticket information, conversation history, and AI predictions.
     Used for populating agent workspace modal.
     """
-    agent_dept = g.user['department']
+    # Support both old and new session keys for backward compatibility
+    agent_deptid = g.user.get('deptid') or None
+    user_role = g.user.get('role', '')
     
     # Step 1: Fetch ticket with department verification
     ticket = query_db(
-        """SELECT t.*, u.full_name as customer_name, u.email as customer_email,
-                  u.bill_no_product_id as customer_product_id,
-                  a.full_name as agent_name
-           FROM tickets t
-           JOIN users u ON t.customer_id = u.user_id
-           LEFT JOIN users a ON t.assigned_agent_id = a.user_id
-           WHERE t.ticket_id = ? AND (t.assigned_department = ? OR ? = 'Admin')""",
-        (ticket_id, agent_dept, g.user['role']),
+        """SELECT c.*, u.custname as customer_name, u.email as customer_email,
+                  d.deptname as department_name
+           FROM complaints c
+           JOIN customers u ON c.custid = u.custid
+           LEFT JOIN departments d ON c.deptid = d.deptid
+           WHERE c.ticketno = ? AND (c.deptid = ? OR ? = 'admin')""",
+        (ticket_id, agent_deptid, user_role),
         one=True
     )
     if not ticket:
@@ -583,10 +697,10 @@ def agent_ticket_details(ticket_id):
 
     # Step 2: Fetch conversation replies
     replies = query_db(
-        """SELECT r.*, u.full_name as sender_name, u.role as sender_role
+        """SELECT r.*, u.custname as sender_name, u.role as sender_role
            FROM ticket_replies r
-           JOIN users u ON r.sender_id = u.user_id
-           WHERE r.ticket_id = ?
+           JOIN customers u ON r.sender_id = u.custid
+           WHERE r.ticketno = ?
            ORDER BY r.created_at ASC""",
         (ticket_id,)
     )
@@ -596,7 +710,7 @@ def agent_ticket_details(ticket_id):
         """SELECT similar_ticket_ref_id, similarity_score, similar_subject, 
                   similar_description, historical_resolution_hours
            FROM ticket_similar_matches
-           WHERE ticket_id = ?
+           WHERE ticketno = ?
            ORDER BY similarity_score DESC
            LIMIT 3""",
         (ticket_id,)
@@ -618,10 +732,11 @@ def agent_ticket_reply(ticket_id):
     - Step 1: Read reply message, status update, and resolution notes
     - Step 2: Verify ticket belongs to agent's department
     - Step 3: Insert reply if provided
-    - Step 4: Update ticket status, assign agent, add resolution notes
+    - Step 4: Update complaint status and add resolution notes
     """
     # Step 1: Read form data
-    agent_dept = g.user['department']
+    agent_deptid = g.user.get('deptid') or None
+    user_id = g.user.get('custid') or g.user.get('user_id')
     message = request.form.get('message', '').strip()
     new_status = request.form.get('status', '').strip()
     resolution_notes = request.form.get('resolution_notes', '').strip()
@@ -631,11 +746,19 @@ def agent_ticket_reply(ticket_id):
         return redirect(url_for('agent_dashboard'))
 
     # Step 2: Verify ticket scope
-    ticket = query_db(
-        "SELECT * FROM tickets WHERE ticket_id = ? AND assigned_department = ?",
-        (ticket_id, agent_dept),
-        one=True
-    )
+    if agent_deptid:
+        ticket = query_db(
+            "SELECT * FROM complaints WHERE ticketno = ? AND deptid = ?",
+            (ticket_id, agent_deptid),
+            one=True
+        )
+    else:
+        # Admin can access all tickets
+        ticket = query_db(
+            "SELECT * FROM complaints WHERE ticketno = ?",
+            (ticket_id,),
+            one=True
+        )
     if not ticket:
         flash("Ticket not found in your department scope.", "danger")
         return redirect(url_for('agent_dashboard'))
@@ -643,13 +766,13 @@ def agent_ticket_reply(ticket_id):
     # Step 3: Insert reply if provided
     if message:
         modify_db(
-            "INSERT INTO ticket_replies (ticket_id, sender_id, message) VALUES (?, ?, ?)",
-            (ticket_id, g.user['user_id'], message)
+            "INSERT INTO ticket_replies (ticketno, sender_id, message) VALUES (?, ?, ?)",
+            (ticket_id, user_id, message)
         )
 
-    # Step 4: Update ticket status and metadata
-    update_fields = ["assigned_agent_id = ?"]
-    params = [g.user['user_id']]
+    # Step 4: Update complaint status and metadata
+    update_fields = []
+    params = []
 
     if new_status and new_status in ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed']:
         update_fields.append("status = ?")
@@ -661,11 +784,12 @@ def agent_ticket_reply(ticket_id):
         update_fields.append("resolution_notes = ?")
         params.append(resolution_notes)
 
-    params.append(ticket_id)
-    modify_db(
-        f"UPDATE tickets SET {', '.join(update_fields)} WHERE ticket_id = ?",
-        tuple(params)
-    )
+    if update_fields:
+        params.append(ticket_id)
+        modify_db(
+            f"UPDATE complaints SET {', '.join(update_fields)} WHERE ticketno = ?",
+            tuple(params)
+        )
 
     flash(f"Ticket {ticket_id} updated successfully.", "success")
     return redirect(url_for('agent_dashboard'))
@@ -687,32 +811,40 @@ def admin_dashboard():
     - Returns metrics, analytics data, user list, and ticket list
     """
     # Step 1: Calculate core metrics
-    total_tickets = query_db("SELECT COUNT(*) as count FROM tickets", one=True)['count']
-    resolved_tickets = query_db("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Resolved', 'Closed')", one=True)['count']
+    total_tickets = query_db("SELECT COUNT(*) as count FROM complaints", one=True)['count']
+    resolved_tickets = query_db("SELECT COUNT(*) as count FROM complaints WHERE status IN ('Resolved', 'Closed')", one=True)['count']
 
     # Step 2: Fetch category distribution for analytics
     dept_stats = query_db(
-        """SELECT predicted_category as assigned_department, COUNT(*) as count
-           FROM tickets
-           GROUP BY predicted_category"""
+        """SELECT d.deptname as assigned_department, COUNT(*) as count
+           FROM complaints c
+           JOIN departments d ON c.deptid = d.deptid
+           GROUP BY d.deptname"""
     )
 
     # Convert chart data for JSON rendering in Chart.js
     dept_labels = [row['assigned_department'] for row in dept_stats]
     dept_data = [row['count'] for row in dept_stats]
 
-    # Step 3: Fetch all users for User Management
-    all_users = query_db(
-        """SELECT user_id, full_name, email, role, department, account_status, created_at
-           FROM users 
+    # Step 3: Fetch all users for User Management (from both tables)
+    all_customers = query_db(
+        """SELECT custid, custname, email, account_status, created_at
+           FROM customers 
+           ORDER BY created_at DESC"""
+    )
+    
+    all_agents = query_db(
+        """SELECT agent_id, agent_name, email, deptid, role, account_status, created_at
+           FROM department_agents 
            ORDER BY created_at DESC"""
     )
 
     # Step 4: Fetch all system tickets for Ticket Registry
     all_tickets = query_db(
-        """SELECT ticket_id, subject, predicted_category, predicted_priority, status, created_at
-           FROM tickets 
-           ORDER BY created_at DESC"""
+        """SELECT ticketno, subject, d.deptname as category, predicted_priority, status, submitdate
+           FROM complaints c
+           JOIN departments d ON c.deptid = d.deptid
+           ORDER BY c.submitdate DESC"""
     )
 
     return render_template(
@@ -723,7 +855,8 @@ def admin_dashboard():
         },
         dept_labels=dept_labels,
         dept_data=dept_data,
-        users=all_users,
+        customers=all_customers,
+        agents=all_agents,
         tickets=all_tickets
     )
 
@@ -733,14 +866,14 @@ def admin_dashboard():
 @admin_required
 def approve_user(user_id):
     """Legacy user approval route (not used with auto-approval)."""
-    user = query_db("SELECT role, department FROM users WHERE user_id = ?", (user_id,), one=True)
+    user = query_db("SELECT role, deptid FROM customers WHERE custid = ?", (user_id,), one=True)
     
-    if user and user['role'] == 'agent' and (not user['department'] or user['department'] == 'None'):
-        default_dept = request.form.get('department', 'Technical')
-        modify_db("UPDATE users SET account_status = 'APPROVED', department = ? WHERE user_id = ?", (default_dept, user_id))
-        flash(f"User ID #{user_id} approved successfully and assigned to {default_dept} department.", "success")
+    if user and user['role'] == 'agent' and not user['deptid']:
+        default_deptid = request.form.get('deptid', 1)
+        modify_db("UPDATE customers SET account_status = 'APPROVED', deptid = ? WHERE custid = ?", (default_deptid, user_id))
+        flash(f"User ID #{user_id} approved successfully and assigned to department ID {default_deptid}.", "success")
     else:
-        modify_db("UPDATE users SET account_status = 'APPROVED' WHERE user_id = ?", (user_id,))
+        modify_db("UPDATE customers SET account_status = 'APPROVED' WHERE custid = ?", (user_id,))
         flash(f"User ID #{user_id} approved successfully.", "success")
     
     return redirect(url_for('admin_dashboard'))
@@ -750,7 +883,7 @@ def approve_user(user_id):
 @admin_required
 def reject_user(user_id):
     """Legacy user rejection route (not used with auto-approval)."""
-    modify_db("UPDATE users SET account_status = 'REJECTED' WHERE user_id = ?", (user_id,))
+    modify_db("UPDATE customers SET account_status = 'REJECTED' WHERE custid = ?", (user_id,))
     flash(f"User ID #{user_id} registration rejected.", "warning")
     return redirect(url_for('admin_dashboard'))
 
@@ -759,7 +892,7 @@ def reject_user(user_id):
 @admin_required
 def ban_user(user_id):
     """Legacy user ban route (not used in simplified UI)."""
-    modify_db("UPDATE users SET account_status = 'BANNED' WHERE user_id = ?", (user_id,))
+    modify_db("UPDATE customers SET account_status = 'BANNED' WHERE custid = ?", (user_id,))
     flash(f"User ID #{user_id} has been banned from the system.", "danger")
     return redirect(url_for('admin_dashboard'))
 
@@ -769,7 +902,7 @@ def ban_user(user_id):
 def admin_close_ticket(ticket_id):
     """Legacy admin ticket closure route (not used in simplified UI)."""
     modify_db(
-        "UPDATE tickets SET status = 'Closed', resolved_at = CURRENT_TIMESTAMP, resolution_notes = 'Closed by Administrator security audit.' WHERE ticket_id = ?",
+        "UPDATE complaints SET status = 'Closed', resolved_at = CURRENT_TIMESTAMP, resolution_notes = 'Closed by Administrator security audit.' WHERE ticketno = ?",
         (ticket_id,)
     )
     flash(f"Ticket {ticket_id} closed by Admin.", "info")
