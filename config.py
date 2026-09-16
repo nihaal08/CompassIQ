@@ -12,18 +12,9 @@ from dotenv import load_dotenv
 
 # Get the project root directory (parent of this file)
 BASE_DIR = Path(__file__).resolve().parent
+
+# Load environment variables if .env exists
 DOTENV_PATH = BASE_DIR / '.env'
-DOTENV_EXAMPLE_PATH = BASE_DIR / '.env.example'
-
-# Auto-create .env from .env.example if missing
-if not DOTENV_PATH.exists() and DOTENV_EXAMPLE_PATH.exists():
-    try:
-        shutil.copyfile(DOTENV_EXAMPLE_PATH, DOTENV_PATH)
-        print("[Config] Created '.env' from '.env.example'.")
-    except Exception as e:
-        print(f"[Config] Warning creating .env: {e}")
-
-# Load .env variables
 if DOTENV_PATH.exists():
     load_dotenv(DOTENV_PATH, override=True)
 else:
