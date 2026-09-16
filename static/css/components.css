@@ -21,7 +21,21 @@
   line-height: 1;
 }
 
-/* Category Badges */
+/* Category Badges / Pills */
+.badge-category,
+[class*="badge-category-"],
+[class*="badge-category"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-full);
+  line-height: 1.2;
+}
+
 .badge-category {
   background: var(--card-bg);
   backdrop-filter: blur(16px);
@@ -52,6 +66,15 @@
   background: var(--category-inquiry-bg);
   color: #9CA3AF;
   border: 1px solid var(--category-inquiry-border);
+}
+
+.badge-category-Fraud,
+.badge-category-FraudSecurity,
+.badge-category-Fraud\&Security,
+[class*="badge-category-Fraud"] {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Priority Badges */
@@ -516,6 +539,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: auto;
+  min-width: 900px;
 }
 
 .enterprise-table thead {
@@ -546,7 +571,7 @@
   color: #D5D5D5;
   height: 48px;
   vertical-align: middle;
-  word-break: break-word;
+  word-break: normal;
 }
 
 .enterprise-table tbody tr:hover {
@@ -556,6 +581,91 @@
 
 .enterprise-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Explicit Column Sizing & Spacing for Enterprise Tables */
+.enterprise-table .col-ticket-id {
+  min-width: 115px;
+  white-space: nowrap;
+}
+
+.enterprise-table .col-subject {
+  min-width: 220px;
+  max-width: 340px;
+}
+
+.enterprise-table .col-subject .ticket-subject-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.enterprise-table .col-subject .ticket-subject-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+}
+
+.enterprise-table .col-category,
+.enterprise-table th.col-category,
+.enterprise-table td.col-category {
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.enterprise-table .col-priority,
+.enterprise-table th.col-priority,
+.enterprise-table td.col-priority {
+  min-width: 105px;
+  white-space: nowrap;
+}
+
+.enterprise-table .col-status,
+.enterprise-table th.col-status,
+.enterprise-table td.col-status {
+  min-width: 115px;
+  white-space: nowrap;
+}
+
+.enterprise-table .col-department,
+.enterprise-table th.col-department,
+.enterprise-table td.col-department {
+  min-width: 140px;
+  white-space: normal;
+  word-break: normal;
+  line-height: 1.35;
+}
+
+.enterprise-table .col-created,
+.enterprise-table th.col-created,
+.enterprise-table td.col-created {
+  min-width: 110px;
+  white-space: nowrap;
+}
+
+.enterprise-table .col-rating,
+.enterprise-table th.col-rating,
+.enterprise-table td.col-rating {
+  min-width: 90px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Fallback column nth-child rules for customer tickets table */
+.customer-tickets-table th:nth-child(3),
+.customer-tickets-table td:nth-child(3) {
+  min-width: 140px;
+  white-space: nowrap;
+}
+
+.customer-tickets-table th:nth-child(6),
+.customer-tickets-table td:nth-child(6) {
+  min-width: 140px;
+  white-space: normal;
+  word-break: normal;
 }
 
 /* Management Table Specifics */

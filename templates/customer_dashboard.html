@@ -97,49 +97,55 @@
         </div>
     {% else %}
         <div class="table-responsive">
-            <table class="enterprise-table">
+            <table class="enterprise-table customer-tickets-table">
                 <thead>
                     <tr>
-                        <th>Ticket ID</th>
-                        <th>Subject</th>
-                        <th>Category</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                        <th>Department</th>
-                        <th>Created</th>
-                        <th>Rating</th>
+                        <th class="col-ticket-id">Ticket ID</th>
+                        <th class="col-subject">Subject</th>
+                        <th class="col-category">Category</th>
+                        <th class="col-priority">Priority</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-department">Department</th>
+                        <th class="col-created">Created</th>
+                        <th class="col-rating">Rating</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ticket in tickets %}
                         <tr style="cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticketno }}')">
-                            <td class="text-ellipsis">
+                            <td class="col-ticket-id text-ellipsis">
                                 <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                             </td>
-                            <td>
-                                <div style="font-weight: var(--font-weight-medium); color: var(--text-primary);">{{ ticket.subject }}</div>
-                                <div style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;">{{ ticket.description }}</div>
+                            <td class="col-subject">
+                                <div class="ticket-subject-title" style="font-weight: var(--font-weight-medium); color: var(--text-primary);">{{ ticket.subject }}</div>
+                                <div class="ticket-subject-desc" style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px;">{{ ticket.description }}</div>
                             </td>
-                            <td>
-                                <span class="badge badge-category-{{ ticket.department_name.replace(' ', '') }}">
-                                    {{ ticket.department_name }}
+                            <td class="col-category">
+                                <span class="badge badge-category badge-category-{{ (ticket.department_name or 'General Inquiry')|replace(' ', '')|replace('&', '') }}">
+                                    {{ ticket.department_name or 'General Inquiry' }}
                                 </span>
                             </td>
-                            <td>
-                                <span class="badge badge-priority-{{ ticket.predicted_priority }}">
-                                    {{ ticket.predicted_priority }}
+                            <td class="col-priority">
+                                <span class="badge badge-priority badge-priority-{{ ticket.predicted_priority or 'Medium' }}">
+                                    {{ ticket.predicted_priority or 'Medium' }}
                                 </span>
                             </td>
-                            <td>
-                                <span class="badge badge-status-{{ ticket.status.replace(' ', '') }}">
-                                    {{ ticket.status }}
+                            <td class="col-status">
+                                <span class="badge badge-status badge-status-{{ (ticket.status or 'Submitted')|replace(' ', '') }}">
+                                    {{ ticket.status or 'Submitted' }}
                                 </span>
                             </td>
-                            <td>{{ ticket.department_name }}</td>
-                            <td class="no-wrap">{{ ticket.submitdate[:10] }}</td>
-                            <td>
+                            <td class="col-department">{{ ticket.department_name or 'General Inquiry' }}</td>
+                            <td class="col-created no-wrap">{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
+                            <td class="col-rating text-center" onclick="event.stopPropagation();">
                                 {% if ticket.satisfaction_score %}
-                                    <div style="color: #D5D5D5;">{{ '★' * ticket.satisfaction_score }}</div>
+                                    <span class="badge" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); font-weight: 600; font-size: 0.8rem;">
+                                        ★ {{ ticket.satisfaction_score }}/5
+                                    </span>
+                                {% elif ticket.status in ['Resolved', 'Closed'] %}
+                                    <button type="button" class="btn btn-sm" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticketno }}');">
+                                        ★ Rate Support
+                                    </button>
                                 {% else %}
                                     <span class="text-muted">—</span>
                                 {% endif %}
@@ -297,24 +303,56 @@ function openTicketDetail(ticketId) {
     content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-arrow-clockwise" style="font-size: 2rem; color: var(--text-muted);"></i><p class="text-muted">Loading ticket details...</p></div>';
     modal.classList.add('show');
     
-    fetch(`/customer/tickets/${ticketId}`)
-        .then(response => {
+    fetch(`/customer/tickets/${encodeURIComponent(ticketId)}`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(async response => {
+            if (response.redirected && response.url.includes('/login')) {
+                throw new Error('Your session has expired. Please sign in again.');
+            }
+            const contentType = response.headers.get('content-type') || '';
             if (!response.ok) {
-                throw new Error('Failed to load ticket details');
+                let errDetail = `Server returned HTTP ${response.status}`;
+                if (contentType.includes('application/json')) {
+                    try {
+                        const errData = await response.json();
+                        errDetail = errData.message || errData.error || errDetail;
+                    } catch(e) {}
+                }
+                throw new Error(errDetail);
+            }
+            if (!contentType.includes('application/json')) {
+                throw new Error('Received non-JSON response from server. Your session may have expired.');
             }
             return response.json();
         })
         .then(data => {
-            if (data.status === 'success') {
-                const ticket = data.ticket;
-                const replies = data.replies;
+            if (data.status === 'success' || data.success === true) {
+                const ticket = data.ticket || {};
+                const replies = data.replies || [];
+                const ticketNo = ticket.ticketno || ticket.ticket_id || ticketId;
+                
+                const isResolved = (ticket.status === 'Resolved' || ticket.status === 'Closed');
+                const cat = ticket.predicted_category || ticket.department_name || 'General Inquiry';
+                const catClass = cat.replace(/[^a-zA-Z0-9]/g, '');
+                const prio = ticket.predicted_priority || 'Medium';
+                const status = ticket.status || 'Submitted';
+                const statusClass = status.replace(/[^a-zA-Z0-9]/g, '');
+                const dept = ticket.department_name || cat || 'General Inquiry';
+                
+                const rawScore = parseInt(ticket.satisfaction_score, 10);
+                const hasScore = !isNaN(rawScore) && rawScore >= 1 && rawScore <= 5;
+                const stars = hasScore ? ('★'.repeat(rawScore) + '☆'.repeat(5 - rawScore)) : '';
                 
                 let html = `
                     <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h3 class="card-title">${ticket.ticketno}</h3>
-                                <p class="card-subtitle">${ticket.subject}</p>
+                                <h3 class="card-title" style="margin: 0; font-size: 1.15rem; font-family: 'Courier New', monospace; color: var(--accent-green);">${ticketNo}</h3>
+                                <p class="card-subtitle" style="margin: 4px 0 0 0; font-size: 1rem; color: #FFFFFF; font-weight: 600;">${ticket.subject || 'No Subject'}</p>
                             </div>
                             <button type="button" class="modal-close-btn" onclick="closeTicketModal()">
                                 &times;
@@ -323,92 +361,150 @@ function openTicketDetail(ticketId) {
                     </div>
                     
                     <div class="card-body">
-                        <div class="grid grid-cols-2" style="margin-bottom: var(--spacing-lg);">
+                        <!-- Key Metadata Chips -->
+                        <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
                             <div>
                                 <div class="form-label">Category</div>
-                                <span class="badge badge-category-${ticket.predicted_category.replace(' ', '')}">${ticket.predicted_category}</span>
+                                <span class="badge badge-category badge-category-${catClass}">${cat}</span>
                             </div>
                             <div>
                                 <div class="form-label">Priority</div>
-                                <span class="badge badge-priority-${ticket.predicted_priority}">${ticket.predicted_priority}</span>
+                                <span class="badge badge-priority-${prio}">${prio}</span>
                             </div>
                             <div>
                                 <div class="form-label">Status</div>
-                                <span class="badge badge-status-${ticket.status.replace(' ', '')}">${ticket.status}</span>
+                                <span class="badge badge-status-${statusClass}">${status}</span>
                             </div>
                             <div>
                                 <div class="form-label">Department</div>
-                                <span class="text-secondary">${ticket.department_name}</span>
+                                <span class="text-secondary" style="font-weight: 500;">${dept}</span>
                             </div>
                         </div>
                         
-                        <div class="form-label">Description</div>
-                        <p class="text-secondary" style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md);">${ticket.description}</p>
+                        <!-- Original Issue Description -->
+                        <div class="form-label">Initial Request Description</div>
+                        <p class="text-secondary" style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); line-height: 1.5; white-space: pre-wrap;">${ticket.description || 'No description provided.'}</p>
                         
-                        ${ticket.resolution_notes ? `
-                            <div class="form-label" style="margin-top: var(--spacing-lg);">Resolution Notes</div>
-                            <p class="text-secondary" style="background: var(--success-bg); padding: var(--spacing-md); border-radius: var(--radius-md); border: 1px solid var(--border-mint);">${ticket.resolution_notes}</p>
+                        <!-- Highlighted Resolution Details Banner (Visible when Resolved or Closed) -->
+                        ${isResolved ? `
+                            <div style="margin-top: var(--spacing-lg); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: var(--spacing-lg);">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 600; margin-bottom: 6px;">
+                                    <i class="bi bi-check2-circle" style="font-size: 1.25rem;"></i> Resolution Details & Agent Notes
+                                </div>
+                                <div style="color: #A7F3D0; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${ticket.resolution_notes || 'This ticket has been officially resolved by our support engineering team.'}</div>
+                            </div>
                         ` : ''}
-                        
-                        ${ticket.status === 'Resolved' && !ticket.satisfaction_score ? `
-                            <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
-                                <h4 class="card-title" style="font-size: 1rem;">Rate Your Experience</h4>
-                                <form method="POST" action="/customer/tickets/${ticket.ticketno}/feedback" style="margin-top: var(--spacing-md);" onsubmit="handleFeedbackSubmit(event, this)">
-                                    <div class="form-group">
-                                        <label class="form-label">Satisfaction Score (1-5)</label>
-                                        <select name="satisfaction_score" class="form-select">
-                                            <option value="">Select rating</option>
-                                            <option value="1">1 Star</option>
-                                            <option value="2">2 Stars</option>
-                                            <option value="3">3 Stars</option>
-                                            <option value="4">4 Stars</option>
-                                            <option value="5">5 Stars</option>
+
+                        <!-- Chronological Conversation Thread -->
+                        <div style="margin-top: var(--spacing-xl);">
+                            <h4 class="card-title" style="font-size: 1rem; margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 8px;">
+                                <i class="bi bi-chat-left-text" style="color: var(--primary);"></i> Conversation Thread (${replies ? replies.length : 0})
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); max-height: 300px; overflow-y: auto; padding: var(--spacing-md); background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                ${replies && replies.length > 0 ? replies.map(reply => {
+                                    const isAgent = (reply.sender_role === 'agent' || reply.sender_role === 'admin');
+                                    return `
+                                        <div style="max-width: 88%; ${isAgent ? 'margin-right: auto; background: #22344D; border: 1px solid #2B4568;' : 'margin-left: auto; background: #26272B; border: 1px solid rgba(255, 255, 255, 0.1);'} padding: 12px 16px; border-radius: 8px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 6px;">
+                                                <span class="badge ${isAgent ? 'badge-category-Technical' : 'badge-status-Resolved'}" style="font-size: 0.75rem; padding: 2px 8px;">
+                                                    ${isAgent ? '<i class="bi bi-headset me-1"></i> Support Agent (' + (reply.sender_name || 'Agent') + ')' : '<i class="bi bi-person-fill me-1"></i> You'}
+                                                </span>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">${reply.created_at || ''}</span>
+                                            </div>
+                                            <div style="color: #F3F4F6; font-size: 0.92rem; line-height: 1.5; white-space: pre-wrap;">${reply.message}</div>
+                                        </div>
+                                    `;
+                                }).join('') : '<p class="text-muted" style="text-align: center; margin: 0; padding: 16px;">No conversation messages yet.</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Customer Rating & CSAT Section -->
+                        ${isResolved && !hasScore ? `
+                            <div style="margin-top: var(--spacing-xl); padding: var(--spacing-lg); background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--radius-md);">
+                                <h4 class="card-title" style="font-size: 1rem; color: #facc15; margin-bottom: 6px;">
+                                    <i class="bi bi-star-fill me-1"></i> Rate Your Support Experience (CSAT)
+                                </h4>
+                                <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: var(--spacing-md);">How satisfied are you with the resolution of this issue?</p>
+                                <form method="POST" action="/tickets/${ticketNo}/rate" onsubmit="handleFeedbackSubmit(event, this)">
+                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                                        <label class="form-label" style="font-weight: 500;">Satisfaction Rating</label>
+                                        <select name="satisfaction_score" class="form-select" required style="width: 100%; height: 42px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 0 12px;">
+                                            <option value="" disabled selected>Choose rating (1 to 5 stars)</option>
+                                            <option value="5">★★★★★ — 5 Stars (Excellent)</option>
+                                            <option value="4">★★★★☆ — 4 Stars (Good)</option>
+                                            <option value="3">★★★☆☆ — 3 Stars (Satisfactory)</option>
+                                            <option value="2">★★☆☆☆ — 2 Stars (Needs Improvement)</option>
+                                            <option value="1">★☆☆☆☆ — 1 Star (Unsatisfied)</option>
                                         </select>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Feedback (Optional)</label>
-                                        <textarea name="customer_feedback" class="form-textarea" placeholder="Share your experience with this support request"></textarea>
+                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                                        <label class="form-label" style="font-weight: 500;">Feedback / Comments (Optional)</label>
+                                        <textarea name="customer_feedback" class="form-textarea" placeholder="Share your experience with our response..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.9rem; min-height: 70px;"></textarea>
                                     </div>
-                                    <button type="submit" class="btn btn-accent">Submit Feedback</button>
+                                    <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-weight: 600;">
+                                        <i class="bi bi-send me-1"></i> Submit CSAT Rating
+                                    </button>
                                 </form>
                             </div>
                         ` : ''}
 
-                        ${ticket.status !== 'Resolved' && ticket.status !== 'Closed' ? `
-                            <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
-                                <h4 class="card-title" style="font-size: 1rem;">Add Reply</h4>
-                                <form method="POST" action="/customer/tickets/${ticket.ticketno}/reply" style="margin-top: var(--spacing-md);" onsubmit="handleCustomerReply(event, this)">
-                                    <div class="form-group">
-                                        <label class="form-label">Your Message</label>
-                                        <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-accent">Send Reply</button>
-                                </form>
+                        <!-- If Already Rated -->
+                        ${hasScore ? `
+                            <div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: rgba(234, 179, 8, 0.1); border-radius: var(--radius-md); border: 1px solid rgba(234, 179, 8, 0.3);">
+                                <div class="form-label" style="color: #facc15; font-weight: 600;">Your Support Rating (CSAT)</div>
+                                <div style="color: #facc15; font-size: 1.3rem; font-weight: bold; margin-bottom: 4px;">
+                                    ${stars} (${rawScore} / 5)
+                                </div>
+                                ${ticket.customer_feedback ? `<p class="text-secondary" style="margin-top: 6px; font-style: italic; color: #E2E8F0;">"${ticket.customer_feedback}"</p>` : ''}
                             </div>
                         ` : ''}
-                        
-                        ${ticket.satisfaction_score ? `
-                            <div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--success-bg); border-radius: var(--radius-md); border: 1px solid var(--border-mint);">
-                                <div class="form-label">Your Rating</div>
-                                <div style="color: #D5D5D5; font-size: 1.2rem;">${'★' * ticket.satisfaction_score}</div>
-                                ${ticket.customer_feedback ? `<p class="text-secondary" style="margin-top: var(--spacing-sm);">${ticket.customer_feedback}</p>` : ''}
+
+                        <!-- Add Reply Form (when not closed) -->
+                        ${ticket.status !== 'Resolved' && ticket.status !== 'Closed' ? `
+                            <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
+                                <h4 class="card-title" style="font-size: 1rem; margin-bottom: var(--spacing-md);">Add Reply</h4>
+                                <form method="POST" action="/customer/tickets/${ticketNo}/reply" onsubmit="handleCustomerReply(event, this)">
+                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                                        <label class="form-label">Your Message</label>
+                                        <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.9rem; min-height: 80px;"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-accent" style="padding: 8px 18px; font-weight: 600;">Send Reply</button>
+                                </form>
                             </div>
                         ` : ''}
                     </div>
                     
-                    <div class="card-footer">
+                    <div class="card-footer" style="padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end;">
                         <button type="button" class="btn btn-secondary" onclick="closeTicketModal()">Close</button>
                     </div>
                 `;
                 
                 content.innerHTML = html;
             } else {
-                content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">Failed to load ticket details</p></div>';
+                const msg = data.message || data.error || 'Failed to load ticket details';
+                content.innerHTML = `<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">${msg}</p></div>`;
             }
         })
         .catch(error => {
             console.error('Error loading ticket details:', error);
-            content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">Error loading ticket details. Please try again.</p></div>';
+            const isAuthErr = (error.message || '').toLowerCase().includes('session') || 
+                              (error.message || '').toLowerCase().includes('sign in') || 
+                              (error.message || '').toLowerCase().includes('log in') || 
+                              (error.message || '').toLowerCase().includes('unauthorized') || 
+                              (error.message || '').toLowerCase().includes('401');
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2.2rem; color: #ef4444; margin-bottom: 12px; display: inline-block;"></i>
+                    <h4 style="color: #ef4444; margin-bottom: 8px;">Error loading ticket details</h4>
+                    <p class="text-muted" style="font-size: 0.9rem; max-width: 420px; margin: 0 auto 16px;">${error.message || 'Please try again or refresh the page.'}</p>
+                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="openTicketDetail('${ticketId}')">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+                        </button>
+                        ${isAuthErr ? `<a href="/login" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-right me-1"></i> Sign In</a>` : ''}
+                    </div>
+                </div>
+            `;
         });
 }
 

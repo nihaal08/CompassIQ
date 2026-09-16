@@ -160,21 +160,42 @@ function openCustomerTicketModal(ticketId) {
     document.getElementById('custReplyForm').action = `/customer/tickets/${ticketId}/reply`;
 
     // Fetch ticket details via AJAX
-    fetch(`/customer/tickets/${ticketId}`)
-        .then(res => res.json())
+    fetch(`/customer/tickets/${encodeURIComponent(ticketId)}`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(async res => {
+            if (!res.ok) {
+                let errDetail = `Server returned HTTP ${res.status}`;
+                try {
+                    const errData = await res.json();
+                    errDetail = errData.message || errData.error || errDetail;
+                } catch(e) {}
+                throw new Error(errDetail);
+            }
+            return res.json();
+        })
         .then(data => {
-            if (data.status === 'success') {
-                const ticket = data.ticket;
-                const replies = data.replies;
+            if (data.status === 'success' || data.success === true) {
+                const ticket = data.ticket || {};
+                const replies = data.replies || [];
 
                 // Update ticket information
-                document.getElementById('custModalSubject').textContent = ticket.subject;
-                document.getElementById('custModalCategory').textContent = ticket.predicted_category;
-                document.getElementById('custModalStatus').textContent = ticket.status;
-                document.getElementById('custModalStatus').className = `badge-status badge-status-${ticket.status.replace(/\s+/g, '')}`;
+                const subjEl = document.getElementById('custModalSubject');
+                if (subjEl) subjEl.textContent = ticket.subject || 'No Subject';
+                const catEl = document.getElementById('custModalCategory');
+                if (catEl) catEl.textContent = ticket.predicted_category || ticket.department_name || 'General Inquiry';
+                const statusEl = document.getElementById('custModalStatus');
+                if (statusEl) {
+                    const st = ticket.status || 'Submitted';
+                    statusEl.textContent = st;
+                    statusEl.className = `badge-status badge-status-${st.replace(/\s+/g, '')}`;
+                }
 
                 // Update step progress tracker
-                updateStepTrackerUI('custStepTracker', ticket.status);
+                updateStepTrackerUI('custStepTracker', ticket.status || 'Submitted');
 
                 // Render conversation thread
                 threadContainer.innerHTML = '';
@@ -187,11 +208,11 @@ function openCustomerTicketModal(ticketId) {
                         bubble.className = `chat-bubble ${isCustomer ? 'chat-bubble-customer' : 'chat-bubble-agent'}`;
                         bubble.innerHTML = `
                             <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#D5D5D5'};">
-                                ${escapeHtml(r.sender_name)} ${isCustomer ? '(You)' : '(Support Agent)'}
+                                ${escapeHtml(r.sender_name || 'User')} ${isCustomer ? '(You)' : '(Support Agent)'}
                             </div>
-                            <div style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
+                            <div style="white-space: pre-wrap;">${escapeHtml(r.message || '')}</div>
                             <div class="chat-meta">
-                                <span>${new Date(r.created_at).toLocaleString()}</span>
+                                <span>${r.created_at ? new Date(r.created_at).toLocaleString() : ''}</span>
                             </div>
                         `;
                         threadContainer.appendChild(bubble);
@@ -202,9 +223,10 @@ function openCustomerTicketModal(ticketId) {
                 // Show feedback section if ticket is resolved
                 const feedbackSection = document.getElementById('custFeedbackSection');
                 if (feedbackSection) {
-                    if (ticket.status === 'Resolved' && !ticket.satisfaction_score) {
+                    if ((ticket.status === 'Resolved' || ticket.status === 'Closed') && !ticket.satisfaction_score) {
                         feedbackSection.style.display = 'block';
-                        document.getElementById('feedbackTicketIdInput').value = ticket.ticket_id;
+                        const fbInput = document.getElementById('feedbackTicketIdInput');
+                        if (fbInput) fbInput.value = ticket.ticket_id || ticket.ticketno || ticketId;
                     } else if (ticket.satisfaction_score) {
                         feedbackSection.style.display = 'block';
                         feedbackSection.innerHTML = `
@@ -219,11 +241,13 @@ function openCustomerTicketModal(ticketId) {
 
                 openModal(modal);
             } else {
-                showCustomAlert('Error', data.message || 'Failed to load ticket details.', 'danger');
+                console.error('Failed to load customer ticket details:', data);
+                showCustomAlert('Error', data.message || data.error || 'Failed to load ticket details.', 'danger');
             }
         })
         .catch(err => {
-            showCustomAlert('Connection Error', 'Could not retrieve ticket conversation.', 'danger');
+            console.error('Error loading customer ticket details:', err);
+            showCustomAlert('Connection Error', err.message || 'Could not retrieve ticket conversation.', 'danger');
         });
 }
 
@@ -271,66 +295,243 @@ function selectAgentTicket(ticketId, clickedElement) {
     document.getElementById('agentThreadContainer').innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
 
     // Fetch ticket details via AJAX
-    fetch(`/agent/tickets/${ticketId}/details`)
-        .then(res => res.json())
+    fetch(`/agent/tickets/${encodeURIComponent(ticketId)}/details`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(async res => {
+            if (!res.ok) {
+                let errDetail = `Server returned HTTP ${res.status}`;
+                try {
+                    const errData = await res.json();
+                    errDetail = errData.message || errData.error || errDetail;
+                } catch(e) {}
+                throw new Error(errDetail);
+            }
+            return res.json();
+        })
         .then(data => {
-            if (data.status === 'success') {
-                const ticket = data.ticket;
-                const replies = data.replies;
+            if (data.status === 'success' || data.success === true) {
+                const ticket = data.ticket || {};
+                const replies = data.replies || [];
+                const tktNo = ticket.ticket_id || ticket.ticketno || ticketId;
 
                 // Update ticket information
-                document.getElementById('agentTicketIdHeading').textContent = ticket.ticket_id;
-                document.getElementById('agentTicketSubject').textContent = ticket.subject;
-                document.getElementById('agentCustomerName').textContent = ticket.customer_name;
-                document.getElementById('agentCustomerEmail').textContent = ticket.customer_email;
+                const idHeading = document.getElementById('agentTicketIdHeading');
+                if (idHeading) idHeading.textContent = tktNo;
+                const subjEl = document.getElementById('agentTicketSubject');
+                if (subjEl) subjEl.textContent = ticket.subject || 'No Subject';
+                const custName = document.getElementById('agentCustomerName');
+                if (custName) custName.textContent = ticket.customer_name || 'Customer';
+                const custEmail = document.getElementById('agentCustomerEmail');
+                if (custEmail) custEmail.textContent = ticket.customer_email || '—';
 
                 // Update status and resolution notes
                 const statusSelect = document.getElementById('agentStatusSelect');
-                if (statusSelect) statusSelect.value = ticket.status;
+                if (statusSelect) statusSelect.value = ticket.status || 'Submitted';
                 const notesInput = document.getElementById('agentResolutionNotes');
                 if (notesInput) notesInput.value = ticket.resolution_notes || '';
 
-                document.getElementById('agentReplyForm').action = `/agent/tickets/${ticket.ticket_id}/reply`;
+                const replyForm = document.getElementById('agentReplyForm');
+                if (replyForm) replyForm.action = `/agent/tickets/${tktNo}/reply`;
 
                 // Render conversation thread
                 const threadContainer = document.getElementById('agentThreadContainer');
-                threadContainer.innerHTML = '';
-                replies.forEach(r => {
-                    const isCustomer = r.sender_role === 'customer';
-                    const bubble = document.createElement('div');
-                    bubble.className = `chat-bubble ${isCustomer ? 'chat-bubble-customer' : 'chat-bubble-agent'}`;
-                    bubble.innerHTML = `
-                        <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#D5D5D5'};">
-                            ${escapeHtml(r.sender_name)} ${isCustomer ? '(Customer)' : '(Agent)'}
-                        </div>
-                        <div style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
-                        <div class="chat-meta">
-                            <span>${new Date(r.created_at).toLocaleString()}</span>
-                        </div>
-                    `;
-                    threadContainer.appendChild(bubble);
-                });
-                threadContainer.scrollTop = threadContainer.scrollHeight;
+                if (threadContainer) {
+                    threadContainer.innerHTML = '';
+                    replies.forEach(r => {
+                        const isCustomer = r.sender_role === 'customer';
+                        const bubble = document.createElement('div');
+                        bubble.className = `chat-bubble ${isCustomer ? 'chat-bubble-customer' : 'chat-bubble-agent'}`;
+                        bubble.innerHTML = `
+                            <div class="fw-bold mb-1" style="font-size: 0.8rem; color: ${isCustomer ? '#FFF' : '#D5D5D5'};">
+                                ${escapeHtml(r.sender_name || 'Sender')} ${isCustomer ? '(Customer)' : '(Agent)'}
+                            </div>
+                            <div style="white-space: pre-wrap;">${escapeHtml(r.message || '')}</div>
+                            <div class="chat-meta">
+                                <span>${r.created_at ? new Date(r.created_at).toLocaleString() : ''}</span>
+                            </div>
+                        `;
+                        threadContainer.appendChild(bubble);
+                    });
+                    threadContainer.scrollTop = threadContainer.scrollHeight;
+                }
 
                 // Update AI predictions display
                 const catBadge = document.getElementById('agentAiCategoryBadge');
                 if (catBadge) {
-                    catBadge.textContent = ticket.predicted_category;
+                    catBadge.textContent = ticket.predicted_category || ticket.department_name || 'General Inquiry';
                 }
 
                 const prioPill = document.getElementById('agentAiPriorityPill');
                 if (prioPill) {
-                    prioPill.textContent = ticket.predicted_priority;
-                    prioPill.className = `badge-priority badge-priority-${ticket.predicted_priority}`;
+                    const prio = ticket.predicted_priority || 'Medium';
+                    prioPill.textContent = prio;
+                    prioPill.className = `badge-priority badge-priority-${prio}`;
                 }
 
             } else {
-                showCustomAlert('Error', data.message || 'Failed to load ticket workspace.', 'danger');
+                console.error('Failed to load agent ticket workspace:', data);
+                showCustomAlert('Error', data.message || data.error || 'Failed to load ticket workspace.', 'danger');
             }
         })
         .catch(err => {
-            showCustomAlert('Error', 'Unable to connect to support server.', 'danger');
+            console.error("Ticket details fetch error:", err);
+            alert("Error loading ticket details: " + err.message);
         });
+}
+
+/**
+ * Loads agent ticket details via AJAX fetch with exact error diagnostics.
+ * Invoked from department queue "View Details" action.
+ */
+function loadAgentTicketDetails(ticketId) {
+    fetch(`/agent/tickets/${encodeURIComponent(ticketId)}/details`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        return res.json();
+    })
+    .then(data => renderDetailsModal(data))
+    .catch(err => {
+        console.error("Ticket details fetch error:", err);
+        alert("Error loading ticket details: " + err.message);
+    });
+}
+
+/**
+ * Renders agent ticket details inside an interactive modal.
+ */
+function renderDetailsModal(data) {
+    if (!data || !(data.status === 'success' || data.success === true)) {
+        const errMsg = data ? (data.message || data.error || 'Unknown server error') : 'No response received';
+        console.error("Ticket details fetch error:", data);
+        alert("Error loading ticket details: " + errMsg);
+        return;
+    }
+
+    const ticket = data.ticket || {};
+    const replies = data.replies || [];
+    const similar = data.similar_matches || [];
+    const tktNo = ticket.ticket_id || ticket.ticketno || 'N/A';
+
+    let modal = document.getElementById('agentTicketDetailsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'agentTicketDetailsModal';
+        modal.className = 'custom-modal-backdrop';
+        document.body.appendChild(modal);
+    }
+
+    const st = ticket.status || 'Submitted';
+    const prio = ticket.predicted_priority || 'Medium';
+    const cat = ticket.predicted_category || ticket.department_name || 'General Inquiry';
+
+    modal.innerHTML = `
+        <div class="custom-modal-dialog" style="max-width: 840px; width: 92%; margin: 30px auto; background: #16171A; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
+            <div style="padding: 16px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: #1C1D21;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <span style="font-family: 'Courier New', monospace; font-size: 1.15rem; font-weight: 700; color: #10b981;">${escapeHtml(tktNo)}</span>
+                    <span class="badge badge-priority-${escapeHtml(prio)}">${escapeHtml(prio)}</span>
+                    <span class="badge badge-category-${escapeHtml(cat.replace(/\s+/g, '').replace(/&/g, ''))}">${escapeHtml(cat)}</span>
+                    <span class="badge badge-status-${escapeHtml(st.replace(/\s+/g, ''))}">${escapeHtml(st)}</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <a href="/agent/tickets/${encodeURIComponent(tktNo)}/details" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="bi bi-box-arrow-up-right"></i> Full Page
+                    </a>
+                    <button type="button" class="modal-close-btn" onclick="closeModal('#agentTicketDetailsModal')" style="background: none; border: none; color: #9CA3AF; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
+                </div>
+            </div>
+            
+            <div style="padding: 24px; overflow-y: auto; flex: 1;">
+                <h3 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 12px; color: #FFF;">${escapeHtml(ticket.subject || 'No Subject')}</h3>
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 14px; color: #E5E7EB; line-height: 1.5; font-size: 0.92rem; margin-bottom: 20px; white-space: pre-wrap;">${escapeHtml(ticket.description || '')}</div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; font-size: 0.85rem; background: rgba(0, 0, 0, 0.25); padding: 12px 16px; border-radius: 8px;">
+                    <div><span style="color: #9CA3AF;">Customer:</span> <strong style="color: #FFF;">${escapeHtml(ticket.customer_name || 'Customer')}</strong></div>
+                    <div><span style="color: #9CA3AF;">Email:</span> <span style="color: #93C5FD;">${escapeHtml(ticket.customer_email || '—')}</span></div>
+                    <div><span style="color: #9CA3AF;">Department:</span> <span style="color: #FFF;">${escapeHtml(ticket.department_name || ticket.assigned_department || 'General Inquiry')}</span></div>
+                    <div><span style="color: #9CA3AF;">Submitted:</span> <span style="color: #9CA3AF;">${escapeHtml((ticket.submitdate || '').substring(0, 19))}</span></div>
+                </div>
+
+                ${ticket.satisfaction_score ? `
+                    <div style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
+                        <span style="color: #facc15; font-weight: 700; font-size: 1.05rem;">★ ${ticket.satisfaction_score} / 5.0</span>
+                        <span style="color: #9CA3AF; font-size: 0.8rem; margin-left: 8px;">Customer CSAT Rating</span>
+                        ${ticket.customer_feedback ? `<div style="color: #E2E8F0; font-size: 0.88rem; font-style: italic; margin-top: 4px;">"${escapeHtml(ticket.customer_feedback)}"</div>` : ''}
+                    </div>
+                ` : ''}
+
+                ${similar.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 0.9rem; font-weight: 600; color: #10b981; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="bi bi-robot"></i> AI Similar Recommendations
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px;">
+                            ${similar.map(m => `
+                                <div style="background: #1C1D21; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 10px; font-size: 0.82rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span style="color: #10b981; font-family: monospace;">${escapeHtml(m.similar_ticket_ref_id || '')}</span>
+                                        <span style="color: #93C5FD;">${Math.round((m.similarity_score || 0.8) * 100)}%</span>
+                                    </div>
+                                    <div style="font-weight: 500; color: #FFF; margin-bottom: 4px;">${escapeHtml(m.similar_subject || '')}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: #FFF;">Conversation History (${replies.length})</h4>
+                <div style="background: #121315; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 20px;">
+                    ${replies.length === 0 ? '<p style="color: #9CA3AF; text-align: center; margin: 10px 0; font-size: 0.85rem;">No conversation messages yet.</p>' : replies.map(r => `
+                        <div style="margin-bottom: 10px; padding: 8px 12px; border-radius: 6px; background: ${r.sender_role === 'agent' ? '#22344D' : '#26272B'}; border: 1px solid rgba(255, 255, 255, 0.06);">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #9CA3AF; margin-bottom: 4px;">
+                                <strong>${escapeHtml(r.sender_name || 'User')} (${escapeHtml((r.sender_role || 'agent'))})</strong>
+                                <span>${r.created_at ? escapeHtml(r.created_at) : ''}</span>
+                            </div>
+                            <div style="color: #F3F4F6; font-size: 0.9rem; white-space: pre-wrap;">${escapeHtml(r.message || '')}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <form method="POST" action="/agent/tickets/${encodeURIComponent(tktNo)}/reply">
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Response Message</label>
+                        <textarea name="message" class="form-control" rows="3" placeholder="Compose message to customer..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Status</label>
+                            <select name="status" class="form-select" style="width: 100%; height: 38px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0 8px;">
+                                <option value="" selected>Keep Current (${escapeHtml(st)})</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Resolution Notes</label>
+                            <input type="text" name="resolution_notes" class="form-control" placeholder="Fix details..." style="width: 100%; height: 38px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0 8px;">
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('#agentTicketDetailsModal')">Close</button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="padding: 8px 18px; font-weight: 600;">Update Ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    openModal(modal);
 }
 
 /* ==========================================================================

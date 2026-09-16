@@ -5,9 +5,17 @@
 
 {% block content %}
 <!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">{{ department }} Department Queue</h1>
-    <p class="page-subtitle">Manage assigned tickets with AI-powered recommendations</p>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
+    <div>
+        <h1 class="page-title" style="margin: 0;">{{ department }} Department Queue</h1>
+        <p class="page-subtitle" style="margin: 4px 0 0 0;">Manage assigned tickets with AI-powered recommendations</p>
+    </div>
+    {% if counts.avg_csat %}
+    <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid rgba(234, 179, 8, 0.28); border-radius: var(--radius-md); padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px;">
+        <span style="color: #facc15; font-size: 1.15rem; font-weight: 700;">★ {{ counts.avg_csat }} / 5.0</span>
+        <span style="color: var(--text-muted); font-size: 0.85rem;">Average CSAT Rating</span>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Queue Status Tabs -->
@@ -49,8 +57,9 @@
                             <th>Customer</th>
                             <th>Priority</th>
                             <th>Status</th>
+                            <th>Rating</th>
                             <th>Created</th>
-                            <th>Actions</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -60,7 +69,7 @@
                                     <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                                 </td>
                                 <td>
-                                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <div style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                         {{ ticket.subject }}
                                     </div>
                                 </td>
@@ -77,12 +86,26 @@
                                     <span class="badge badge-status-{{ ticket.status|replace(' ', '') }}">{{ ticket.status }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.submitdate[:10] if ticket.submitdate else '' }}</span>
+                                    {% if ticket.satisfaction_score %}
+                                        <span class="badge" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); font-size: 0.8rem; font-weight: 600;">
+                                            ★ {{ ticket.satisfaction_score }}/5
+                                        </span>
+                                    {% elif ticket.status in ['Resolved', 'Closed'] %}
+                                        <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Pending Rating</span>
+                                    {% else %}
+                                        <span class="text-muted" style="font-size: 0.85rem;">—</span>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="openTicketModal('{{ ticket.ticketno }}')">
+                                    <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.submitdate[:10] if ticket.submitdate else '' }}</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a href="/agent/tickets/{{ ticket.ticketno }}/details" 
+                                       onclick="if(event.ctrlKey || event.metaKey) return true; event.preventDefault(); loadAgentTicketDetails('{{ ticket.ticketno }}');"
+                                       class="btn btn-secondary btn-sm" 
+                                       style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
                                         <i class="bi bi-eye"></i> View Details
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -92,341 +115,4 @@
         {% endif %}
     </div>
 </div>
-
-<!-- Ticket Details Modal -->
-<div class="ticket-modal-backdrop" id="ticketModal">
-    <div class="ticket-modal-content">
-        <!-- Modal Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid #e5e7eb;">
-            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
-                <span id="modalTicketId" class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green); font-size: 1.1rem;">TKT-000000</span>
-                <span id="modalStatus" class="badge badge-status-Submitted">Status</span>
-                <span id="modalPriority" class="badge badge-priority-High">Priority</span>
-            </div>
-            <button type="button" class="modal-close-btn" id="closeTicketModal">
-                &times;
-            </button>
-        </div>
-        
-        <!-- Section 1: Ticket Overview -->
-        <div style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Ticket Overview</h4>
-            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: var(--spacing-md);">
-                <div style="margin-bottom: var(--spacing-sm);">
-                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Customer:</strong>
-                    <span style="color: #e2e8f0; font-size: 0.9rem;"> <span id="modalCustomerName">Customer Name</span> (<span id="modalCustomerEmail">email@example.com</span>)</span>
-                </div>
-                <div style="margin-bottom: var(--spacing-sm);">
-                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Subject:</strong>
-                    <div id="modalSubject" style="color: #ffffff; font-size: 0.95rem; margin-top: 4px;">Subject</div>
-                </div>
-                <div>
-                    <strong style="color: #cbd5e1; font-size: 0.9rem;">Description:</strong>
-                    <div id="modalDescription" style="color: #e2e8f0; font-size: 0.9rem; line-height: 1.5; margin-top: 4px; white-space: pre-wrap;">Description</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Section 2: AI Intelligence & Similar Matches -->
-        <div id="ai-insights-section" style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">AI Intelligence & Similar Matches</h4>
-            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; margin-bottom: var(--spacing-md); align-items: center;">
-                <span id="modalCategory" class="badge badge-category">Category</span>
-                <span id="modalAiPriority" class="badge badge-priority-Medium">Priority</span>
-                <button type="button" id="toggleSimilarTicketsBtn" class="btn btn-secondary btn-sm" onclick="toggleSimilarTickets()" style="margin-left: auto;">
-                    <i class="bi bi-search"></i> View Similar Tickets (Top-3)
-                </button>
-            </div>
-            <div id="similarTicketsTray" style="display: none; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: var(--spacing-md); max-height: 400px; overflow-y: auto;">
-                <div id="modalSimilarTickets" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-                    <!-- Similar tickets will be loaded here -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Section 3: Communication History -->
-        <div style="margin-bottom: var(--spacing-xl);">
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Communication History</h4>
-            <div class="chat-thread-container" id="modalChatThread" style="max-height: 250px;">
-                <!-- Chat messages will be loaded here -->
-            </div>
-        </div>
-        
-        <!-- Section 4: Agent Response & Action Panel -->
-        <div>
-            <h4 style="margin: 0 0 var(--spacing-md) 0; font-size: 1rem; color: #ffffff; font-weight: 600;">Agent Response & Actions</h4>
-            <form method="POST" id="modalReplyForm" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                <input type="hidden" name="ticket_id" id="modalFormTicketId">
-                <textarea name="message" class="form-textarea" placeholder="Reply to customer..." required style="min-height: 80px;"></textarea>
-                <div style="display: flex; gap: var(--spacing-md); align-items: center;">
-                    <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e1; font-weight: 500;">Update Status:</label>
-                        <select name="status" class="form-select" required>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Under Review">Under Review</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Resolved">Resolved</option>
-                            <option value="Closed">Closed</option>
-                        </select>
-                    </div>
-                    <div style="flex: 1;">
-                        <label style="display: block; margin-bottom: 4px; font-size: 0.85rem; color: #cbd5e1; font-weight: 500;">Resolution Notes:</label>
-                        <input type="text" name="resolution_notes" class="form-input" placeholder="Add resolution notes (optional)">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary">Send Response & Update Status</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-function triggerQueueFilter(status) {
-    const filterButtons = document.querySelectorAll('.queue-status-tabs a');
-    filterButtons.forEach(btn => {
-        const btnStatus = btn.getAttribute('href').split('status=')[1];
-        if (btnStatus === status) {
-            window.location.href = btn.getAttribute('href');
-        }
-    });
-}
-
-function openTicketModal(ticketId) {
-    const modal = document.getElementById('ticketModal');
-    const formTicketId = document.getElementById('modalFormTicketId');
-    
-    formTicketId.value = ticketId;
-    
-    // Load ticket details
-    fetch(`/agent/tickets/${ticketId}/details`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to load ticket details');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                const ticket = data.ticket;
-                const replies = data.replies;
-                const similarMatches = data.similar_matches;
-                
-                // Update modal header
-                document.getElementById('modalTicketId').textContent = ticket.ticketno;
-                document.getElementById('modalStatus').textContent = ticket.status;
-                document.getElementById('modalStatus').className = `badge badge-status-${ticket.status.replace(' ', '')}`;
-                document.getElementById('modalPriority').textContent = ticket.predicted_priority;
-                document.getElementById('modalPriority').className = `badge badge-priority-${ticket.predicted_priority}`;
-                
-                // Update ticket overview
-                document.getElementById('modalCustomerName').textContent = ticket.customer_name;
-                document.getElementById('modalCustomerEmail').textContent = ticket.customer_email;
-                document.getElementById('modalSubject').textContent = ticket.subject;
-                document.getElementById('modalDescription').textContent = ticket.description;
-                
-                // Update AI intelligence
-                document.getElementById('modalCategory').textContent = ticket.predicted_category;
-                document.getElementById('modalCategory').className = `badge badge-category-${ticket.predicted_category.replace(' ', '')}`;
-                document.getElementById('modalAiPriority').textContent = ticket.predicted_priority;
-                document.getElementById('modalAiPriority').className = `badge badge-priority-${ticket.predicted_priority}`;
-                
-                // Load similar tickets
-                const similarContainer = document.getElementById('modalSimilarTickets');
-                similarContainer.innerHTML = '';
-                
-                if (similarMatches && similarMatches.length > 0) {
-                    similarMatches.forEach((match, index) => {
-                        const similarityPercent = (match.similarity_score * 100).toFixed(1);
-                        const rank = index + 1;
-                        similarContainer.innerHTML += `
-                            <div class="ai-recommendation-card">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                                        <span class="rank-badge" style="background: #25262A; color: #D5D5D5; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">#${rank}</span>
-                                        <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">${match.similar_ticket_ref_id}</span>
-                                    </div>
-                                    <span class="similarity-pill" style="background: rgba(156, 163, 175, 0.15); color: #9CA3AF; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; border: 1px solid rgba(156, 163, 175, 0.3);">${similarityPercent}%</span>
-                                </div>
-                                <h6 style="margin: 0 0 var(--spacing-xs) 0; font-size: 0.9rem; color: #F5F5F5; font-weight: 500;">${match.similar_subject}</h6>
-                                <p class="text-secondary" style="margin: 0 0 var(--spacing-sm) 0; font-size: 0.85rem; color: #B5B5B5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                    ${match.similar_description}
-                                </p>
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-sm);">
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">
-                                        <i class="bi bi-clock"></i> Resolved in ${match.historical_resolution_hours || 'N/A'} hours
-                                    </div>
-                                    <button type="button" class="btn btn-secondary btn-sm" onclick="useSolutionContext('${match.similar_description.replace(/'/g, "\\'")}')" style="font-size: 0.75rem; padding: 4px 8px;">
-                                        <i class="bi bi-clipboard"></i> Use Solution Context
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    similarContainer.innerHTML = '<p class="text-muted" style="text-align: center; padding: var(--spacing-md); color: #858585;">No similar tickets found in database.</p>';
-                }
-                
-                // Load chat history
-                const chatContainer = document.getElementById('modalChatThread');
-                chatContainer.innerHTML = '';
-                
-                if (replies && replies.length > 0) {
-                    replies.forEach(reply => {
-                        const isAgent = reply.sender_role === 'agent';
-                        chatContainer.innerHTML += `
-                            <div class="chat-bubble ${isAgent ? 'chat-bubble-agent' : 'chat-bubble-customer'}">
-                                ${reply.message}
-                                <div class="chat-meta">
-                                    <span>${reply.sender_name}</span>
-                                    <span>${new Date(reply.created_at).toLocaleString()}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    chatContainer.innerHTML = '<p class="text-muted" style="text-align: center; padding: 20px;">No communication history yet.</p>';
-                }
-                
-                // Update form action
-                document.getElementById('modalReplyForm').action = `/agent/tickets/${ticketId}/reply`;
-                
-                // Show modal
-                modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading ticket details:', error);
-            alert('Failed to load ticket details. Please try again or refresh the page.');
-            closeTicketModal();
-        });
-}
-
-function closeTicketModal() {
-    const modal = document.getElementById('ticketModal');
-    modal.classList.remove('show');
-    document.body.style.overflow = '';
-    
-    // Reset similar tickets tray visibility
-    const tray = document.getElementById('similarTicketsTray');
-    const btn = document.getElementById('toggleSimilarTicketsBtn');
-    if (tray) tray.style.display = 'none';
-    if (btn) btn.innerHTML = '<i class="bi bi-search"></i> View Similar Tickets (Top-3)';
-}
-
-function toggleSimilarTickets() {
-    const tray = document.getElementById('similarTicketsTray');
-    const btn = document.getElementById('toggleSimilarTicketsBtn');
-    
-    if (tray.style.display === 'none' || tray.style.display === '') {
-        tray.style.display = 'block';
-        btn.innerHTML = '<i class="bi bi-chevron-up"></i> Hide Similar Tickets';
-    } else {
-        tray.style.display = 'none';
-        btn.innerHTML = '<i class="bi bi-search"></i> View Similar Tickets (Top-3)';
-    }
-}
-
-function useSolutionContext(solutionText) {
-    const textarea = document.querySelector('#modalReplyForm textarea[name="message"]');
-    if (textarea) {
-        const currentText = textarea.value;
-        const prefix = currentText ? currentText + '\n\n' : '';
-        textarea.value = prefix + 'Based on similar historical case: ' + solutionText;
-        textarea.focus();
-        
-        // Show brief feedback
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-        btn.disabled = true;
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }, 1500);
-    }
-}
-
-// Close modal via X button
-document.getElementById('closeTicketModal').addEventListener('click', closeTicketModal);
-
-// Close modal when clicking outside
-document.getElementById('ticketModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeTicketModal();
-    }
-});
-
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && document.getElementById('ticketModal').classList.contains('show')) {
-        closeTicketModal();
-    }
-});
-
-// Handle form submission
-document.getElementById('modalReplyForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-    const submitBtn = form.querySelector('button[type="submit"]');
-    
-    // Disable button and show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to submit response');
-        }
-        return response.text();
-    })
-    .then(() => {
-        closeTicketModal();
-        // Use system modal popup instead of browser alert
-        const modal = document.createElement('div');
-        modal.className = 'alert-modal-backdrop show';
-        modal.innerHTML = `
-            <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                <h3 class="alert-modal-title">
-                    <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
-                </h3>
-                <p class="alert-modal-message">Response submitted successfully!</p>
-                <div class="alert-modal-buttons">
-                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        window.location.reload();
-    })
-    .catch(error => {
-        console.error('Error submitting response:', error);
-        // Use system modal popup instead of browser alert
-        const modal = document.createElement('div');
-        modal.className = 'alert-modal-backdrop show';
-        modal.innerHTML = `
-            <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                <h3 class="alert-modal-title">
-                    <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Error
-                </h3>
-                <p class="alert-modal-message">Failed to submit response. Please try again.</p>
-                <div class="alert-modal-buttons">
-                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        // Re-enable button
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Send Response & Update Status';
-    });
-});
-</script>
 {% endblock %}

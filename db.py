@@ -157,60 +157,90 @@ def ensure_demo_accounts(conn):
     """
     from werkzeug.security import generate_password_hash
     
-    # Generate hash for standard demo password
-    demo_password_hash = generate_password_hash('password123', method='scrypt')
+    # Pre-generate hashes for standard demo credentials
+    admin_pwd_hash = generate_password_hash('Admin@123', method='scrypt')
+    agent_pwd_hash = generate_password_hash('Agent@123', method='scrypt')
+    user_pwd_hash = generate_password_hash('User@123', method='scrypt')
     
-    # Department Agents & Admin (staff accounts)
+    # Clean, strictly standardized demo accounts (1 per role/department)
     agent_accounts = [
         {
             'email': 'admin@compassiq.com',
             'agent_name': 'System Administrator',
             'role': 'admin',
             'deptid': None,
+            'password_hash': admin_pwd_hash,
             'account_status': 'APPROVED'
         },
         {
-            'email': 'tech.support@compassiq.com',
+            'email': 'tech.agent@compassiq.com',
             'agent_name': 'Technical Support Agent',
             'role': 'agent',
-            'deptid': 1,  # Technical Support
+            'deptid': 1,  # Technical
+            'password_hash': agent_pwd_hash,
             'account_status': 'APPROVED'
         },
         {
-            'email': 'billing.support@compassiq.com',
+            'email': 'billing.agent@compassiq.com',
             'agent_name': 'Billing Support Agent',
             'role': 'agent',
-            'deptid': 2,  # Billing Support
+            'deptid': 2,  # Billing
+            'password_hash': agent_pwd_hash,
             'account_status': 'APPROVED'
         },
         {
-            'email': 'account.support@compassiq.com',
+            'email': 'account.agent@compassiq.com',
             'agent_name': 'Account Support Agent',
             'role': 'agent',
-            'deptid': 3,  # Account Support
+            'deptid': 3,  # Account
+            'password_hash': agent_pwd_hash,
             'account_status': 'APPROVED'
         },
         {
-            'email': 'general.support@compassiq.com',
+            'email': 'general.agent@compassiq.com',
             'agent_name': 'General Inquiry Agent',
             'role': 'agent',
             'deptid': 4,  # General Inquiry
+            'password_hash': agent_pwd_hash,
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'fraud.agent@compassiq.com',
+            'agent_name': 'Fraud & Security Agent',
+            'role': 'agent',
+            'deptid': 5,  # Fraud & Security
+            'password_hash': agent_pwd_hash,
             'account_status': 'APPROVED'
         }
     ]
     
-    # Customer Accounts (external clients)
     customer_accounts = [
         {
-            'email': 'alex.morgan@customer.com',
-            'custname': 'Alex Morgan',
+            'email': 'customer@compassiq.com',
+            'custname': 'Customer Client',
             'phone_no': '9876543210',
+            'password_hash': user_pwd_hash,
             'account_status': 'APPROVED'
         }
     ]
     
     try:
         cursor = conn.cursor()
+
+        # Ensure departments table contains Fraud & Security (deptid = 5)
+        cursor.execute("SELECT deptid FROM departments WHERE deptid = 5")
+        d5 = cursor.fetchone()
+        if d5:
+            cursor.execute("UPDATE departments SET deptname = 'Fraud & Security', sla_target_hours = 12 WHERE deptid = 5")
+        else:
+            cursor.execute("INSERT OR REPLACE INTO departments (deptid, deptname, sla_target_hours) VALUES (5, 'Fraud & Security', 12)")
+        
+        # Ensure customer_feedback column exists in complaints table
+        cursor.execute("PRAGMA table_info(complaints)")
+        complaints_cols = [col['name'] for col in cursor.fetchall()]
+        if 'customer_feedback' not in complaints_cols:
+            cursor.execute("ALTER TABLE complaints ADD COLUMN customer_feedback TEXT DEFAULT NULL")
+            print("[CompassIQ DB] Added customer_feedback column to complaints table.")
         
         # Ensure department_agents table exists before inserting
         cursor.execute("""
@@ -223,52 +253,140 @@ def ensure_demo_accounts(conn):
         # Insert/update department agents
         if agents_table_exists:
             for account in agent_accounts:
-                # Check if agent exists
-                cursor.execute("SELECT agent_id FROM department_agents WHERE email = ?", (account['email'],))
+                cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = LOWER(?)", (account['email'],))
                 existing = cursor.fetchone()
                 
                 if existing:
-                    # Update existing agent to ensure correct password and status
                     cursor.execute("""
                         UPDATE department_agents 
-                        SET password = ?, account_status = ?
-                        WHERE email = ?
-                    """, (demo_password_hash, account['account_status'], account['email']))
+                        SET password = ?, account_status = ?, role = ?, deptid = ?, agent_name = ?
+                        WHERE LOWER(email) = LOWER(?)
+                    """, (account['password_hash'], account['account_status'], account['role'], account['deptid'], account['agent_name'], account['email']))
                     print(f"[CompassIQ DB] Updated demo agent: {account['email']}")
                 else:
-                    # Insert new demo agent
                     cursor.execute("""
                         INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, (account['agent_name'], account['email'], demo_password_hash, 
+                    """, (account['agent_name'], account['email'], account['password_hash'], 
                           account['deptid'], account['role'], account['account_status']))
                     print(f"[CompassIQ DB] Created demo agent: {account['email']}")
         
-        # Insert/update customers
+        # Insert/update customer
         for account in customer_accounts:
-            # Check if customer exists
-            cursor.execute("SELECT custid FROM customers WHERE email = ?", (account['email'],))
+            cursor.execute("SELECT custid FROM customers WHERE LOWER(email) = LOWER(?)", (account['email'],))
             existing = cursor.fetchone()
             
             if existing:
-                # Update existing customer to ensure correct password and status
                 cursor.execute("""
                     UPDATE customers 
-                    SET password = ?, account_status = ?
-                    WHERE email = ?
-                """, (demo_password_hash, account['account_status'], account['email']))
+                    SET password = ?, account_status = ?, custname = ?
+                    WHERE LOWER(email) = LOWER(?)
+                """, (account['password_hash'], account['account_status'], account['custname'], account['email']))
                 print(f"[CompassIQ DB] Updated demo customer: {account['email']}")
             else:
-                # Insert new demo customer
                 cursor.execute("""
                     INSERT INTO customers (custname, email, password, phone_no, account_status)
                     VALUES (?, ?, ?, ?, ?)
-                """, (account['custname'], account['email'], demo_password_hash, 
+                """, (account['custname'], account['email'], account['password_hash'], 
                       account['phone_no'], account['account_status']))
                 print(f"[CompassIQ DB] Created demo customer: {account['email']}")
-        
+                
+        # Remap foreign keys before purging duplicate accounts
+        # 1. Remap complaints custid to retained customer@compassiq.com
+        cursor.execute("SELECT custid FROM customers WHERE LOWER(email) = 'customer@compassiq.com'")
+        primary_cust = cursor.fetchone()
+        if primary_cust:
+            p_custid = primary_cust['custid']
+            cursor.execute("UPDATE complaints SET custid = ? WHERE custid != ?", (p_custid, p_custid))
+            cursor.execute("UPDATE ticket_replies SET sender_id = ? WHERE sender_id IN (SELECT custid FROM customers WHERE custid != ?)", (p_custid, p_custid))
+
+        # 2. Remap assigned agents in complaints to retained agents per department
+        cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'tech.agent@compassiq.com'")
+        tech_agent = cursor.fetchone()
+        if tech_agent:
+            cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 1", (tech_agent['agent_id'],))
+
+        cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'billing.agent@compassiq.com'")
+        bill_agent = cursor.fetchone()
+        if bill_agent:
+            cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 2", (bill_agent['agent_id'],))
+
+        cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'account.agent@compassiq.com'")
+        acct_agent = cursor.fetchone()
+        if acct_agent:
+            cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 3", (acct_agent['agent_id'],))
+
+        cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'general.agent@compassiq.com'")
+        gen_agent = cursor.fetchone()
+        if gen_agent:
+            cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 4", (gen_agent['agent_id'],))
+
+        cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'fraud.agent@compassiq.com'")
+        fraud_agent = cursor.fetchone()
+        if fraud_agent:
+            cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 5", (fraud_agent['agent_id'],))
+
+        # 3. Purge duplicate department agents and customers
+        cursor.execute("""
+            DELETE FROM department_agents 
+            WHERE LOWER(email) NOT IN (
+                'admin@compassiq.com', 
+                'tech.agent@compassiq.com', 
+                'billing.agent@compassiq.com', 
+                'account.agent@compassiq.com', 
+                'general.agent@compassiq.com',
+                'fraud.agent@compassiq.com'
+            )
+        """)
+        cursor.execute("""
+            DELETE FROM customers 
+            WHERE LOWER(email) NOT IN ('customer@compassiq.com')
+        """)
+        print("[CompassIQ DB] Duplicate demo accounts purged and foreign keys remapped.")
+                
+        # Ensure unified users view exists with clean role, department, and active status
+        cursor.execute("DROP VIEW IF EXISTS users;")
+        cursor.execute("""
+            CREATE VIEW users AS
+            SELECT 
+                custid AS user_id,
+                custname AS full_name,
+                email,
+                password AS password_hash,
+                'customer' AS role,
+                NULL AS department,
+                phone_no AS bill_no_product_id,
+                'active' AS account_status,
+                created_at
+            FROM customers
+            UNION ALL
+            SELECT 
+                agent_id AS user_id,
+                agent_name AS full_name,
+                email,
+                password AS password_hash,
+                role,
+                CASE 
+                    WHEN deptid = 1 THEN 'Technical'
+                    WHEN deptid = 2 THEN 'Billing'
+                    WHEN deptid = 3 THEN 'Account'
+                    WHEN deptid = 4 THEN 'General Inquiry'
+                    WHEN deptid = 5 THEN 'Fraud & Security'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%Technical%' THEN 'Technical'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%Billing%' THEN 'Billing'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%Account%' THEN 'Account'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%General%' THEN 'General Inquiry'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%Fraud%' THEN 'Fraud & Security'
+                    WHEN (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid) LIKE '%Security%' THEN 'Fraud & Security'
+                    ELSE (SELECT deptname FROM departments WHERE departments.deptid = department_agents.deptid)
+                END AS department,
+                NULL AS bill_no_product_id,
+                'active' AS account_status,
+                created_at
+            FROM department_agents;
+        """)
         conn.commit()
-        print(f"[CompassIQ DB] Standardized demo accounts ensured (password123).")
+        print(f"[CompassIQ DB] Standardized demo accounts ensured.")
         
     except Exception as e:
         if conn:

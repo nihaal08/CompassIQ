@@ -25,7 +25,8 @@ INSERT INTO departments (deptid, deptname, sla_target_hours) VALUES
 (1, 'Technical Support', 12),
 (2, 'Billing Support', 24),
 (3, 'Account Support', 24),
-(4, 'General Inquiry', 48);
+(4, 'General Inquiry', 48),
+(5, 'Fraud & Security', 12);
 
 -- ----------------------------------------------------------------------------
 -- 2. Customers Table (CUSTOMER Entity - External Clients Only)
@@ -69,7 +70,8 @@ CREATE TABLE complaints (
     status TEXT DEFAULT 'Submitted' CHECK(status IN ('Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed')),
     resolved_at DATETIME DEFAULT NULL,
     resolution_notes TEXT DEFAULT NULL,
-    satisfaction_score INTEGER DEFAULT NULL CHECK(satisfaction_score BETWEEN 1 AND 5)
+    satisfaction_score INTEGER DEFAULT NULL CHECK(satisfaction_score BETWEEN 1 AND 5),
+    customer_feedback TEXT DEFAULT NULL
 );
 
 -- ----------------------------------------------------------------------------
@@ -124,6 +126,10 @@ INSERT INTO department_agents (agent_name, email, password, deptid, role, accoun
 -- General Inquiry Agent (deptid = 4)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
 ('General Inquiry Agent', 'general.support@compassiq.com', 'scrypt:32768:8:1$uy4tAoA7SF6xoE0R$707ce097767ad179ae509d3d62703cb2a0322b01f695bb816481ed8880de737dbc61b08e5b56dab61de932c11e5e3866c1576c97d1501c2892ab12bdbe88571a', 4, 'agent', 'APPROVED');
+
+-- Fraud & Security Agent (deptid = 5)
+INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
+('Fraud & Security Agent', 'fraud.agent@compassiq.com', 'scrypt:32768:8:1$uy4tAoA7SF6xoE0R$707ce097767ad179ae509d3d62703cb2a0322b01f695bb816481ed8880de737dbc61b08e5b56dab61de932c11e5e3866c1576c97d1501c2892ab12bdbe88571a', 5, 'agent', 'APPROVED');
 
 -- Customer Accounts (external clients)
 -- Test Customer
