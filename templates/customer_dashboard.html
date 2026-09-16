@@ -36,16 +36,7 @@
         </div>
         <div class="metric-content">
             <div class="metric-label">Resolved</div>
-            <div class="metric-value">{{ tickets|selectattr('status', 'equalto', 'Resolved')|list|length }}</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-clock-history"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Pending Review</div>
-            <div class="metric-value">{{ tickets|selectattr('status', 'equalto', 'Under Review')|list|length }}</div>
+            <div class="metric-value">{{ tickets|selectattr('status', 'in', ['Resolved', 'Closed'])|list|length }}</div>
         </div>
     </div>
 </div>

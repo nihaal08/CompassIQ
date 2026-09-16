@@ -776,29 +776,101 @@
 }
 
 .customer-ticket-modal {
-  width: min(92vw, 860px);
-  max-width: 860px;
-  max-height: calc(100vh - 32px);
-  margin: 16px auto;
+  width: min(920px, calc(100vw - 48px));
+  max-width: 920px;
+  height: min(760px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+  margin: 0 auto;
   padding: 0;
   overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 1;
   text-align: left;
 }
 
 .customer-ticket-modal #ticketDetailContent {
-  max-height: calc(100vh - 32px);
+  min-height: 0;
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+#ticketDetailModal {
+  padding: 24px;
+  background: rgba(10, 11, 13, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-header {
+  margin: 0 !important;
+  padding: 22px 28px !important;
+  background: var(--surface-subtle);
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-header > div {
+  gap: 20px;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-header .card-subtitle {
+  overflow-wrap: anywhere;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-body {
+  padding: 26px 28px !important;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-body > .grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: start;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-body p {
+  overflow-wrap: anywhere;
+}
+
+#ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-footer {
+  margin: 0 !important;
+  padding: 18px 28px !important;
+  background: var(--surface-subtle);
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
+  #ticketDetailModal {
+    padding: 12px;
+    align-items: center;
+  }
+
   .customer-ticket-modal {
-    width: calc(100vw - 20px);
-    max-height: calc(100vh - 20px);
-    margin: 10px;
+    width: 100%;
+    height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+    margin: 0;
   }
 
   .customer-ticket-modal #ticketDetailContent {
-    max-height: calc(100vh - 20px);
+    max-height: none;
+  }
+
+  #ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-header,
+  #ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-body,
+  #ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-footer {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  #ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-header {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+  }
+
+  #ticketDetailModal .customer-ticket-modal > #ticketDetailContent > .card-body > .grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
