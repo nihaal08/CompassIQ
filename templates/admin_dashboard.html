@@ -234,9 +234,7 @@
                             {% for ticket in tickets %}
                                 <tr data-department="{{ ticket.category }}">
                                     <td>
-                                        <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" style="text-decoration: none;">
-                                            <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
-                                        </a>
+                                        <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                                     </td>
                                     <td>{{ ticket.subject }}</td>
                                     <td>
@@ -256,9 +254,12 @@
                                     </td>
                                     <td>{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
                                     <td style="text-align: right;">
-                                        <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 10px;">
+                                        <button type="button"
+                                                data-ticketno="{{ ticket.ticketno }}"
+                                                class="btn btn-secondary btn-sm btn-view-details"
+                                                style="font-size: 0.8rem; padding: 4px 10px; cursor: pointer;">
                                             <i class="bi bi-eye"></i> View
-                                        </a>
+                                        </button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -361,4 +362,10 @@
         }
     });
 </script>
+
+<!-- Unified Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
+<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
+
+<!-- Load main CompassIQ JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}

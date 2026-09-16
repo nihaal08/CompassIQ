@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAlertModals();
     initStarRatings();
     initSidebarNavigation();
+    initAgentViewDetailsButtons();
 });
 
 /* ==========================================================================
@@ -386,9 +387,31 @@ function selectAgentTicket(ticketId, clickedElement) {
 /**
  * Loads agent ticket details via AJAX fetch with exact error diagnostics.
  * Invoked from department queue "View Details" action.
+ * Includes loading state, error handling, and graceful null value display.
+ * Now uses unified /api/ticket/<ticketno> endpoint.
  */
 function loadAgentTicketDetails(ticketId) {
-    fetch(`/agent/tickets/${encodeURIComponent(ticketId)}/details`, {
+    // Show loading state in modal
+    let modal = document.getElementById('agentTicketDetailsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'agentTicketDetailsModal';
+        modal.className = 'custom-modal-backdrop';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div style="max-width: 400px; width: 90%; margin: 100px auto; background: #16171A; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; box-shadow: 0 25px 60px rgba(0,0,0,0.75); padding: 40px; text-align: center;">
+            <div style="color: #9CA3AF; font-size: 1rem; margin-bottom: 16px;">
+                <i class="bi bi-hourglass-split" style="font-size: 2rem; display: block; margin-bottom: 12px;"></i>
+                Loading ticket details...
+            </div>
+        </div>
+    `;
+    openModal(modal);
+
+    // Use unified API endpoint
+    fetch(`/api/ticket/${encodeURIComponent(ticketId)}`, {
         headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
@@ -401,18 +424,34 @@ function loadAgentTicketDetails(ticketId) {
     .then(data => renderDetailsModal(data))
     .catch(err => {
         console.error("Ticket details fetch error:", err);
-        alert("Error loading ticket details: " + err.message);
+        // Show user-friendly error in modal
+        modal.innerHTML = `
+            <div style="max-width: 400px; width: 90%; margin: 100px auto; background: #16171A; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 14px; box-shadow: 0 25px 60px rgba(0,0,0,0.75); padding: 30px; text-align: center;">
+                <div style="color: #EF4444; font-size: 1.1rem; margin-bottom: 12px;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2rem; display: block; margin-bottom: 12px;"></i>
+                    Unable to load ticket details
+                </div>
+                <div style="color: #9CA3AF; font-size: 0.9rem; margin-bottom: 20px;">
+                    ${escapeHtml(err.message || 'Please try again later')}
+                </div>
+                <button type="button" onclick="closeModal('#agentTicketDetailsModal')" class="btn btn-secondary" style="padding: 8px 24px;">
+                    Close
+                </button>
+            </div>
+        `;
     });
 }
 
 /**
  * Renders agent ticket details inside an interactive modal.
+ * Shows all ticket fields: assigned agent, predicted category ("Not classified" for null),
+ * resolved date, CSAT, customer feedback, replies, and AI similar matches.
  */
 function renderDetailsModal(data) {
     if (!data || !(data.status === 'success' || data.success === true)) {
         const errMsg = data ? (data.message || data.error || 'Unknown server error') : 'No response received';
-        console.error("Ticket details fetch error:", data);
-        alert("Error loading ticket details: " + errMsg);
+        console.error('Ticket details fetch error:', data);
+        showCustomAlert('Error', 'Error loading ticket details: ' + errMsg, 'danger');
         return;
     }
 
@@ -431,105 +470,157 @@ function renderDetailsModal(data) {
 
     const st = ticket.status || 'Submitted';
     const prio = ticket.predicted_priority || 'Medium';
-    const cat = ticket.predicted_category || ticket.department_name || 'General Inquiry';
+
+    // Display "Not classified" when predicted_category is null/empty
+    const rawCat = ticket.predicted_category;
+    const isUnclassified = !rawCat || rawCat === 'null' || rawCat === 'None';
+    const catKey = isUnclassified ? (ticket.department_name || 'GeneralInquiry') : rawCat;
+    const catDisplay = isUnclassified ? 'Not classified' : rawCat;
+
+    const assignedAgent = ticket.assigned_agent_name || 'Unassigned';
+    const resolvedDate = ticket.resolveddate || ticket.resolved_at || null;
+
+    // Build similar matches section
+    let similarHtml;
+    if (similar.length > 0) {
+        similarHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+            ${similar.map(m => `
+                <div style="background: #1C1D21; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; font-size: 0.82rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #10b981; font-family: monospace; font-size: 0.78rem;">${escapeHtml(m.similar_ticket_ref_id || 'HIST-REF')}</span>
+                        <span style="color: #93C5FD; font-size: 0.78rem;">${Math.round((m.similarity_score || 0.8) * 100)}% match</span>
+                    </div>
+                    <div style="font-weight: 500; color: #FFF; margin-bottom: 4px; font-size: 0.83rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHtml(m.similar_subject || 'Similar Historical Ticket')}</div>
+                    <div style="color: #9CA3AF; font-size: 0.78rem; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHtml(m.similar_description || 'No resolution details recorded.')}</div>
+                    <div style="color: #6B7280; font-size: 0.75rem; margin-top: 6px;"><i class="bi bi-clock"></i> Resolved in ${m.historical_resolution_hours || 12}h</div>
+                </div>`
+            ).join('')}
+        </div>`;
+    } else {
+        similarHtml = `<p style="color: #9CA3AF; font-size: 0.84rem; margin: 0; padding: 8px 0; font-style: italic;">
+            <i class="bi bi-info-circle me-1"></i>No historically similar tickets found for this issue.
+        </p>`;
+    }
+
+    // Build conversation replies section
+    let repliesHtml;
+    if (replies.length === 0) {
+        repliesHtml = '<p style="color: #6B7280; text-align: center; margin: 10px 0; font-size: 0.85rem; font-style: italic;">No conversation messages yet for this ticket.</p>';
+    } else {
+        repliesHtml = replies.map(r => {
+            const isAgent = (r.sender_role === 'agent' || r.sender_role === 'admin');
+            return `<div style="margin-bottom: 10px; padding: 10px 13px; border-radius: 6px; background: ${isAgent ? '#22344D' : '#26272B'}; border: 1px solid rgba(255,255,255,0.06);">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #9CA3AF; margin-bottom: 5px;">
+                    <strong>${escapeHtml(r.sender_name || 'User')} <span style="font-weight:400;">(${escapeHtml(r.sender_role || 'agent')})</span></strong>
+                    <span>${r.created_at ? escapeHtml(r.created_at) : ''}</span>
+                </div>
+                <div style="color: #F3F4F6; font-size: 0.9rem; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(r.message || '')}</div>
+            </div>`;
+        }).join('');
+    }
 
     modal.innerHTML = `
-        <div class="custom-modal-dialog" style="max-width: 840px; width: 92%; margin: 30px auto; background: #16171A; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
-            <div style="padding: 16px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: #1C1D21;">
+        <div style="max-width: 860px; width: 94%; margin: 24px auto; background: #16171A; border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; box-shadow: 0 25px 60px rgba(0,0,0,0.75); overflow: hidden; display: flex; flex-direction: column; max-height: 92vh;">
+
+            <!-- Header -->
+            <div style="padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: #1C1D21; flex-shrink: 0;">
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <span style="font-family: 'Courier New', monospace; font-size: 1.15rem; font-weight: 700; color: #10b981;">${escapeHtml(tktNo)}</span>
+                    <span style="font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: 700; color: #10b981;">${escapeHtml(tktNo)}</span>
                     <span class="badge badge-priority-${escapeHtml(prio)}">${escapeHtml(prio)}</span>
-                    <span class="badge badge-category-${escapeHtml(cat.replace(/\s+/g, '').replace(/&/g, ''))}">${escapeHtml(cat)}</span>
-                    <span class="badge badge-status-${escapeHtml(st.replace(/\s+/g, ''))}">${escapeHtml(st)}</span>
+                    <span class="badge badge-category-${escapeHtml(catKey.replace(/\s+/g,'').replace(/&/g,''))}">${escapeHtml(catDisplay)}</span>
+                    <span class="badge badge-status-${escapeHtml(st.replace(/\s+/g,''))}">${escapeHtml(st)}</span>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <a href="/agent/tickets/${encodeURIComponent(tktNo)}/details" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="bi bi-box-arrow-up-right"></i> Full Page
-                    </a>
-                    <button type="button" class="modal-close-btn" onclick="closeModal('#agentTicketDetailsModal')" style="background: none; border: none; color: #9CA3AF; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
-                </div>
+                <button type="button" onclick="closeModal('#agentTicketDetailsModal')" title="Close" style="background:none;border:none;color:#9CA3AF;font-size:1.6rem;cursor:pointer;line-height:1;padding:0 4px;">&times;</button>
             </div>
-            
-            <div style="padding: 24px; overflow-y: auto; flex: 1;">
-                <h3 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 12px; color: #FFF;">${escapeHtml(ticket.subject || 'No Subject')}</h3>
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 14px; color: #E5E7EB; line-height: 1.5; font-size: 0.92rem; margin-bottom: 20px; white-space: pre-wrap;">${escapeHtml(ticket.description || '')}</div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; font-size: 0.85rem; background: rgba(0, 0, 0, 0.25); padding: 12px 16px; border-radius: 8px;">
-                    <div><span style="color: #9CA3AF;">Customer:</span> <strong style="color: #FFF;">${escapeHtml(ticket.customer_name || 'Customer')}</strong></div>
-                    <div><span style="color: #9CA3AF;">Email:</span> <span style="color: #93C5FD;">${escapeHtml(ticket.customer_email || '—')}</span></div>
-                    <div><span style="color: #9CA3AF;">Department:</span> <span style="color: #FFF;">${escapeHtml(ticket.department_name || ticket.assigned_department || 'General Inquiry')}</span></div>
-                    <div><span style="color: #9CA3AF;">Submitted:</span> <span style="color: #9CA3AF;">${escapeHtml((ticket.submitdate || '').substring(0, 19))}</span></div>
+
+            <!-- Scrollable Body -->
+            <div style="padding: 22px 24px; overflow-y: auto; flex: 1;">
+
+                <h3 style="font-size:1.15rem;margin:0 0 16px 0;color:#FFF;line-height:1.4;">${escapeHtml(ticket.subject || 'No Subject')}</h3>
+
+                <!-- Metadata Grid -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;background:rgba(0,0,0,0.25);padding:14px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);font-size:0.83rem;">
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">CUSTOMER</span><strong style="color:#FFF;">${escapeHtml(ticket.customer_name || '—')}</strong></div>
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">EMAIL</span><span style="color:#93C5FD;">${escapeHtml(ticket.customer_email || '—')}</span></div>
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">DEPARTMENT</span><span style="color:#E5E7EB;">${escapeHtml(ticket.department_name || ticket.assigned_department || '—')}</span></div>
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">ASSIGNED AGENT</span><span style="color:#E5E7EB;">${escapeHtml(assignedAgent)}</span></div>
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">PREDICTED CATEGORY</span><span style="color:${isUnclassified ? '#9CA3AF' : '#E5E7EB'};font-style:${isUnclassified ? 'italic' : 'normal'}">${escapeHtml(catDisplay)}</span></div>
+                    <div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">SUBMITTED</span><span style="color:#9CA3AF;">${escapeHtml((ticket.submitdate || '—').substring(0,19))}</span></div>
+                    ${resolvedDate ? `<div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">RESOLVED</span><span style="color:#9CA3AF;">${escapeHtml(resolvedDate.substring(0,19))}</span></div>` : ''}
+                    ${ticket.satisfaction_score ? `<div><span style="color:#6B7280;display:block;font-size:0.72rem;margin-bottom:2px;">SATISFACTION</span><span style="color:#facc15;font-weight:700;">★ ${escapeHtml(String(ticket.satisfaction_score))} / 5.0</span></div>` : ''}
                 </div>
+
+                <!-- Description -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">ISSUE DESCRIPTION</div>
+                    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:13px;color:#E5E7EB;line-height:1.6;font-size:0.91rem;white-space:pre-wrap;">${escapeHtml(ticket.description || 'No description provided.')}</div>
+                </div>
+
+                ${ticket.resolution_notes ? `
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem;color:#10b981;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;"><i class="bi bi-check-circle me-1"></i>RESOLUTION NOTES</div>
+                    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.22);border-radius:8px;padding:12px 16px;color:#A7F3D0;font-size:0.9rem;line-height:1.5;white-space:pre-wrap;">${escapeHtml(ticket.resolution_notes)}</div>
+                </div>` : ''}
 
                 ${ticket.satisfaction_score ? `
-                    <div style="background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
-                        <span style="color: #facc15; font-weight: 700; font-size: 1.05rem;">★ ${ticket.satisfaction_score} / 5.0</span>
-                        <span style="color: #9CA3AF; font-size: 0.8rem; margin-left: 8px;">Customer CSAT Rating</span>
-                        ${ticket.customer_feedback ? `<div style="color: #E2E8F0; font-size: 0.88rem; font-style: italic; margin-top: 4px;">"${escapeHtml(ticket.customer_feedback)}"</div>` : ''}
-                    </div>
-                ` : ''}
+                <div style="margin-bottom:20px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.22);border-radius:8px;padding:12px 16px;">
+                    <div style="font-size:0.72rem;color:#facc15;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;"><i class="bi bi-star-fill me-1"></i>CUSTOMER FEEDBACK (CSAT)</div>
+                    <div style="color:#facc15;font-size:1.05rem;font-weight:700;margin-bottom:4px;">★ ${escapeHtml(String(ticket.satisfaction_score))} / 5.0</div>
+                    ${ticket.customer_feedback ? `<div style="color:#E2E8F0;font-size:0.88rem;font-style:italic;">&ldquo;${escapeHtml(ticket.customer_feedback)}&rdquo;</div>` : ''}
+                </div>` : ''}
 
-                ${similar.length > 0 ? `
-                    <div style="margin-bottom: 20px;">
-                        <div style="font-size: 0.9rem; font-weight: 600; color: #10b981; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                            <i class="bi bi-robot"></i> AI Similar Recommendations
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px;">
-                            ${similar.map(m => `
-                                <div style="background: #1C1D21; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 10px; font-size: 0.82rem;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                        <span style="color: #10b981; font-family: monospace;">${escapeHtml(m.similar_ticket_ref_id || '')}</span>
-                                        <span style="color: #93C5FD;">${Math.round((m.similarity_score || 0.8) * 100)}%</span>
-                                    </div>
-                                    <div style="font-weight: 500; color: #FFF; margin-bottom: 4px;">${escapeHtml(m.similar_subject || '')}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: #FFF;">Conversation History (${replies.length})</h4>
-                <div style="background: #121315; border-radius: 8px; padding: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 20px;">
-                    ${replies.length === 0 ? '<p style="color: #9CA3AF; text-align: center; margin: 10px 0; font-size: 0.85rem;">No conversation messages yet.</p>' : replies.map(r => `
-                        <div style="margin-bottom: 10px; padding: 8px 12px; border-radius: 6px; background: ${r.sender_role === 'agent' ? '#22344D' : '#26272B'}; border: 1px solid rgba(255, 255, 255, 0.06);">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #9CA3AF; margin-bottom: 4px;">
-                                <strong>${escapeHtml(r.sender_name || 'User')} (${escapeHtml((r.sender_role || 'agent'))})</strong>
-                                <span>${r.created_at ? escapeHtml(r.created_at) : ''}</span>
-                            </div>
-                            <div style="color: #F3F4F6; font-size: 0.9rem; white-space: pre-wrap;">${escapeHtml(r.message || '')}</div>
-                        </div>
-                    `).join('')}
+                <!-- AI Similar Recommendations -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem;color:#3B82F6;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><i class="bi bi-robot"></i>AI SIMILAR RECOMMENDATIONS</div>
+                    ${similarHtml}
                 </div>
 
-                <form method="POST" action="/agent/tickets/${encodeURIComponent(tktNo)}/reply">
-                    <div style="margin-bottom: 12px;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Response Message</label>
-                        <textarea name="message" class="form-control" rows="3" placeholder="Compose message to customer..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 8px; font-family: inherit; font-size: 0.9rem;"></textarea>
+                <!-- Conversation History -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:0.72rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;"><i class="bi bi-chat-left-text me-1"></i>CONVERSATION HISTORY (${replies.length})</div>
+                    <div style="background:#0E0F12;border-radius:8px;padding:12px;max-height:240px;overflow-y:auto;border:1px solid rgba(255,255,255,0.06);">
+                        ${repliesHtml}
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                        <div>
-                            <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Status</label>
-                            <select name="status" class="form-select" style="width: 100%; height: 38px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0 8px;">
-                                <option value="" selected>Keep Current (${escapeHtml(st)})</option>
-                                <option value="Under Review">Under Review</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
-                                <option value="Closed">Closed</option>
-                            </select>
+                </div>
+
+                <!-- Agent Reply & Status Update Form -->
+                <div>
+                    <div style="font-size:0.72rem;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;"><i class="bi bi-send me-1"></i>SEND RESPONSE &amp; UPDATE STATUS</div>
+                    <form method="POST" action="/agent/tickets/${encodeURIComponent(tktNo)}/reply">
+                        <div style="margin-bottom:10px;">
+                            <label style="font-size:0.82rem;font-weight:500;color:#D5D5D5;display:block;margin-bottom:4px;">Message to Customer</label>
+                            <textarea name="message" class="form-control" rows="3" placeholder="Compose message to customer..." style="width:100%;background:#1C1D21;color:white;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px;font-family:inherit;font-size:0.9rem;"></textarea>
                         </div>
-                        <div>
-                            <label style="font-size: 0.85rem; font-weight: 500; color: #D5D5D5; display: block; margin-bottom: 4px;">Resolution Notes</label>
-                            <input type="text" name="resolution_notes" class="form-control" placeholder="Fix details..." style="width: 100%; height: 38px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0 8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                            <div>
+                                <label style="font-size:0.82rem;font-weight:500;color:#D5D5D5;display:block;margin-bottom:4px;">Update Status</label>
+                                <select name="status" class="form-select" style="width:100%;height:38px;background:#1C1D21;color:white;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0 8px;">
+                                    <option value="" selected>Keep Current (${escapeHtml(st)})</option>
+                                    <option value="Under Review">Under Review</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.82rem;font-weight:500;color:#D5D5D5;display:block;margin-bottom:4px;">Resolution Notes</label>
+                                <input type="text" name="resolution_notes" class="form-control" placeholder="Brief fix explanation..." value="${escapeHtml(ticket.resolution_notes || '')}" style="width:100%;height:38px;background:#1C1D21;color:white;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0 8px;">
+                            </div>
                         </div>
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('#agentTicketDetailsModal')">Close</button>
-                        <button type="submit" class="btn btn-primary btn-sm" style="padding: 8px 18px; font-weight: 600;">Update Ticket</button>
-                    </div>
-                </form>
+                        <div style="display:flex;justify-content:flex-end;gap:10px;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('#agentTicketDetailsModal')">Close</button>
+                            <button type="submit" class="btn btn-primary btn-sm" style="padding:8px 18px;font-weight:600;"><i class="bi bi-send me-1"></i>Submit &amp; Update</button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
         </div>
     `;
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal(modal);
+    }, { once: true });
 
     openModal(modal);
 }
@@ -781,4 +872,93 @@ function escapeHtml(string) {
     const div = document.createElement('div');
     div.innerText = string;
     return div.innerHTML;
+}
+
+/* ==========================================================================
+   8. UNIFIED TICKET DETAILS HANDLER (All Dashboards)
+   ========================================================================== */
+
+function initAgentViewDetailsButtons() {
+    // Attach event listeners to all View Details buttons using event delegation
+    document.body.addEventListener('click', function(e) {
+        const button = e.target.closest('.btn-view-details');
+        if (button) {
+            e.preventDefault();
+            const ticketno = button.getAttribute('data-ticketno');
+            if (ticketno) {
+                console.log('View Details clicked for ticket:', ticketno);
+                loadUnifiedTicketDetails(ticketno);
+            } else {
+                console.error('No ticketno found on button');
+                showCustomAlert('Error', 'Ticket ID not found on button', 'danger');
+            }
+        }
+    });
+}
+
+function loadUnifiedTicketDetails(ticketno) {
+    const modalBackdrop = document.getElementById('agentTicketDetailsModal');
+    if (!modalBackdrop) {
+        console.error('Modal container not found');
+        showCustomAlert('Error', 'Modal container not found', 'danger');
+        return;
+    }
+
+    // Show loading state
+    modalBackdrop.innerHTML = `
+        <div class="custom-modal-overlay" style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
+            <div style="text-align: center; color: #9CA3AF;">
+                <i class="bi bi-hourglass-split" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                <p style="font-size: 1.1rem;">Loading ticket details...</p>
+            </div>
+        </div>
+    `;
+    modalBackdrop.style.display = 'flex';
+
+    // Fetch ticket details from unified API endpoint
+    const apiUrl = `/api/ticket/${encodeURIComponent(ticketno)}`;
+
+    fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.status === 'success') {
+            renderDetailsModal(data);
+        } else {
+            throw new Error(data.message || 'Failed to load ticket details');
+        }
+    })
+    .catch(err => {
+        console.error('Error loading ticket details:', err);
+        modalBackdrop.innerHTML = `
+            <div class="custom-modal-overlay" style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
+                <div style="text-align: center; color: #EF4444; max-width: 400px; padding: 20px;">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    <p style="font-size: 1.1rem; margin-bottom: 1rem;">Failed to load ticket details</p>
+                    <p style="font-size: 0.9rem; color: #9CA3AF; margin-bottom: 1.5rem;">${escapeHtml(err.message)}</p>
+                    <button type="button" class="btn btn-secondary" onclick="closeTicketDetailsModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function closeTicketDetailsModal() {
+    const modalBackdrop = document.getElementById('agentTicketDetailsModal');
+    if (modalBackdrop) {
+        modalBackdrop.style.display = 'none';
+        modalBackdrop.innerHTML = '';
+    }
 }

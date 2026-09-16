@@ -100,10 +100,9 @@
                                     <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.submitdate[:10] if ticket.submitdate else '' }}</span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="/agent/tickets/{{ ticket.ticketno }}/details" 
-                                       onclick="if(event.ctrlKey || event.metaKey) return true; event.preventDefault(); loadAgentTicketDetails('{{ ticket.ticketno }}');"
-                                       class="btn btn-secondary btn-sm" 
-                                       style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+                                    <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}"
+                                       class="btn btn-primary btn-sm"
+                                       style="display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="bi bi-eye"></i> View Details
                                     </a>
                                 </td>
@@ -115,4 +114,12 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Agent Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
+<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
+
+<!-- Load main CompassIQ JS — required for loadAgentTicketDetails() and renderDetailsModal() -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}

@@ -107,12 +107,12 @@
                         <th class="col-status">Status</th>
                         <th class="col-department">Department</th>
                         <th class="col-created">Created</th>
-                        <th class="col-rating">Rating</th>
+                        <th class="col-actions" style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for ticket in tickets %}
-                        <tr style="cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticketno }}')">
+                        <tr>
                             <td class="col-ticket-id text-ellipsis">
                                 <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
                             </td>
@@ -137,18 +137,13 @@
                             </td>
                             <td class="col-department">{{ ticket.department_name or 'General Inquiry' }}</td>
                             <td class="col-created no-wrap">{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
-                            <td class="col-rating text-center" onclick="event.stopPropagation();">
-                                {% if ticket.satisfaction_score %}
-                                    <span class="badge" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); font-weight: 600; font-size: 0.8rem;">
-                                        ★ {{ ticket.satisfaction_score }}/5
-                                    </span>
-                                {% elif ticket.status in ['Resolved', 'Closed'] %}
-                                    <button type="button" class="btn btn-sm" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); padding: 3px 8px; border-radius: 6px; font-size: 0.78rem; cursor: pointer;" onclick="openTicketDetail('{{ ticket.ticketno }}');">
-                                        ★ Rate Support
-                                    </button>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
+                            <td class="col-actions" style="text-align: right;">
+                                <button type="button"
+                                        data-ticketno="{{ ticket.ticketno }}"
+                                        class="btn btn-secondary btn-sm btn-view-details"
+                                        style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <i class="bi bi-eye"></i> View Details
+                                </button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -221,12 +216,18 @@
 
 <!-- Ticket Detail Modal -->
 <div id="ticketDetailModal" class="alert-modal-backdrop">
-    <div class="alert-modal-box" style="max-width: 700px; text-align: left;">
+    <div class="alert-modal-box" style="max-width: 800px; text-align: left; max-height: 90vh; overflow-y: auto;">
         <div id="ticketDetailContent">
             <!-- Content loaded via JavaScript -->
         </div>
     </div>
 </div>
+
+<!-- Unified Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
+<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
+
+<!-- Load main CompassIQ JS -->
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 {% endblock %}
 

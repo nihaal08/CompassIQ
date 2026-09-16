@@ -636,6 +636,11 @@ def create_ticket():
 @login_required
 def view_customer_ticket(ticket_id):
     """
+    DEPRECATED: Customer ticket details endpoint.
+    Redirects to unified /api/ticket/<ticket_id> endpoint for consistency.
+    """
+    return get_ticket_details(ticket_id)
+    """
     Customer ticket details endpoint (AJAX & API).
     Returns ticket information and conversation history in JSON format.
     Used for populating ticket detail modals.
@@ -663,19 +668,21 @@ def view_customer_ticket(ticket_id):
                 'message': 'Access denied: You are not authorized to view tickets belonging to other customer accounts.'
             }), 403
 
-    # Step 2: Fetch ticket with safe LEFT JOINs
+    # Step 2: Fetch ticket with safe LEFT JOINs on dual-table schema
     if user_role in ['admin', 'agent']:
         ticket = query_db(
             """SELECT c.*, c.ticketno as ticket_id, c.custid as customer_id,
-                      COALESCE(u.full_name, 'Customer Client') as customer_name,
-                      COALESCE(u.email, 'customer@compassiq.com') as customer_email,
+                      COALESCE(cust.custname, 'Customer Client') as customer_name,
+                      COALESCE(cust.email, 'customer@compassiq.com') as customer_email,
                       COALESCE(d.deptname, 'General Inquiry') as department_name,
                       COALESCE(c.predicted_category, COALESCE(d.deptname, 'General Inquiry')) as predicted_category,
                       COALESCE(c.predicted_priority, 'Medium') as predicted_priority,
-                      COALESCE(c.status, 'Submitted') as status
+                      COALESCE(c.status, 'Submitted') as status,
+                      COALESCE(a.agent_name, 'Unassigned') as assigned_agent_name
                FROM complaints c
-               LEFT JOIN users u ON (c.custid = u.user_id AND u.role = 'customer')
+               LEFT JOIN customers cust ON c.custid = cust.custid
                LEFT JOIN departments d ON c.deptid = d.deptid
+               LEFT JOIN department_agents a ON c.assigned_agent_id = a.agent_id
                WHERE (c.ticketno = ? OR c.ticketno = ? OR LOWER(c.ticketno) = LOWER(?) OR LOWER(c.ticketno) = LOWER(?))""",
             (clean_id, alt_id, clean_id, alt_id),
             one=True
@@ -683,15 +690,17 @@ def view_customer_ticket(ticket_id):
     else:
         ticket = query_db(
             """SELECT c.*, c.ticketno as ticket_id, c.custid as customer_id,
-                      COALESCE(u.full_name, 'Customer Client') as customer_name,
-                      COALESCE(u.email, 'customer@compassiq.com') as customer_email,
+                      COALESCE(cust.custname, 'Customer Client') as customer_name,
+                      COALESCE(cust.email, 'customer@compassiq.com') as customer_email,
                       COALESCE(d.deptname, 'General Inquiry') as department_name,
                       COALESCE(c.predicted_category, COALESCE(d.deptname, 'General Inquiry')) as predicted_category,
                       COALESCE(c.predicted_priority, 'Medium') as predicted_priority,
-                      COALESCE(c.status, 'Submitted') as status
+                      COALESCE(c.status, 'Submitted') as status,
+                      COALESCE(a.agent_name, 'Unassigned') as assigned_agent_name
                FROM complaints c
-               LEFT JOIN users u ON (c.custid = u.user_id AND u.role = 'customer')
+               LEFT JOIN customers cust ON c.custid = cust.custid
                LEFT JOIN departments d ON c.deptid = d.deptid
+               LEFT JOIN department_agents a ON c.assigned_agent_id = a.agent_id
                WHERE (c.ticketno = ? OR c.ticketno = ? OR LOWER(c.ticketno) = LOWER(?) OR LOWER(c.ticketno) = LOWER(?)) AND c.custid = ?""",
             (clean_id, alt_id, clean_id, alt_id, user_id),
             one=True
@@ -721,15 +730,18 @@ def view_customer_ticket(ticket_id):
     ticket['predicted_priority'] = ticket.get('predicted_priority') or 'Medium'
     ticket['status'] = ticket.get('status') or 'Submitted'
 
-    # Step 3: Fetch conversation replies (deduplicated against users view)
+    # Step 3: Fetch conversation replies (from both customers and department_agents)
     replies = query_db(
         """SELECT r.*, r.ticketno as ticket_id,
-                  COALESCE(u.full_name, 'Support User') as sender_name,
-                  COALESCE(u.role, 'customer') as sender_role
+                  COALESCE(cust.custname, a.agent_name, 'Support User') as sender_name,
+                  CASE
+                    WHEN cust.custid IS NOT NULL THEN 'customer'
+                    WHEN a.agent_id IS NOT NULL THEN COALESCE(a.role, 'agent')
+                    ELSE 'agent'
+                  END as sender_role
            FROM ticket_replies r
-           LEFT JOIN (
-               SELECT user_id, full_name, role FROM users GROUP BY user_id
-           ) u ON r.sender_id = u.user_id
+           LEFT JOIN customers cust ON r.sender_id = cust.custid
+           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
            WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
            ORDER BY r.created_at ASC""",
         (clean_id, alt_id, clean_id, alt_id)
@@ -1004,19 +1016,166 @@ def agent_dashboard():
     )
 
 
-@app.route('/agent/tickets/<string:ticket_id>/details')
-@app.route('/agent/ticket/<string:ticket_id>/details')
-@app.route('/agent/tickets/<string:ticket_id>')
-@app.route('/agent/ticket/<string:ticket_id>')
-@app.route('/ticket/<string:ticket_id>')
-@app.route('/api/tickets/<string:ticket_id>')
-@app.route('/api/tickets/<string:ticket_id>/details')
 @app.route('/api/ticket/<string:ticket_id>')
+@app.route('/api/tickets/<string:ticket_id>', endpoint='get_ticket_details_plural')
+@login_required
+def get_ticket_details(ticket_id):
+    """
+    Unified ticket details endpoint for all roles (Customer, Agent, Admin).
+    - Returns JSON with complete ticket information, replies, and similar matches.
+    - Accepts ticket_id as string (e.g. 'TKT-313681' or '313681').
+    - Dual-table schema: uses customers and department_agents tables.
+    - Permission checks: admin, ticket owner, assigned agent, or department agent.
+    - Null-safe queries: handles missing agents, customers, or resolved status gracefully.
+    """
+    user_role = str(g.user.get('role', '')).lower().strip()
+    agent_id = g.user.get('agent_id') or g.user.get('user_id')
+    cust_id = g.user.get('custid') or g.user.get('user_id')
+    agent_deptid = g.user.get('deptid')
+
+    clean_id = str(ticket_id).strip()
+    numeric_id = clean_id.upper().replace('TKT-', '').strip()
+    alt_id = f"TKT-{numeric_id}"
+
+    # Step 1: Fetch ticket with safe LEFT JOINs on dual-table schema
+    ticket = query_db(
+        """SELECT t.*, t.ticketno AS ticket_id, t.custid AS customer_id,
+                  COALESCE(cust.custname, 'Customer Client') AS customer_name,
+                  COALESCE(cust.email, 'customer@compassiq.com') AS customer_email,
+                  COALESCE(d.deptname, 'General Inquiry') AS department_name,
+                  COALESCE(t.predicted_category, COALESCE(d.deptname, 'General Inquiry')) AS predicted_category,
+                  COALESCE(t.predicted_priority, 'Medium') AS predicted_priority,
+                  COALESCE(t.status, 'Submitted') AS status,
+                  COALESCE(a.agent_name, 'Unassigned') AS assigned_agent_name
+           FROM complaints t
+           LEFT JOIN customers cust ON t.custid = cust.custid
+           LEFT JOIN departments d ON t.deptid = d.deptid
+           LEFT JOIN department_agents a ON t.assigned_agent_id = a.agent_id
+           WHERE (t.ticketno = ? OR t.ticketno = ? OR LOWER(t.ticketno) = LOWER(?) OR LOWER(t.ticketno) = LOWER(?))""",
+        (clean_id, alt_id, clean_id, alt_id),
+        one=True
+    )
+
+    if not ticket:
+        return jsonify({
+            'success': False,
+            'status': 'error',
+            'error': 'Not Found',
+            'message': f"Ticket '{ticket_id}' not found in database."
+        }), 404
+
+    # Step 2: Permission verification
+    ticket_deptid = ticket.get('deptid')
+    assigned_agent = ticket.get('assigned_agent_id')
+    ticket_custid = ticket.get('custid')
+
+    has_permission = (
+        user_role == 'admin' or
+        (user_role == 'customer' and str(ticket_custid) == str(cust_id)) or
+        (assigned_agent and str(assigned_agent) == str(agent_id)) or
+        (agent_deptid and ticket_deptid and str(agent_deptid).strip() == str(ticket_deptid).strip())
+    )
+
+    if not has_permission:
+        return jsonify({
+            'success': False,
+            'status': 'error',
+            'error': 'Unauthorized',
+            'message': 'Access denied: You do not have permission to view this ticket.'
+        }), 403
+
+    # Step 3: Fetch conversation replies (from both customers and department_agents)
+    replies = query_db(
+        """SELECT r.*, r.ticketno AS ticket_id,
+                  COALESCE(cust.custname, a.agent_name, 'Support User') AS sender_name,
+                  CASE
+                    WHEN cust.custid IS NOT NULL THEN 'customer'
+                    WHEN a.agent_id IS NOT NULL THEN COALESCE(a.role, 'agent')
+                    ELSE 'agent'
+                  END AS sender_role
+           FROM ticket_replies r
+           LEFT JOIN customers cust ON r.sender_id = cust.custid
+           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
+           ORDER BY r.created_at ASC""",
+        (clean_id, alt_id, clean_id, alt_id)
+    ) or []
+
+    # Step 4: Fetch similar historical tickets (top 3)
+    similar_matches = query_db(
+        """SELECT match_id, ticketno, ticketno AS ticket_id,
+                  similar_ticket_ref_id, similarity_score, similar_subject,
+                  similar_description, historical_resolution_hours
+           FROM ticket_similar_matches
+           WHERE (ticketno = ? OR ticketno = ? OR LOWER(ticketno) = LOWER(?) OR LOWER(ticketno) = LOWER(?))
+           ORDER BY similarity_score DESC
+           LIMIT 3""",
+        (clean_id, alt_id, clean_id, alt_id)
+    ) or []
+
+    # If no similarity matches were previously stored, dynamically retrieve them using AI engine
+    if not similar_matches:
+        try:
+            ai_retrieval = predict_and_retrieve(
+                ticket.get('subject', '') or '',
+                ticket.get('description', '') or '',
+                top_k=3
+            )
+            for sim in ai_retrieval.get('similar_tickets', []):
+                similar_matches.append({
+                    'ticketno': ticket.get('ticketno') or clean_id,
+                    'ticket_id': ticket.get('ticketno') or clean_id,
+                    'similar_ticket_ref_id': sim.get('ticket_id', 'HIST-REF'),
+                    'similarity_score': float(sim.get('similarity_score', 0.85)),
+                    'similar_subject': sim.get('subject', 'Historical Incident'),
+                    'similar_description': sim.get('description', ''),
+                    'historical_resolution_hours': int(sim.get('resolution_hours', 12) or 12)
+                })
+        except Exception as sim_err:
+            similar_matches = []
+
+    # Step 5: Ensure consistent, fully populated keys and defaults on ticket
+    ticket['ticketno'] = ticket.get('ticketno') or clean_id
+    ticket['ticket_id'] = ticket['ticketno']
+    ticket['customer_id'] = ticket.get('customer_id') or ticket.get('custid')
+    ticket['customer_name'] = ticket.get('customer_name') or 'Customer Client'
+    ticket['customer_email'] = ticket.get('customer_email') or 'customer@compassiq.com'
+    ticket['customer'] = {
+        'name': ticket['customer_name'],
+        'email': ticket['customer_email']
+    }
+    ticket['department_name'] = ticket.get('department_name') or 'General Inquiry'
+    ticket['assigned_department'] = ticket['department_name']
+    ticket['assigned_agent_id'] = ticket.get('assigned_agent_id') or None
+    ticket['assigned_agent_name'] = ticket.get('assigned_agent_name') or 'Unassigned'
+    ticket['predicted_category'] = ticket.get('predicted_category') or ticket['department_name']
+    ticket['predicted_priority'] = ticket.get('predicted_priority') or 'Medium'
+    ticket['status'] = ticket.get('status') or 'Submitted'
+    ticket['subject'] = ticket.get('subject') or 'No Subject'
+    ticket['description'] = ticket.get('description') or ''
+    ticket['submitdate'] = ticket.get('submitdate') or 'N/A'
+    ticket['created_at'] = ticket.get('created_at') or ticket['submitdate']
+    ticket['resolution_notes'] = ticket.get('resolution_notes') or ''
+    ticket['satisfaction_score'] = ticket.get('satisfaction_score') or None
+    ticket['customer_feedback'] = ticket.get('customer_feedback') or ''
+
+    return jsonify({
+        'success': True,
+        'status': 'success',
+        'user_role': user_role,
+        'ticket': ticket,
+        'customer': ticket['customer'],
+        'replies': replies,
+        'similar_matches': similar_matches
+    })
+
+
+@app.route('/agent/tickets/<string:ticket_id>/details', endpoint='agent_ticket_details')
 @login_required
 def agent_ticket_details(ticket_id):
     """
-    Agent ticket details endpoint.
-    - Supports AJAX JSON (for dashboard modal) and direct page navigation (renders ticket_detail.html).
+    Agent ticket details HTML endpoint.
+    - Renders the dedicated full-page agent ticket interface.
     - Accepts ticket_id as string (e.g. 'TKT-313681' or '313681').
     - Department guard: allows admin, assigned agent, or agents belonging to ticket department.
     - Safe queries: handles missing/null customer, replies, or AI matches gracefully.
@@ -1042,42 +1201,26 @@ def agent_ticket_details(ticket_id):
         if d_row:
             agent_deptid = d_row['deptid']
 
-    # Step 1: Fetch ticket with safe LEFT JOINs on users, departments, and assigned agent
+    # Step 1: Fetch ticket with safe LEFT JOINs on customers, department_agents, and departments
     ticket = query_db(
         """SELECT t.*, t.ticketno AS ticket_id, t.custid AS customer_id,
-                  COALESCE(c.full_name, 'Customer Client') AS customer_name,
+                  COALESCE(c.custname, 'Customer Client') AS customer_name,
                   COALESCE(c.email, 'customer@compassiq.com') AS customer_email,
                   COALESCE(d.deptname, 'General Inquiry') AS department_name,
                   COALESCE(t.predicted_category, COALESCE(d.deptname, 'General Inquiry')) AS predicted_category,
                   COALESCE(t.predicted_priority, 'Medium') AS predicted_priority,
                   COALESCE(t.status, 'Submitted') AS status,
-                  COALESCE(a.full_name, 'Unassigned') AS assigned_agent_name
+                  COALESCE(a.agent_name, 'Unassigned') AS assigned_agent_name
            FROM complaints t
-           LEFT JOIN users c ON (t.custid = c.user_id AND c.role = 'customer')
+           LEFT JOIN customers c ON t.custid = c.custid
            LEFT JOIN departments d ON t.deptid = d.deptid
-           LEFT JOIN users a ON (t.assigned_agent_id = a.user_id AND a.role IN ('agent', 'admin'))
+           LEFT JOIN department_agents a ON t.assigned_agent_id = a.agent_id
            WHERE (t.ticketno = ? OR t.ticketno = ? OR LOWER(t.ticketno) = LOWER(?) OR LOWER(t.ticketno) = LOWER(?))""",
         (clean_id, alt_id, clean_id, alt_id),
         one=True
     )
 
-    path = request.path.lower()
-    wants_json = (
-        request.is_json or
-        request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-        path.startswith('/api/') or
-        request.args.get('format') == 'json' or
-        ('application/json' in request.headers.get('Accept', '') and 'text/html' not in request.headers.get('Accept', ''))
-    )
-
     if not ticket:
-        if wants_json:
-            return jsonify({
-                'success': False,
-                'status': 'error',
-                'error': 'Not Found',
-                'message': f"Ticket '{ticket_id}' not found in database."
-            }), 404
         flash(f"Ticket '{ticket_id}' not found.", "warning")
         return redirect(url_for('agent_dashboard'))
 
@@ -1091,38 +1234,25 @@ def agent_ticket_details(ticket_id):
         user_role == 'admin' or
         (user_role == 'customer' and str(ticket_custid) == str(agent_id)) or
         (assigned_agent and str(assigned_agent) == str(agent_id)) or
-        (agent_deptid and ticket_deptid and str(agent_deptid).strip() == str(ticket_deptid).strip()) or
-        (agent_dept and (
-            agent_dept in ticket_deptname or 
-            ticket_deptname in agent_dept or
-            ('fraud' in agent_dept and 'fraud' in ticket_deptname) or
-            ('tech' in agent_dept and 'tech' in ticket_deptname) or
-            ('bill' in agent_dept and 'bill' in ticket_deptname) or
-            ('account' in agent_dept and 'account' in ticket_deptname) or
-            ('general' in agent_dept and 'general' in ticket_deptname)
-        ))
+        (agent_deptid and ticket_deptid and str(agent_deptid).strip() == str(ticket_deptid).strip())
     )
 
     if not has_permission:
-        if wants_json:
-            return jsonify({
-                'success': False,
-                'status': 'error',
-                'error': 'Unauthorized',
-                'message': 'Access denied: You do not have permission to view tickets outside your department queue.'
-            }), 403
         flash("Access denied: You do not have permission to view tickets outside your department queue.", "danger")
         return redirect(url_for('agent_dashboard'))
 
-    # Step 3: Fetch conversation replies (deduplicated against users view)
+    # Step 3: Fetch conversation replies (from both customers and department_agents)
     replies = query_db(
         """SELECT r.*, r.ticketno AS ticket_id,
-                  COALESCE(u.full_name, 'Support User') AS sender_name,
-                  COALESCE(u.role, 'agent') AS sender_role
+                  COALESCE(c.custname, a.agent_name, 'Support User') AS sender_name,
+                  CASE 
+                    WHEN c.custid IS NOT NULL THEN 'customer'
+                    WHEN a.agent_id IS NOT NULL THEN COALESCE(a.role, 'agent')
+                    ELSE 'agent'
+                  END AS sender_role
            FROM ticket_replies r
-           LEFT JOIN (
-               SELECT user_id, full_name, role FROM users GROUP BY user_id
-           ) u ON r.sender_id = u.user_id
+           LEFT JOIN customers c ON r.sender_id = c.custid
+           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
            WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
            ORDER BY r.created_at ASC""",
         (clean_id, alt_id, clean_id, alt_id)
@@ -1186,19 +1316,10 @@ def agent_ticket_details(ticket_id):
     ticket['satisfaction_score'] = ticket.get('satisfaction_score') or None
     ticket['customer_feedback'] = ticket.get('customer_feedback') or ''
 
-    if wants_json:
-        return jsonify({
-            'success': True,
-            'status': 'success',
-            'ticket': ticket,
-            'customer': ticket['customer'],
-            'replies': replies,
-            'similar_matches': similar_matches
-        })
-
     return render_template(
-        'ticket_detail.html',
+        'agent/ticket_details.html',
         ticket=ticket,
+        customer=ticket['customer'],
         replies=replies,
         similar_matches=similar_matches
     )
@@ -1208,6 +1329,7 @@ def agent_ticket_details(ticket_id):
 @app.route('/agent/ticket/<ticket_id>/reply', methods=['POST'])
 @app.route('/agent/tickets/<ticket_id>/update', methods=['POST'])
 @app.route('/agent/ticket/<ticket_id>/update', methods=['POST'])
+@app.route('/agent/tickets/<string:ticket_id>/resolve', methods=['POST'], endpoint='agent_ticket_resolve')
 @agent_required
 def agent_ticket_reply(ticket_id):
     """
@@ -1222,15 +1344,15 @@ def agent_ticket_reply(ticket_id):
     user_id = g.user.get('agent_id') or g.user.get('user_id')
     user_role = str(g.user.get('role', '')).lower().strip()
     agent_dept = str(g.user.get('department') or '').lower().strip()
-    message = request.form.get('message', '').strip()
-    new_status = request.form.get('status', '').strip()
     resolution_notes = request.form.get('resolution_notes', '').strip()
+    message = request.form.get('message', '').strip() or resolution_notes
+    new_status = request.form.get('status', '').strip()
 
-    if not message and not new_status and not resolution_notes:
+    if not resolution_notes or new_status not in ['In Progress', 'Resolved']:
         if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'status': 'warning', 'message': 'No update provided.'}), 400
-        flash("No update provided.", "warning")
-        return redirect(url_for('agent_dashboard'))
+            return jsonify({'status': 'warning', 'message': 'Resolution notes and a valid status are required.'}), 400
+        flash("Resolution notes and a valid status are required.", "warning")
+        return redirect(url_for('agent_ticket_details', ticket_id=ticket_id))
 
     # Step 2: Verify ticket scope
     ticket = query_db(
@@ -1267,7 +1389,7 @@ def agent_ticket_reply(ticket_id):
     # Step 3: Insert reply if provided
     if message:
         modify_db(
-            "INSERT INTO ticket_replies (ticketno, sender_id, message) VALUES (?, ?, ?)",
+            "INSERT INTO ticket_replies (ticketno, sender_id, message, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
             (ticket['ticketno'], user_id, message)
         )
 
@@ -1285,7 +1407,12 @@ def agent_ticket_reply(ticket_id):
         update_fields.append("resolution_notes = ?")
         params.append(resolution_notes)
 
+    if new_status == 'In Progress':
+        update_fields.append("resolved_at = NULL")
+
     if update_fields:
+        update_fields.append("assigned_agent_id = ?")
+        params.append(user_id)
         params.append(ticket['ticketno'])
         modify_db(
             f"UPDATE complaints SET {', '.join(update_fields)} WHERE ticketno = ?",
@@ -1295,7 +1422,9 @@ def agent_ticket_reply(ticket_id):
     if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return jsonify({'status': 'success', 'message': f"Ticket {ticket['ticketno']} updated successfully."})
 
-    flash(f"Ticket {ticket['ticketno']} updated successfully.", "success")
+    flash("Ticket has been updated/resolved successfully.", "success")
+    if request.endpoint == 'agent_ticket_resolve':
+        return redirect(url_for('agent_ticket_details', ticket_id=ticket['ticketno']))
     return redirect(url_for('agent_dashboard'))
 
 

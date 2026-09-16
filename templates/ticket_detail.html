@@ -12,7 +12,11 @@
             <span style="font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700; color: var(--accent-green);">{{ ticket.ticketno or ticket.ticket_id }}</span>
             <span class="badge badge-status-{{ (ticket.status or 'Submitted')|replace(' ', '') }}">{{ ticket.status or 'Submitted' }}</span>
             <span class="badge badge-priority-{{ ticket.predicted_priority or 'Medium' }}">{{ ticket.predicted_priority or 'Medium' }}</span>
-            <span class="badge badge-category-{{ (ticket.predicted_category or 'General Inquiry')|replace(' ', '')|replace('&', '') }}">{{ ticket.predicted_category or 'General Inquiry' }}</span>
+            {% if ticket.predicted_category and ticket.predicted_category != 'None' %}
+                <span class="badge badge-category-{{ (ticket.predicted_category)|replace(' ', '')|replace('&', '') }}">{{ ticket.predicted_category }}</span>
+            {% else %}
+                <span class="badge" style="background: rgba(107,114,128,0.15); color: #9CA3AF; border: 1px solid rgba(107,114,128,0.3); font-style: italic;">Not classified</span>
+            {% endif %}
         </div>
         <h1 class="page-title" style="font-size: 1.5rem; margin: 0;">{{ ticket.subject }}</h1>
     </div>
@@ -106,7 +110,7 @@
                 <h3 class="card-title">Send Response & Update Ticket Status</h3>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}">
+                <form method="POST" action="{{ url_for('agent_ticket_resolve', ticket_id=ticket.ticketno) }}">
                     <div style="margin-bottom: var(--spacing-lg);">
                         <label class="form-label" style="font-weight: 500; margin-bottom: 6px; display: block;">Message to Customer</label>
                         <textarea id="replyMessageField" name="message" class="form-control" rows="4" placeholder="Compose customer response here..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 12px; font-family: inherit; font-size: 0.95rem;"></textarea>
@@ -117,15 +121,13 @@
                             <label class="form-label" style="font-weight: 500; margin-bottom: 6px; display: block;">Update Workflow Status</label>
                             <select name="status" class="form-select" style="width: 100%; height: 42px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 0 12px;">
                                 <option value="" selected>Keep Current Status ({{ ticket.status }})</option>
-                                <option value="Under Review">Under Review</option>
                                 <option value="In Progress">In Progress</option>
                                 <option value="Resolved">Resolved</option>
-                                <option value="Closed">Closed</option>
                             </select>
                         </div>
                         <div>
                             <label class="form-label" style="font-weight: 500; margin-bottom: 6px; display: block;">Resolution Notes (Optional)</label>
-                            <input type="text" name="resolution_notes" class="form-control" placeholder="Brief explanation of fix..." style="width: 100%; height: 42px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 0 12px;">
+                            <textarea name="resolution_notes" class="form-control" rows="3" placeholder="Actions taken, troubleshooting steps, or final resolution..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-md); padding: 10px 12px; resize: vertical;">{{ ticket.resolution_notes or '' }}</textarea>
                         </div>
                     </div>
 
@@ -142,11 +144,11 @@
         <!-- Customer Profile Card -->
         <div class="card" style="margin-bottom: var(--spacing-xl);">
             <div class="card-header">
-                <h3 class="card-title">Customer Profile</h3>
+                <h3 class="card-title">Ticket Details</h3>
             </div>
             <div class="card-body">
                 <div style="margin-bottom: var(--spacing-md);">
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Name</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Customer</div>
                     <div style="font-weight: 600; color: #FFFFFF; font-size: 1rem;">{{ ticket.customer_name }}</div>
                 </div>
                 <div style="margin-bottom: var(--spacing-md);">
@@ -157,10 +159,34 @@
                     <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Assigned Department</div>
                     <div style="color: #E5E7EB; font-weight: 500;">{{ ticket.department_name }}</div>
                 </div>
-                <div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Submitted Date</div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Assigned Agent</div>
+                    <div style="color: #E5E7EB;">{{ ticket.assigned_agent_name or 'Unassigned' }}</div>
+                </div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Predicted Category</div>
+                    {% if ticket.predicted_category and ticket.predicted_category != 'None' %}
+                        <div style="color: #E5E7EB;">{{ ticket.predicted_category }}</div>
+                    {% else %}
+                        <div style="color: #9CA3AF; font-style: italic;">Not classified</div>
+                    {% endif %}
+                </div>
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Submission Date</div>
                     <div style="color: var(--text-muted); font-size: 0.85rem;">{{ ticket.submitdate }}</div>
                 </div>
+                {% if ticket.resolved_at %}
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Resolved Date</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">{{ ticket.resolved_at }}</div>
+                </div>
+                {% endif %}
+                {% if ticket.satisfaction_score %}
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Satisfaction Score</div>
+                    <div style="color: #facc15; font-weight: 700;">★ {{ ticket.satisfaction_score }} / 5.0</div>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -195,7 +221,9 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-muted" style="text-align: center; padding: 20px 0; color: #9CA3AF; font-size: 0.85rem;">No historical ticket similarities found.</p>
+                <p class="text-muted" style="text-align: center; padding: 20px 0; color: #9CA3AF; font-size: 0.85rem;">
+                    <i class="bi bi-info-circle me-1"></i>No historically similar tickets found for this issue.
+                </p>
                 {% endif %}
             </div>
         </div>
