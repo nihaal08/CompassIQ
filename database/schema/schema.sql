@@ -26,7 +26,7 @@ INSERT INTO departments (deptid, deptname, sla_target_hours) VALUES
 (2, 'Billing Support', 24),
 (3, 'Account Support', 24),
 (4, 'General Inquiry', 48),
-(5, 'Fraud & Security', 12);
+(5, 'Fraud & Security', 6);
 
 -- ----------------------------------------------------------------------------
 -- 2. Customers Table (CUSTOMER Entity - External Clients Only)
@@ -66,6 +66,7 @@ CREATE TABLE complaints (
     submitdate DATETIME DEFAULT CURRENT_TIMESTAMP,
     subject TEXT NOT NULL,
     description TEXT NOT NULL,
+    predicted_category TEXT,
     predicted_priority TEXT CHECK(predicted_priority IN ('Low', 'Medium', 'High', 'Critical')),
     status TEXT DEFAULT 'Submitted' CHECK(status IN ('Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed')),
     resolved_at DATETIME DEFAULT NULL,
@@ -96,6 +97,7 @@ CREATE TABLE ticket_replies (
     reply_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ticketno TEXT NOT NULL,
     sender_id INTEGER NOT NULL,
+    sender_role TEXT NOT NULL DEFAULT 'customer' CHECK(sender_role IN ('customer', 'agent', 'admin')),
     message TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_reply_ticket FOREIGN KEY (ticketno) REFERENCES complaints(ticketno) ON DELETE CASCADE
@@ -135,3 +137,7 @@ INSERT INTO department_agents (agent_name, email, password, deptid, role, accoun
 -- Test Customer
 INSERT INTO customers (custname, email, password, phone_no, account_status) VALUES
 ('Alex Morgan', 'alex.morgan@customer.com', 'scrypt:32768:8:1$wUlaa4YY8azRrBAR$595e72001b6675635945049fa4b63bc8a022c447f5cc2013c375461cc0233bf1ca150c664ea078847b956614b860041a506e07c9709d23b1db0b44df95ae181c', '9876543210', 'APPROVED');
+
+-- Required default customer account (custid = 5 for review/demo consistency)
+INSERT INTO customers (custid, custname, email, password, phone_no, account_status) VALUES
+(5, 'Customer Client', 'customer@compassiq.com', 'scrypt:32768:8:1$placeholder$placeholder', NULL, 'APPROVED');

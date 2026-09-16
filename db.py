@@ -160,7 +160,7 @@ def ensure_demo_accounts(conn):
     # Pre-generate hashes for standard demo credentials
     admin_pwd_hash = generate_password_hash('Admin@123', method='scrypt')
     agent_pwd_hash = generate_password_hash('Agent@123', method='scrypt')
-    user_pwd_hash = generate_password_hash('User@123', method='scrypt')
+    user_pwd_hash = generate_password_hash('Customer@123', method='scrypt')
     
     # Clean, strictly standardized demo accounts (1 per role/department)
     agent_accounts = [
@@ -231,9 +231,9 @@ def ensure_demo_accounts(conn):
         cursor.execute("SELECT deptid FROM departments WHERE deptid = 5")
         d5 = cursor.fetchone()
         if d5:
-            cursor.execute("UPDATE departments SET deptname = 'Fraud & Security', sla_target_hours = 12 WHERE deptid = 5")
+            cursor.execute("UPDATE departments SET deptname = 'Fraud & Security', sla_target_hours = 6 WHERE deptid = 5")
         else:
-            cursor.execute("INSERT OR REPLACE INTO departments (deptid, deptname, sla_target_hours) VALUES (5, 'Fraud & Security', 12)")
+            cursor.execute("INSERT OR REPLACE INTO departments (deptid, deptname, sla_target_hours) VALUES (5, 'Fraud & Security', 6)")
         
         # Ensure customer_feedback column exists in complaints table
         cursor.execute("PRAGMA table_info(complaints)")
@@ -241,6 +241,16 @@ def ensure_demo_accounts(conn):
         if 'customer_feedback' not in complaints_cols:
             cursor.execute("ALTER TABLE complaints ADD COLUMN customer_feedback TEXT DEFAULT NULL")
             print("[CompassIQ DB] Added customer_feedback column to complaints table.")
+
+        if 'predicted_category' not in complaints_cols:
+            cursor.execute("ALTER TABLE complaints ADD COLUMN predicted_category TEXT")
+            print("[CompassIQ DB] Added predicted_category column to complaints table.")
+
+        cursor.execute("PRAGMA table_info(ticket_replies)")
+        reply_cols = [col['name'] for col in cursor.fetchall()]
+        if reply_cols and 'sender_role' not in reply_cols:
+            cursor.execute("ALTER TABLE ticket_replies ADD COLUMN sender_role TEXT NOT NULL DEFAULT 'customer'")
+            print("[CompassIQ DB] Added sender_role column to ticket_replies table.")
         
         # Ensure department_agents table exists before inserting
         cursor.execute("""

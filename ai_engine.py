@@ -17,6 +17,7 @@ import os
 import re
 import joblib
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 try:
     from nltk.stem import WordNetLemmatizer
     lemmatizer = WordNetLemmatizer()
@@ -200,7 +201,7 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
         return {
             'predicted_category': 'General Inquiry',
             'predicted_priority': 'Medium',
-            'assigned_department': 'Technical',
+            'assigned_department': 'General Inquiry',
             'category_confidence': '50.0%',
             'priority_confidence': '50.0%',
             'low_confidence': True,
@@ -278,13 +279,33 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
         # Safe fallback on ML errors
         predicted_category = 'General Inquiry'
         predicted_priority = 'Medium'
-        assigned_dept = 'Technical'
+        assigned_dept = 'General Inquiry'
         category_confidence = 50.0
         priority_confidence = 50.0
         low_confidence_flag = True
         fraud_flagged = False
 
-    # Step 7: Return clean prediction dictionary
+    # Step 7: Retrieve the most similar resolved tickets for agent guidance.
+    similar_tickets = []
+    try:
+        from db import query_db
+        historical_tickets = query_db(
+            """SELECT ticketno AS ticket_id, subject, description,
+                      resolution_notes, 0 AS resolution_hours
+               FROM complaints
+               WHERE status IN ('Resolved', 'Closed')
+               ORDER BY submitdate DESC
+               LIMIT 100"""
+        )
+        similar_tickets = compute_similar_tickets(
+            subject, description, historical_tickets, top_k=top_k
+        )
+        for ticket in similar_tickets:
+            ticket['description'] = ticket.get('description') or ticket.get('resolution_notes', '')
+    except Exception as similarity_error:
+        print(f"[AI Engine] Similarity retrieval skipped: {similarity_error}")
+
+    # Step 8: Return clean prediction dictionary
     return {
         'predicted_category': predicted_category,
         'predicted_priority': predicted_priority,
@@ -293,7 +314,7 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
         'priority_confidence': f"{priority_confidence:.1f}%",
         'low_confidence': low_confidence_flag,
         'fraud_flagged': fraud_flagged,
-        'similar_tickets': []  # Empty array for API compatibility
+        'similar_tickets': similar_tickets
     }
 
 
