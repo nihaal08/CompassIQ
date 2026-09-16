@@ -206,7 +206,7 @@
                     <option value="Billing">Billing Support</option>
                     <option value="Account">Account Support</option>
                     <option value="General Inquiry">General Inquiry</option>
-                    <option value="Fraud">Fraud & Security</option>
+                    <option value="Fraud & Security">Fraud & Security</option>
                 </select>
             </div>
         </div>
@@ -227,7 +227,6 @@
                                 <th>Priority</th>
                                 <th>Status</th>
                                 <th>Created</th>
-                                <th style="text-align: right;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="adminTicketTableBody">
@@ -248,19 +247,11 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge badge-status-{{ (ticket.status or 'Submitted')|replace(' ', '') }}">
-                                            {{ ticket.status or 'Submitted' }}
+                                        <span class="badge {% if ticket.admin_status == 'Solved' %}badge-status-Resolved{% else %}badge-status-UnderReview{% endif %}">
+                                            {{ ticket.admin_status or 'Pending' }}
                                         </span>
                                     </td>
                                     <td>{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
-                                    <td style="text-align: right;">
-                                        <button type="button"
-                                                data-ticketno="{{ ticket.ticketno }}"
-                                                class="btn btn-secondary btn-sm btn-view-details"
-                                                style="font-size: 0.8rem; padding: 4px 10px; cursor: pointer;">
-                                            <i class="bi bi-eye"></i> View
-                                        </button>
-                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>

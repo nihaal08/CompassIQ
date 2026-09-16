@@ -1474,7 +1474,10 @@ def admin_dashboard():
 
     # Step 4: Fetch all system tickets for Ticket Registry
     all_tickets = query_db(
-        """SELECT ticketno, subject, d.deptname as category, predicted_priority, status, submitdate
+           """SELECT ticketno, subject, d.deptname as category, predicted_priority,
+                   CASE WHEN c.status IN ('Resolved', 'Closed')
+                       THEN 'Solved' ELSE 'Pending' END as admin_status,
+                   submitdate
            FROM complaints c
            JOIN departments d ON c.deptid = d.deptid
            ORDER BY c.submitdate DESC"""
