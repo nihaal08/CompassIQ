@@ -589,14 +589,7 @@ def create_ticket():
             (ticket_id, user_id, deptid, subject, description, predicted_priority)
         )
 
-        # Step 5: Insert initial ticket reply message
-        modify_db(
-            """INSERT INTO ticket_replies (ticketno, sender_id, message)
-               VALUES (?, ?, ?)""",
-            (ticket_id, user_id, description)
-        )
-
-        # Step 6: Persist AI similar historical matches
+        # Step 5: Persist AI similar historical matches
         for sim in ai_result.get('similar_tickets', []):
             try:
                 modify_db(
@@ -731,16 +724,12 @@ def view_customer_ticket(ticket_id):
 
     # Step 3: Fetch conversation replies (from both customers and department_agents)
     replies = query_db(
-        """SELECT r.*, r.ticketno as ticket_id,
-                  COALESCE(cust.custname, a.agent_name, 'Support User') as sender_name,
-                  CASE
-                    WHEN cust.custid IS NOT NULL THEN 'customer'
-                    WHEN a.agent_id IS NOT NULL THEN COALESCE(a.role, 'agent')
-                    ELSE 'agent'
-                  END as sender_role
+                """SELECT r.reply_id, r.ticketno, r.sender_id, r.message, r.created_at,
+                                    r.ticketno as ticket_id, r.sender_role,
+                                    COALESCE(cust.custname, a.agent_name, 'Support User') as sender_name
            FROM ticket_replies r
-           LEFT JOIN customers cust ON r.sender_id = cust.custid
-           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           LEFT JOIN customers cust ON r.sender_role = 'customer' AND r.sender_id = cust.custid
+           LEFT JOIN department_agents a ON r.sender_role IN ('agent', 'admin') AND r.sender_id = a.agent_id
            WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
            ORDER BY r.created_at ASC""",
         (clean_id, alt_id, clean_id, alt_id)
@@ -796,32 +785,9 @@ def customer_ticket_reply(ticket_id):
     if ticket['status'] in ['Resolved', 'Closed']:
         return jsonify({'success': False, 'message': 'This ticket is resolved or closed. Replies are locked.'}), 403
 
-    # Step 3: Insert reply
-    user_id = g.user.get('custid') or g.user.get('user_id')
-    modify_db(
-        "INSERT INTO ticket_replies (ticketno, sender_id, message) VALUES (?, ?, ?)",
-        (ticket_id, user_id, message)
-    )
-    
-    # Step 4: Fetch new reply for UI update (from both customers and agents)
-    new_reply = query_db(
-        """SELECT r.*, 
-                  COALESCE(u.full_name, 'Support User') as sender_name,
-                  COALESCE(u.role, 'customer') as sender_role
-           FROM ticket_replies r
-           LEFT JOIN (
-               SELECT user_id, full_name, role FROM users GROUP BY user_id
-           ) u ON r.sender_id = u.user_id
-           WHERE (r.ticketno = ? OR r.ticketno = 'TKT-' || ?) 
-           ORDER BY r.created_at DESC LIMIT 1""",
-        (ticket_id, ticket_id),
-        one=True
-    )
-    
     return jsonify({
         'success': True,
-        'message': 'Reply sent successfully.',
-        'reply': new_reply
+        'message': 'Ticket replies are not enabled in this workflow.'
     })
 
 
@@ -988,8 +954,8 @@ def agent_dashboard():
                 SUM(status = 'Resolved') as count_resolved,
                 ROUND(AVG(satisfaction_score), 1) as avg_csat
                FROM complaints
-               WHERE deptid = ?""",
-            (agent_deptid,),
+               WHERE deptid = ? AND assigned_agent_id = ?""",
+            (agent_deptid, g.user.get('agent_id') or g.user.get('user_id')),
             one=True
         )
     else:
@@ -1085,16 +1051,12 @@ def get_ticket_details(ticket_id):
 
     # Step 3: Fetch conversation replies (from both customers and department_agents)
     replies = query_db(
-        """SELECT r.*, r.ticketno AS ticket_id,
-                  COALESCE(cust.custname, a.agent_name, 'Support User') AS sender_name,
-                  CASE
-                    WHEN cust.custid IS NOT NULL THEN 'customer'
-                    WHEN a.agent_id IS NOT NULL THEN COALESCE(a.role, 'agent')
-                    ELSE 'agent'
-                  END AS sender_role
+                """SELECT r.reply_id, r.ticketno, r.sender_id, r.message, r.created_at,
+                                    r.ticketno AS ticket_id, r.sender_role,
+                                    COALESCE(cust.custname, a.agent_name, 'Support User') AS sender_name
            FROM ticket_replies r
-           LEFT JOIN customers cust ON r.sender_id = cust.custid
-           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           LEFT JOIN customers cust ON r.sender_role = 'customer' AND r.sender_id = cust.custid
+           LEFT JOIN department_agents a ON r.sender_role IN ('agent', 'admin') AND r.sender_id = a.agent_id
            WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
            ORDER BY r.created_at ASC""",
         (clean_id, alt_id, clean_id, alt_id)
@@ -1250,8 +1212,8 @@ def agent_ticket_details(ticket_id):
                     ELSE 'agent'
                   END AS sender_role
            FROM ticket_replies r
-           LEFT JOIN customers c ON r.sender_id = c.custid
-           LEFT JOIN department_agents a ON r.sender_id = a.agent_id
+           LEFT JOIN customers c ON r.sender_role = 'customer' AND r.sender_id = c.custid
+           LEFT JOIN department_agents a ON r.sender_role IN ('agent', 'admin') AND r.sender_id = a.agent_id
            WHERE (r.ticketno = ? OR r.ticketno = ? OR LOWER(r.ticketno) = LOWER(?) OR LOWER(r.ticketno) = LOWER(?))
            ORDER BY r.created_at ASC""",
         (clean_id, alt_id, clean_id, alt_id)
@@ -1385,14 +1347,7 @@ def agent_ticket_reply(ticket_id):
         flash("Access denied: You do not have permission to update tickets outside your department queue.", "danger")
         return redirect(url_for('agent_dashboard'))
 
-    # Step 3: Insert reply if provided
-    if message:
-        modify_db(
-            "INSERT INTO ticket_replies (ticketno, sender_id, message, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
-            (ticket['ticketno'], user_id, message)
-        )
-
-    # Step 4: Update complaint status and metadata
+    # Step 3: Update complaint status and metadata
     update_fields = []
     params = []
 

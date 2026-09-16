@@ -139,8 +139,8 @@
                             <td class="col-created no-wrap">{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
                             <td class="col-actions" style="text-align: right;">
                                 <button type="button"
-                                        data-ticketno="{{ ticket.ticketno }}"
-                                        class="btn btn-secondary btn-sm btn-view-details"
+                                    class="btn btn-secondary btn-sm"
+                                    onclick="openTicketDetail('{{ ticket.ticketno }}')"
                                         style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                                     <i class="bi bi-eye"></i> View Details
                                 </button>
@@ -216,7 +216,7 @@
 
 <!-- Ticket Detail Modal -->
 <div id="ticketDetailModal" class="alert-modal-backdrop">
-    <div class="alert-modal-box" style="max-width: 800px; text-align: left; max-height: 90vh; overflow-y: auto;">
+    <div class="alert-modal-box customer-ticket-modal">
         <div id="ticketDetailContent">
             <!-- Content loaded via JavaScript -->
         </div>
@@ -333,7 +333,6 @@ function openTicketDetail(ticketId) {
         .then(data => {
             if (data.status === 'success' || data.success === true) {
                 const ticket = data.ticket || {};
-                const replies = data.replies || [];
                 const ticketNo = ticket.ticketno || ticket.ticket_id || ticketId;
                 
                 const isResolved = (ticket.status === 'Resolved' || ticket.status === 'Closed');
@@ -396,29 +395,6 @@ function openTicketDetail(ticketId) {
                             </div>
                         ` : ''}
 
-                        <!-- Chronological Conversation Thread -->
-                        <div style="margin-top: var(--spacing-xl);">
-                            <h4 class="card-title" style="font-size: 1rem; margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 8px;">
-                                <i class="bi bi-chat-left-text" style="color: var(--primary);"></i> Conversation Thread (${replies ? replies.length : 0})
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); max-height: 300px; overflow-y: auto; padding: var(--spacing-md); background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-md); border: 1px solid rgba(255, 255, 255, 0.08);">
-                                ${replies && replies.length > 0 ? replies.map(reply => {
-                                    const isAgent = (reply.sender_role === 'agent' || reply.sender_role === 'admin');
-                                    return `
-                                        <div style="max-width: 88%; ${isAgent ? 'margin-right: auto; background: #22344D; border: 1px solid #2B4568;' : 'margin-left: auto; background: #26272B; border: 1px solid rgba(255, 255, 255, 0.1);'} padding: 12px 16px; border-radius: 8px;">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 6px;">
-                                                <span class="badge ${isAgent ? 'badge-category-Technical' : 'badge-status-Resolved'}" style="font-size: 0.75rem; padding: 2px 8px;">
-                                                    ${isAgent ? '<i class="bi bi-headset me-1"></i> Support Agent (' + (reply.sender_name || 'Agent') + ')' : '<i class="bi bi-person-fill me-1"></i> You'}
-                                                </span>
-                                                <span style="font-size: 0.75rem; color: var(--text-muted);">${reply.created_at || ''}</span>
-                                            </div>
-                                            <div style="color: #F3F4F6; font-size: 0.92rem; line-height: 1.5; white-space: pre-wrap;">${reply.message}</div>
-                                        </div>
-                                    `;
-                                }).join('') : '<p class="text-muted" style="text-align: center; margin: 0; padding: 16px;">No conversation messages yet.</p>'}
-                            </div>
-                        </div>
-
                         <!-- Customer Rating & CSAT Section -->
                         ${isResolved && !hasScore ? `
                             <div style="margin-top: var(--spacing-xl); padding: var(--spacing-lg); background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--radius-md);">
@@ -460,19 +436,6 @@ function openTicketDetail(ticketId) {
                             </div>
                         ` : ''}
 
-                        <!-- Add Reply Form (when not closed) -->
-                        ${ticket.status !== 'Resolved' && ticket.status !== 'Closed' ? `
-                            <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle);">
-                                <h4 class="card-title" style="font-size: 1rem; margin-bottom: var(--spacing-md);">Add Reply</h4>
-                                <form method="POST" action="/customer/tickets/${ticketNo}/reply" onsubmit="handleCustomerReply(event, this)">
-                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                                        <label class="form-label">Your Message</label>
-                                        <textarea name="message" class="form-textarea" placeholder="Type your reply here..." required style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.9rem; min-height: 80px;"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-accent" style="padding: 8px 18px; font-weight: 600;">Send Reply</button>
-                                </form>
-                            </div>
-                        ` : ''}
                     </div>
                     
                     <div class="card-footer" style="padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end;">

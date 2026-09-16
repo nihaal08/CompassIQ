@@ -11,9 +11,7 @@
 {% block content %}
 <style>
     .ticket-details-page {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-        gap: var(--spacing-xl);
+        max-width: 980px;
     }
 
     .ticket-meta-grid {
@@ -36,42 +34,6 @@
         font-size: 0.92rem;
     }
 
-    .conversation-thread {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
-
-    .conversation-message {
-        max-width: 88%;
-        padding: var(--spacing-md);
-        border-radius: var(--radius-md);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .conversation-message.customer {
-        align-self: flex-start;
-        background: #26272B;
-    }
-
-    .conversation-message.agent {
-        align-self: flex-end;
-        background: #22344D;
-        border-color: #2B4568;
-    }
-
-    .recommendation-card {
-        background: #1F2024;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: var(--radius-md);
-        padding: var(--spacing-md);
-    }
-
-    @media (max-width: 992px) {
-        .ticket-details-page {
-            grid-template-columns: 1fr;
-        }
-    }
 </style>
 
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-xl);">
@@ -108,28 +70,6 @@
             </div>
         </section>
 
-        <section class="card" style="margin-bottom: var(--spacing-xl);">
-            <div class="card-header">
-                <h2 class="card-title">Conversation History</h2>
-                <p class="card-subtitle">{{ replies|length }} message{% if replies|length != 1 %}s{% endif %}</p>
-            </div>
-            <div class="card-body">
-                <div class="conversation-thread">
-                    {% for reply in replies %}
-                    <article class="conversation-message {{ 'agent' if reply.sender_role in ['agent', 'admin'] else 'customer' }}">
-                        <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 6px; color: #D1D5DB; font-size: 0.8rem;">
-                            <strong>{{ reply.sender_name or 'Support User' }} ({{ (reply.sender_role or 'customer')|title }})</strong>
-                            <span>{{ reply.created_at or '' }}</span>
-                        </div>
-                        <div style="color: #F3F4F6; line-height: 1.55; white-space: pre-wrap;">{{ reply.message }}</div>
-                    </article>
-                    {% else %}
-                    <p class="text-muted" style="margin: 0; text-align: center;">No conversation messages yet.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-
         <section class="card">
             <div class="card-header">
                 <h2 class="card-title">Agent Resolution</h2>
@@ -138,11 +78,11 @@
             <div class="card-body">
                 <form method="POST" action="{{ url_for('agent_ticket_resolve', ticket_id=ticket.ticketno) }}">
                     <label class="form-label" for="resolution_notes">Quick Reply / Resolution Notes</label>
-                    <textarea id="resolution_notes" name="resolution_notes" class="form-control" rows="6" required placeholder="Explain the response sent to the customer, troubleshooting performed, or resolution steps taken.">{{ ticket.resolution_notes or '' }}</textarea>
+                    <textarea id="resolution_notes" name="resolution_notes" class="form-textarea agent-resolution-notes" rows="6" required placeholder="Explain the response sent to the customer, troubleshooting performed, or resolution steps taken.">{{ ticket.resolution_notes or '' }}</textarea>
                     <div style="display: flex; align-items: end; justify-content: space-between; gap: var(--spacing-md); flex-wrap: wrap; margin-top: var(--spacing-lg);">
                         <div style="min-width: 220px; flex: 1;">
                             <label class="form-label" for="status">Ticket Status</label>
-                            <select id="status" name="status" class="form-select" required>
+                            <select id="status" name="status" class="form-select agent-resolution-status" required>
                                 <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
                                 <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
                             </select>
@@ -156,28 +96,5 @@
         </section>
     </main>
 
-    <aside>
-        <section class="card">
-            <div class="card-header">
-                <h2 class="card-title"><i class="bi bi-robot"></i> Recommendations</h2>
-                <p class="card-subtitle">Similar historical resolutions</p>
-            </div>
-            <div class="card-body" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                {% for match in similar_matches %}
-                <article class="recommendation-card">
-                    <div style="display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
-                        <strong style="font-family: 'Courier New', monospace; color: var(--accent-green); font-size: 0.8rem;">{{ match.similar_ticket_ref_id or 'Historical Ticket' }}</strong>
-                        <span style="color: #93C5FD; font-size: 0.78rem;">{{ ((match.similarity_score or 0) * 100)|round(1) }}%</span>
-                    </div>
-                    <div style="font-weight: 600; color: #FFF; margin-bottom: 6px;">{{ match.similar_subject or 'Similar issue' }}</div>
-                    <div style="color: #D1D5DB; font-size: 0.85rem; line-height: 1.45; white-space: pre-wrap;">{{ match.similar_description or 'No previous resolution text recorded.' }}</div>
-                    {% if match.historical_resolution_hours %}<div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 8px;"><i class="bi bi-clock"></i> Resolved in {{ match.historical_resolution_hours }}h</div>{% endif %}
-                </article>
-                {% else %}
-                <p class="text-muted" style="margin: 0; text-align: center;">No similar historical matches found.</p>
-                {% endfor %}
-            </div>
-        </section>
-    </aside>
 </div>
 {% endblock %}

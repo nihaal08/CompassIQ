@@ -399,6 +399,19 @@
   resize: vertical;
 }
 
+.agent-resolution-notes {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  box-sizing: border-box;
+  line-height: 1.55;
+}
+
+.agent-resolution-status {
+  display: block;
+  width: 100%;
+}
+
 .form-input:focus,
 .form-textarea:focus,
 .form-select:focus {
@@ -760,6 +773,33 @@
 
 .alert-modal-backdrop.show .alert-modal-box {
   transform: translateY(0) scale(1);
+}
+
+.customer-ticket-modal {
+  width: min(92vw, 860px);
+  max-width: 860px;
+  max-height: calc(100vh - 32px);
+  margin: 16px auto;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
+.customer-ticket-modal #ticketDetailContent {
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .customer-ticket-modal {
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    margin: 10px;
+  }
+
+  .customer-ticket-modal #ticketDetailContent {
+    max-height: calc(100vh - 20px);
+  }
 }
 
 .alert-modal-title {

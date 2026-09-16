@@ -8,7 +8,7 @@
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
     <div>
         <h1 class="page-title" style="margin: 0;">{{ department }} Department Queue</h1>
-        <p class="page-subtitle" style="margin: 4px 0 0 0;">Manage assigned tickets with AI-powered recommendations</p>
+        <p class="page-subtitle" style="margin: 4px 0 0 0;">Review customer requests and record clear resolutions</p>
     </div>
     {% if counts.avg_csat %}
     <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid rgba(234, 179, 8, 0.28); border-radius: var(--radius-md); padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px;">
@@ -116,10 +116,3 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-<!-- Agent Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
-<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
-
-<!-- Load main CompassIQ JS — required for loadAgentTicketDetails() and renderDetailsModal() -->
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
-{% endblock %}
