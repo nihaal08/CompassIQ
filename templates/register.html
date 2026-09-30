@@ -6,13 +6,14 @@
     <title>Create Account — CompassIQ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
-<body class="auth-body-split">
+<body class="auth-body-split auth-register">
 
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -43,37 +44,37 @@
             <a href="{{ url_for('index') }}" class="auth-hero-brand">
                 <span class="auth-brand-badge-dot"></span>
                 <span>CompassIQ</span>
-                <span class="auth-brand-pill">AI Platform</span>
+                <span class="auth-brand-pill">Customer support</span>
             </a>
             
             <h1 class="auth-hero-title">
-                The AI Intelligence Engine<br><span>for Modern Support.</span>
+                A clearer way<br><span>to get support.</span>
             </h1>
             
             <p class="auth-hero-desc">
-                Deploy ML-first ticket intelligence. Automatically classify, prioritize, route, and resolve support tickets with real-time NLP.
+                Create a request, keep the conversation together, and follow progress from your first message through resolution.
             </p>
 
             <div class="auth-hero-stats">
                 <div class="auth-stat-item">
-                    <div class="auth-stat-icon"><i class="bi bi-cpu"></i></div>
+                    <div class="auth-stat-icon"><i class="bi bi-pencil-square"></i></div>
                     <div class="auth-stat-text">
-                        <strong>ML Models</strong>
-                        <span>TF-IDF + Logistic Regression</span>
+                        <strong>Start with the details</strong>
+                        <span>Tell us what you need help with</span>
                     </div>
                 </div>
                 <div class="auth-stat-item">
-                    <div class="auth-stat-icon"><i class="bi bi-shield-check"></i></div>
+                    <div class="auth-stat-icon"><i class="bi bi-chat-left-text"></i></div>
                     <div class="auth-stat-text">
-                        <strong>Enterprise RBAC</strong>
-                        <span>Customer, Agent & Admin Roles</span>
+                        <strong>Stay in the loop</strong>
+                        <span>Replies and updates stay with your request</span>
                     </div>
                 </div>
                 <div class="auth-stat-item">
-                    <div class="auth-stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="auth-stat-icon"><i class="bi bi-check2-circle"></i></div>
                     <div class="auth-stat-text">
-                        <strong>Lifecycle Tracking</strong>
-                        <span>Real-Time SLA & Resolution Metrics</span>
+                        <strong>Track progress</strong>
+                        <span>Know what is happening at every step</span>
                     </div>
                 </div>
             </div>
@@ -124,8 +125,8 @@
                 <p id="pwdMatchMsg" class="auth-match-msg" style="display:none;"></p>
 
                 <div class="auth-info-pill">
-                    <i class="bi bi-cpu"></i>
-                    <span>CompassIQ instantly analyzes your tickets using NLP and routes to the right team.</span>
+                    <i class="bi bi-shield-check"></i>
+                    <span>Your account keeps your requests and support conversations together.</span>
                 </div>
 
                 <button type="submit" class="auth-submit-btn" id="registerBtn">
