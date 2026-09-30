@@ -1,118 +1,162 @@
-{% extends 'base.html' %}
-
-{% block title %}Agent Workspace — CompassIQ{% endblock %}
-{% block breadcrumb %}Agent Workspace{% endblock %}
+{% extends "base.html" %}
+{% block title %}Agent Dashboard — CompassIQ{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
-    <div>
-        <h1 class="page-title" style="margin: 0;">{{ department }} Department Queue</h1>
-        <p class="page-subtitle" style="margin: 4px 0 0 0;">Review customer requests and record clear resolutions</p>
-    </div>
-    {% if counts.avg_csat %}
-    <div style="background: rgba(234, 179, 8, 0.12); border: 1px solid rgba(234, 179, 8, 0.28); border-radius: var(--radius-md); padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px;">
-        <span style="color: #facc15; font-size: 1.15rem; font-weight: 700;">★ {{ counts.avg_csat }} / 5.0</span>
-        <span style="color: var(--text-muted); font-size: 0.85rem;">Average CSAT Rating</span>
-    </div>
-    {% endif %}
-</div>
+<div class="page-content">
+<div class="page-container">
 
-<!-- Queue Status Tabs -->
-<div class="queue-status-tabs" style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-2xl); overflow-x: auto; padding-bottom: var(--spacing-md);">
-    <a href="{{ url_for('agent_dashboard', status='all') }}" class="btn {% if current_status == 'all' %}btn-primary{% else %}btn-secondary{% endif %}">
-        All ({{ counts.total or 0 }})
-    </a>
-    <a href="{{ url_for('agent_dashboard', status='Submitted') }}" class="btn {% if current_status == 'Submitted' %}btn-primary{% else %}btn-secondary{% endif %}">
-        Submitted ({{ counts.count_submitted or 0 }})
-    </a>
-    <a href="{{ url_for('agent_dashboard', status='Under Review') }}" class="btn {% if current_status == 'Under Review' %}btn-primary{% else %}btn-secondary{% endif %}">
-        Under Review ({{ counts.count_under_review or 0 }})
-    </a>
-    <a href="{{ url_for('agent_dashboard', status='In Progress') }}" class="btn {% if current_status == 'In Progress' %}btn-primary{% else %}btn-secondary{% endif %}">
-        In Progress ({{ counts.count_in_progress or 0 }})
-    </a>
-    <a href="{{ url_for('agent_dashboard', status='Resolved') }}" class="btn {% if current_status == 'Resolved' %}btn-primary{% else %}btn-secondary{% endif %}">
-        Resolved ({{ counts.count_resolved or 0 }})
-    </a>
-</div>
-
-<!-- Full-Width Ticket Queue -->
-<div id="department-ticket-table" class="card">
-    <div style="padding: var(--spacing-lg);">
-        <h3 style="margin: 0 0 var(--spacing-lg) 0; font-size: 1.1rem;">Assigned Tickets ({{ tickets|length }})</h3>
-
-        {% if tickets|length == 0 %}
-            <div style="padding: var(--spacing-3xl) var(--spacing-lg); text-align: center; color: var(--text-muted);">
-                <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-                <p>No tickets in this queue</p>
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div>
+                <h1 class="page-title">{{ department }} Dashboard</h1>
+                <p class="page-subtitle">Your department's ticket queue and workload overview.</p>
             </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="enterprise-table">
+            <a href="{{ url_for('agent_assigned_tickets') }}" class="btn btn-primary">
+                <i class="bi bi-list-task"></i> View All Assigned
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="dept-stats-grid">
+        <div class="stat-card accent-top">
+            <div class="stat-label">Total</div>
+            <div class="stat-value">{{ counts.total or 0 }}</div>
+            <p class="stat-desc">All tickets</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Open</div>
+            <div class="stat-value" style="color:var(--info);">{{ counts.count_submitted or 0 }}</div>
+            <p class="stat-desc">Submitted</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Under Review</div>
+            <div class="stat-value" style="color:var(--warning);">{{ counts.count_under_review or 0 }}</div>
+            <p class="stat-desc">Being triaged</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value" style="color:var(--warning);">{{ counts.count_in_progress or 0 }}</div>
+            <p class="stat-desc">Active</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Resolved</div>
+            <div class="stat-value" style="color:var(--success);">{{ counts.count_resolved or 0 }}</div>
+            <p class="stat-desc">CSAT: {{ counts.avg_csat or '—' }}</p>
+        </div>
+    </div>
+
+    <div class="dashboard-grid dept-dashboard-layout">
+        <!-- Priority Queue -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Ticket Queue</h2>
+                <div style="display:flex;gap:var(--space-xs);">
+                    <a href="?status=all" class="btn btn-sm {% if not current_status or current_status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">All</a>
+                    <a href="?status=Submitted" class="btn btn-sm {% if current_status in ['Submitted', 'Open'] %}btn-primary{% else %}btn-ghost{% endif %}">Open</a>
+                    <a href="?status=In Progress" class="btn btn-sm {% if current_status in ['In Progress', 'Active'] %}btn-primary{% else %}btn-ghost{% endif %}">Active</a>
+                    <a href="?status=Resolved" class="btn btn-sm {% if current_status in ['Resolved', 'Closed'] %}btn-primary{% else %}btn-ghost{% endif %}">Resolved</a>
+                </div>
+            </div>
+            {% if tickets %}
+            <div class="table-wrapper" style="border:none;border-radius:0;">
+                <table style="min-width:760px;">
                     <thead>
                         <tr>
-                            <th>Ticket ID</th>
+                            <th class="col-id" style="width:160px;min-width:150px;white-space:nowrap;">Ticket ID</th>
                             <th>Subject</th>
-                            <th>Customer</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Rating</th>
-                            <th>Created</th>
-                            <th style="text-align: right;">Action</th>
+                            <th style="white-space:nowrap;width:100px;">Priority</th>
+                            <th style="white-space:nowrap;width:110px;">Status</th>
+                            <th style="white-space:nowrap;">Customer</th>
+                            <th class="col-created" style="white-space:nowrap;width:115px;min-width:110px;">Created</th>
+                            <th class="col-actions" style="width:90px;"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for ticket in tickets %}
-                            <tr>
-                                <td>
-                                    <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
-                                </td>
-                                <td>
-                                    <div style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                        {{ ticket.subject }}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div style="font-size: 0.9rem;">
-                                        <div style="font-weight: 500;">{{ ticket.customer_name }}</div>
-                                        <div style="color: var(--text-muted); font-size: 0.85rem;">{{ ticket.customer_email }}</div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-priority-{{ ticket.predicted_priority }}">{{ ticket.predicted_priority }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge badge-status-{{ ticket.status|replace(' ', '') }}">{{ ticket.status }}</span>
-                                </td>
-                                <td>
-                                    {% if ticket.satisfaction_score %}
-                                        <span class="badge" style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); font-size: 0.8rem; font-weight: 600;">
-                                            ★ {{ ticket.satisfaction_score }}/5
-                                        </span>
-                                    {% elif ticket.status in ['Resolved', 'Closed'] %}
-                                        <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Pending Rating</span>
-                                    {% else %}
-                                        <span class="text-muted" style="font-size: 0.85rem;">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="text-muted" style="font-size: 0.85rem;">{{ ticket.submitdate[:10] if ticket.submitdate else '' }}</span>
-                                </td>
-                                <td style="text-align: right;">
-                                    <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}"
-                                       class="btn btn-primary btn-sm"
-                                       style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="bi bi-eye"></i> View Details
-                                    </a>
-                                </td>
-                            </tr>
+                        {% for ticket in tickets[:15] %}
+                        <tr>
+                            <td class="cell-id" style="white-space:nowrap;"><span class="ticket-id">{{ ticket.ticketno }}</span></td>
+                            <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">{{ ticket.subject }}</td>
+                            <td style="white-space:nowrap;">
+                                <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">
+                                    {{ ticket.predicted_priority or 'Medium' }}
+                                </span>
+                            </td>
+                            <td style="white-space:nowrap;">
+                                {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
+                                <span class="badge badge-{{ s }}">{{ ticket.status }}</span>
+                            </td>
+                            <td style="font-size:0.8125rem;color:var(--text-secondary);white-space:nowrap;">{{ ticket.customer_name or '—' }}</td>
+                            <td class="cell-created" style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">{{ ticket.submitdate[:10] if ticket.submitdate else '—' }}</td>
+                            <td class="cell-actions" style="white-space:nowrap;text-align:right;">
+                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm">
+                                    <i class="bi bi-arrow-right-circle"></i> Open
+                                </a>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% endif %}
+            <div class="card-footer" style="font-size:0.8125rem;">
+                Showing {{ [tickets | length, 15] | min }} of {{ tickets | length }} ticket{{ 's' if tickets | length != 1 else '' }}
+                {% if tickets | length > 15 %}
+                — <a href="{{ url_for('agent_assigned_tickets') }}">View all</a>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox empty-state-icon"></i>
+                <div class="empty-state-title">No tickets in queue</div>
+                <p class="empty-state-desc">No tickets assigned to your department {% if current_status != 'all' %}with status "{{ current_status }}"{% endif %}.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity + Priority Summary -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+
+            <!-- Priority Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Priority Breakdown</h2>
+                </div>
+                <div class="card-body" style="padding:var(--space-md);">
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        {% for label, cls in [('Critical', 'badge-critical'), ('High', 'badge-high'), ('Medium', 'badge-medium'), ('Low', 'badge-low')] %}
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.375rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span class="badge {{ cls }}">{{ label }}</span>
+                            <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">{{ priority_counts.get(label, 0) if priority_counts is defined else 0 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Info -->
+            <div class="ml-analysis">
+                <div class="ml-analysis-header">
+                    <i class="bi bi-diagram-3"></i> Department Info
+                </div>
+                <div class="ml-analysis-body">
+                    <div class="ml-row">
+                        <span class="ml-row-label">Department</span>
+                        <span class="ml-row-value">{{ department }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Agent</span>
+                        <span class="ml-row-value">{{ g.user.custname }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Avg. CSAT</span>
+                        <span class="ml-row-value">{{ counts.avg_csat or '—' }} / 5</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+
+</div>
 </div>
 {% endblock %}
-

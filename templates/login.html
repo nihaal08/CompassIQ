@@ -3,597 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — CompassIQ</title>
-    
-    <!-- Google Fonts: Inter -->
+    <title>Sign in — CompassIQ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-family);
-        }
-        
-        .auth-container {
-            display: flex;
-            min-height: 100vh;
-            background: var(--bg-canvas);
-        }
-        
-        .auth-split {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-        }
-        
-        .auth-left {
-            flex: 1;
-            background: #18191C;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: var(--spacing-3xl);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .auth-left::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        
-        .auth-right {
-            flex: 1;
-            background: #111214;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: var(--spacing-3xl);
-            position: relative;
-        }
-        
-        .auth-right::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100px;
-            width: 200px;
-            height: 200px;
-            background: #a855f7;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
-        }
-        
-        .auth-logo {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            margin-bottom: var(--spacing-2xl);
-        }
-        
-        .auth-logo-icon {
-            width: 64px;
-            height: 64px;
-            background: #25262A;
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-            margin: 0 auto var(--spacing-md);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .auth-logo-text {
-            font-size: 1.5rem;
-            font-weight: var(--font-weight-bold);
-            color: #ffffff;
-        }
-        
-        .auth-subtitle {
-            font-size: 1rem;
-            color: #cbd5e1;
-            max-width: 400px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .auth-form-container {
-            width: 100%;
-            max-width: 400px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .auth-title {
-            font-size: 1.75rem;
-            font-weight: var(--font-weight-bold);
-            color: #ffffff;
-            margin-bottom: var(--spacing-xl);
-            text-align: center;
-        }
-        
-        .auth-input {
-            width: 100%;
-            height: 48px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: var(--radius-full);
-            color: #ffffff;
-            font-size: 0.95rem;
-            margin-bottom: var(--spacing-lg);
-            transition: all 0.2s ease;
-        }
-        
-        .auth-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .auth-input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.30);
-            background: #27282D;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-        }
-        
-        .auth-button {
-            width: 100%;
-            height: 48px;
-            background: #E8E8E8;
-            color: #111214;
-            border: none;
-            border-radius: var(--radius-full);
-            font-size: 1rem;
-            font-weight: var(--font-weight-semibold);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: var(--spacing-lg);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .auth-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .auth-links {
-            text-align: center;
-            color: #cbd5e1;
-            font-size: 0.9rem;
-        }
-        
-        .auth-links a {
-            color: #B5B5B5;
-            text-decoration: none;
-            font-weight: var(--font-weight-medium);
-        }
-        
-        .auth-links a:hover {
-            color: #a855f7;
-            text-decoration: underline;
-        }
-        
-        .auth-divider {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            margin: var(--spacing-lg) 0;
-            position: relative;
-        }
-        
-        .auth-divider::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.12);
-        }
-        
-        .auth-divider span {
-            background: #111214;
-            padding: 0 var(--spacing-md);
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Responsive Auth */
-        @media (max-width: 768px) {
-            .auth-split {
-                flex-direction: column;
-            }
-            
-            .auth-left {
-                display: none;
-            }
-            
-            .auth-right {
-                padding: var(--spacing-xl);
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
 </head>
-<body>
-    <div class="auth-container">
-        <div class="auth-split">
-            <!-- Left Side - Hero/Branding -->
-            <div class="auth-left">
-                <div class="auth-logo">
-                    <div class="auth-logo-icon">
-                        <i class="bi bi-compass"></i>
-                    </div>
-                    <div class="auth-logo-text">CompassIQ</div>
-                </div>
-                <p class="auth-subtitle">
-                    AI-powered customer support intelligence that transforms how you understand and resolve customer issues.
-                </p>
-                <div style="position: relative; z-index: 1; margin-top: var(--spacing-2xl);">
-                    <div style="display: flex; gap: var(--spacing-md); align-items: center; color: var(--primary);">
-                        <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
-                        <i class="bi bi-lightning-charge" style="font-size: 2rem;"></i>
-                        <i class="bi bi-graph-up-arrow" style="font-size: 2rem;"></i>
+<body class="auth-body-split">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert-modal-backdrop show">
+                <div class="alert-modal-box">
+                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()">&times;</button>
+                    <h3 class="alert-modal-title">
+                        {% if category == 'success' %}<i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
+                        {% elif category == 'danger' %}<i class="bi bi-shield-x" style="color:var(--danger);"></i> Error
+                        {% else %}<i class="bi bi-info-circle" style="color:var(--info);"></i> Notice{% endif %}
+                    </h3>
+                    <p class="alert-modal-message">{{ message }}</p>
+                    <div class="alert-modal-buttons">
+                        <button class="btn btn-primary btn-sm" onclick="this.closest('.alert-modal-backdrop').remove()">OK</button>
                     </div>
                 </div>
             </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
-            <!-- Right Side - Sign-In Container -->
-            <div class="auth-right">
-                <div class="auth-form-container">
-                    <h1 class="auth-title">Login</h1>
-                    
-                    <form method="POST" action="{{ url_for('login') }}">
-                        <input type="email" name="email" class="auth-input" placeholder="Enter your email" required autofocus>
-                        <input type="password" name="password" class="auth-input" placeholder="Enter your password" required>
-                        
-                        <button type="submit" class="auth-button">
-                            Login to CompassIQ
-                        </button>
-                    </form>
-
-                    <div class="auth-links">
-                        <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
-                    </div>
-
-                    <div class="auth-divider">
-                        <span>or</span>
-                    </div>
-                    
-                    <div class="auth-links">
-                        Don't have an account? <a href="{{ url_for('register') }}">Register Now</a>
-                    </div>
-                    
-                    <!-- Demo Credentials Button -->
-                    <div style="text-align: center; margin-top: var(--spacing-lg);">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="openDemoModalBtn" style="background: #202126; color: #D5D5D5; border: 1px solid rgba(255, 255, 255, 0.12); padding: 8px 16px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; border-radius: 20px; font-weight: 500;">
-                            🔑 Quick Demo Access
-                        </button>
-                    </div>
-                    
-                    <style>
-                        #openDemoModalBtn:hover {
-                            background: #292A2E;
-                            color: #FFFFFF;
-                            border-color: rgba(255, 255, 255, 0.18);
-                            transform: translateY(-1px);
-                            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-                        }
-                    </style>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Demo Credentials Modal -->
-    <div class="modal-backdrop-custom" id="demoCredentialsModal">
-        <div class="modal-content-custom">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-md); border-bottom: 1px solid rgba(255, 255, 255, 0.12);">
-                <h3 style="font-size: 1.5rem; font-weight: 600; color: #ffffff; margin: 0;">
-                    Demo Access Credentials
-                </h3>
-                <button type="button" class="modal-close-btn" id="closeDemoModalBtn">
-                    &times;
-                </button>
-            </div>
-
-            <div class="demo-credentials-modal-body">
-                <!-- Administrator Section -->
-                <div class="demo-section">
-                    <div class="demo-cred-item" data-email="admin@compassiq.com" data-password="Admin@123">
-                        <div class="demo-role-badge">Admin</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">admin@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Admin@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Department Agents Section -->
-                <div class="demo-section">
-                    <div class="demo-cred-item" data-email="tech.agent@compassiq.com" data-password="Agent@123">
-                        <div class="demo-role-badge">Technical</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">tech.agent@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Agent@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                    <div class="demo-cred-item" data-email="billing.agent@compassiq.com" data-password="Agent@123">
-                        <div class="demo-role-badge">Billing</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">billing.agent@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Agent@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                    <div class="demo-cred-item" data-email="account.agent@compassiq.com" data-password="Agent@123">
-                        <div class="demo-role-badge">Account</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">account.agent@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Agent@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                    <div class="demo-cred-item" data-email="general.agent@compassiq.com" data-password="Agent@123">
-                        <div class="demo-role-badge">General Inquiry</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">general.agent@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Agent@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                    <div class="demo-cred-item" data-email="fraud.agent@compassiq.com" data-password="Agent@123">
-                        <div class="demo-role-badge">Fraud & Security</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">fraud.agent@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Agent@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Customer Accounts Section -->
-                <div class="demo-section">
-                    <div class="demo-cred-item" data-email="customer@compassiq.com" data-password="Customer@123">
-                        <div class="demo-role-badge">Customer</div>
-                        <div class="demo-cred-info">
-                            <span class="cred-email">customer@compassiq.com</span>
-                            <span class="cred-sep">/</span>
-                            <code class="cred-pwd">Customer@123</code>
-                        </div>
-                        <button type="button" class="demo-autofill-btn">
-                            <i class="bi bi-box-arrow-in-right"></i> Auto Fill
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Forgot Password Info Modal -->
-    <div class="alert-modal-backdrop" id="forgotPasswordModal">
-        <div class="alert-modal-box" style="max-width: 400px;">
-            <button type="button" class="modal-close-btn" id="closeForgotPasswordModal">
-                &times;
-            </button>
-
-            <h3 class="alert-modal-title">
-                <i class="bi bi-info-circle" style="color: var(--info);"></i> Password Reset
-            </h3>
-
-            <p class="alert-modal-message">
-                For academic demo purposes, please contact the system administrator to reset credentials.
+<div class="auth-split-wrapper">
+    <!-- Left Hero Pane (SaaS Background & Captions) -->
+    <div class="auth-hero-pane">
+        <div class="auth-hero-overlay"></div>
+        <div class="auth-hero-content">
+            <a href="{{ url_for('index') }}" class="auth-hero-brand">
+                <span class="auth-brand-badge-dot"></span>
+                <span>CompassIQ</span>
+                <span class="auth-brand-pill">AI Platform</span>
+            </a>
+            
+            <h1 class="auth-hero-title">
+                Smarter Support.<br><span>Faster Resolutions.</span>
+            </h1>
+            
+            <p class="auth-hero-desc">
+                Autonomous NLP triage, priority prediction, and historical case intelligence built for modern customer operations.
             </p>
 
-            <div style="background: rgba(255, 255, 255, 0.05); padding: var(--spacing-md); border-radius: var(--radius-md); margin: var(--spacing-md) 0; border: 1px solid rgba(255, 255, 255, 0.08);">
-                <strong style="color: #ffffff;">Admin Contact:</strong><br>
-                <span style="color: #cbd5e1;">admin@compassiq.local</span>
-            </div>
-
-            <div class="alert-modal-buttons">
-                <button type="button" class="btn btn-primary" id="closeForgotPasswordBtn">
-                    Got it
-                </button>
+            <div class="auth-hero-stats">
+                <div class="auth-stat-item">
+                    <div class="auth-stat-icon"><i class="bi bi-lightning-charge"></i></div>
+                    <div class="auth-stat-text">
+                        <strong>98.4%</strong>
+                        <span>Classification Accuracy</span>
+                    </div>
+                </div>
+                <div class="auth-stat-item">
+                    <div class="auth-stat-icon"><i class="bi bi-diagram-3"></i></div>
+                    <div class="auth-stat-text">
+                        <strong>Instant</strong>
+                        <span>Department Triage</span>
+                    </div>
+                </div>
+                <div class="auth-stat-item">
+                    <div class="auth-stat-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="auth-stat-text">
+                        <strong>65% Faster</strong>
+                        <span>Resolution Time</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Flash Messages Modal -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert-modal-backdrop show" id="flashAlertModal_{{ loop.index }}">
-                    <div class="alert-modal-box">
-                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)">
-                            &times;
+    <!-- Right Form Pane (Fixed in screen, no scroll) -->
+    <div class="auth-form-pane">
+        <div class="auth-form-container">
+            <div class="auth-form-header">
+                <h2 class="auth-form-title">Sign in</h2>
+                <p class="auth-form-subtitle">Enter your credentials to access your workspace</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                <div class="auth-field">
+                    <label class="auth-field-label" for="email">Email address</label>
+                    <input type="email" id="email" name="email" class="auth-input"
+                           placeholder="name@company.com" required autocomplete="email">
+                </div>
+
+                <div class="auth-field auth-field-pwd">
+                    <label class="auth-field-label" for="password">Password</label>
+                    <div class="auth-input-pwd-wrap">
+                        <input type="password" id="password" name="password" class="auth-input"
+                               placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" onclick="togglePwd()" class="auth-pwd-toggle" aria-label="Toggle password visibility">
+                            <i class="bi bi-eye" id="pwdToggleIcon"></i>
                         </button>
-
-                        <h3 class="alert-modal-title">
-                            {% if category == 'pending_approval' %}
-                                <i class="bi bi-hourglass-split" style="color: var(--warning);"></i> Account Pending
-                            {% elif category == 'danger' %}
-                                <i class="bi bi-shield-x" style="color: var(--danger);"></i> Access Denied
-                            {% elif category == 'success' %}
-                                <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
-                            {% elif category == 'warning' %}
-                                <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Notice
-                            {% else %}
-                                <i class="bi bi-info-circle" style="color: var(--info);"></i> Information
-                            {% endif %}
-                        </h3>
-                        
-                        <p class="alert-modal-message">{{ message }}</p>
-
-                        <div class="alert-modal-buttons">
-                            <button type="button" class="btn btn-primary" onclick="closeFlashModal(this)">
-                                OK
-                            </button>
-                        </div>
                     </div>
                 </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 
-    <script>
-        function closeFlashModal(button) {
-            const backdrop = button.closest('.alert-modal-backdrop');
-            if (backdrop) {
-                backdrop.classList.remove('show');
-                setTimeout(() => backdrop.remove(), 250);
-            }
+                <button type="submit" class="auth-submit-btn" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign in
+                </button>
+            </form>
+
+            <div class="auth-switch-row">
+                <span>Don't have an account?</span>
+                <a href="{{ url_for('register') }}" class="auth-switch-link">Create account</a>
+            </div>
+
+            <!-- Prominent 1-Click Demo Login Buttons (Auto-fills credentials) -->
+            <div class="auth-demo-section">
+                <div class="auth-demo-header">
+                    <span class="auth-demo-title">
+                        <i class="bi bi-magic"></i> 1-Click Demo Login
+                    </span>
+                    <span class="auth-demo-pwd">pwd: <code>password123</code></span>
+                </div>
+                
+                <div class="auth-demo-grid">
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('customer@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-customer">Customer</span>
+                        <span class="demo-btn-email">customer@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('admin@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-admin">Admin</span>
+                        <span class="demo-btn-email">admin@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('nihal@gmail.com', 'Nihal@123', this)">
+                        <span class="role-badge role-badge-customer">Nihal</span>
+                        <span class="demo-btn-email">nihal@gmail.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('aizen@gmail.com', 'Aizen@123', this)">
+                        <span class="role-badge role-badge-customer">Aizen</span>
+                        <span class="demo-btn-email">aizen@gmail.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('tech.agent@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-agent">Technical</span>
+                        <span class="demo-btn-email">tech.agent@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('billing.agent@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-agent">Billing</span>
+                        <span class="demo-btn-email">billing.agent@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('account.agent@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-agent">Account</span>
+                        <span class="demo-btn-email">account.agent@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn" onclick="fillDemo('general.agent@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-agent">General</span>
+                        <span class="demo-btn-email">general.agent@compassiq.com</span>
+                    </button>
+                    <button type="button" class="auth-demo-btn auth-demo-btn-wide" onclick="fillDemo('fraud.agent@compassiq.com', 'password123', this)">
+                        <span class="role-badge role-badge-fraud"><i class="bi bi-shield-lock-fill"></i> Fraud & Security</span>
+                        <span class="demo-btn-email">fraud.agent@compassiq.com</span>
+                    </button>
+                </div>
+                <div id="demoFeedback" class="demo-feedback-notice" style="display:none;"></div>
+            </div>
+
+            <div class="auth-back-link-row">
+                <a href="{{ url_for('index') }}">← Back to CompassIQ</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePwd() {
+        const pwd = document.getElementById('password');
+        const icon = document.getElementById('pwdToggleIcon');
+        if (pwd.type === 'password') { pwd.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+        else { pwd.type = 'password'; icon.className = 'bi bi-eye'; }
+    }
+    
+    function fillDemo(email, pwd, btnElement) {
+        document.getElementById('email').value = email;
+        document.getElementById('password').value = pwd;
+        
+        // Remove active state from all demo buttons
+        document.querySelectorAll('.auth-demo-btn').forEach(b => b.classList.remove('active'));
+        if (btnElement) {
+            btnElement.classList.add('active');
         }
-
-        // Auto-close modal after 5 seconds if success
-        document.querySelectorAll('.alert-modal-backdrop.show').forEach(backdrop => {
-            const isSuccess = backdrop.querySelector('.alert-modal-title i.bi-check2-circle');
-            if (isSuccess) {
-                setTimeout(() => {
-                    backdrop.classList.remove('show');
-                    setTimeout(() => backdrop.remove(), 250);
-                }, 5000);
-            }
-        });
-
-        // Demo Credentials Modal Functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const openDemoModalBtn = document.getElementById('openDemoModalBtn');
-            const closeDemoModalBtn = document.getElementById('closeDemoModalBtn');
-            const demoCredentialsModal = document.getElementById('demoCredentialsModal');
-            const emailInput = document.querySelector('input[name="email"]');
-            const passwordInput = document.querySelector('input[name="password"]');
-
-            // Open modal
-            if (openDemoModalBtn) {
-                openDemoModalBtn.addEventListener('click', function() {
-                    demoCredentialsModal.classList.add('show');
-                    document.body.style.overflow = 'hidden';
-                });
-            }
-
-            // Close modal via X button
-            if (closeDemoModalBtn) {
-                closeDemoModalBtn.addEventListener('click', function() {
-                    demoCredentialsModal.classList.remove('show');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            // Close modal when clicking outside
-            if (demoCredentialsModal) {
-                demoCredentialsModal.addEventListener('click', function(e) {
-                    if (e.target === demoCredentialsModal) {
-                        demoCredentialsModal.classList.remove('show');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Close modal on Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && demoCredentialsModal.classList.contains('show')) {
-                    demoCredentialsModal.classList.remove('show');
-                    document.body.style.overflow = '';
-                }
-            });
-
-            // Forgot Password Modal
-            const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
-            const forgotPasswordModal = document.getElementById('forgotPasswordModal');
-            const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
-            const closeForgotPasswordBtn = document.getElementById('closeForgotPasswordBtn');
-
-            if (forgotPasswordBtn && forgotPasswordModal) {
-                forgotPasswordBtn.addEventListener('click', function() {
-                    forgotPasswordModal.classList.add('show');
-                    document.body.style.overflow = 'hidden';
-                });
-            }
-
-            if (closeForgotPasswordModal && forgotPasswordModal) {
-                closeForgotPasswordModal.addEventListener('click', function() {
-                    forgotPasswordModal.classList.remove('show');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            if (closeForgotPasswordBtn && forgotPasswordModal) {
-                closeForgotPasswordBtn.addEventListener('click', function() {
-                    forgotPasswordModal.classList.remove('show');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            if (forgotPasswordModal) {
-                forgotPasswordModal.addEventListener('click', function(e) {
-                    if (e.target === forgotPasswordModal) {
-                        forgotPasswordModal.classList.remove('show');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Auto-fill functionality
-            const autofillButtons = document.querySelectorAll('.demo-autofill-btn');
-            autofillButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const item = this.closest('.demo-cred-item');
-                    const email = item.getAttribute('data-email');
-                    const password = item.getAttribute('data-password');
-
-                    if (emailInput) emailInput.value = email;
-                    if (passwordInput) passwordInput.value = password;
-
-                    // Close modal and focus on email field
-                    demoCredentialsModal.classList.remove('show');
-                    document.body.style.overflow = '';
-                    if (emailInput) emailInput.focus();
-                });
-            });
-        });
-    </script>
+        
+        // Provide clear feedback notice
+        const feedback = document.getElementById('demoFeedback');
+        feedback.innerHTML = '<i class="bi bi-check-circle-fill"></i> Credentials auto-filled! Click "Sign in" to continue.';
+        feedback.style.display = 'block';
+        
+        // Focus the submit button
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.focus();
+    }
+    
+    document.getElementById('loginForm').addEventListener('submit', function() {
+        const btn = document.getElementById('loginBtn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Signing in…';
+        btn.disabled = true;
+    });
+    
+    window.addEventListener('pageshow', e => { if (e.persisted) window.location.reload(); });
+</script>
 </body>
 </html>

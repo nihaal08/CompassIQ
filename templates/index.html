@@ -3,1127 +3,391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompassIQ — Enterprise Ticket Intelligence Platform</title>
+    <title>CompassIQ — AI-Powered Ticket Intelligence & Management System</title>
+    <meta name="description" content="CompassIQ uses NLP, TF-IDF, and machine learning to classify, route, and resolve support tickets intelligently.">
     
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <style>
-        /* ====== RESET & BASE ====== */
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #111214;
-            color: #ffffff;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        
-        /* ====== NAVIGATION (Glassmorphism) ====== */
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            padding: 1rem 0;
-            background: rgba(17, 18, 20, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s ease;
-        }
-        
-        .navbar.scrolled {
-            background: rgba(17, 18, 20, 0.95);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .navbar-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-        
-        .navbar-brand-icon {
-            width: 40px;
-            height: 40px;
-            background: #25262A;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: #F2F2F2;
-        }
-        
-        .navbar-brand-text {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: -0.5px;
-        }
-        
-        .navbar-badge {
-            background: #202126;
-            color: #B5B5B5;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        
-        .navbar-links {
-            display: flex;
-            align-items: center;
-            gap: 2.5rem;
-        }
-        
-        .navbar-link {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-        
-        .navbar-link:hover {
-            color: #ffffff;
-        }
-        
-        .navbar-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: rgba(255, 255, 255, 0.3);
-            transition: width 0.3s ease;
-        }
-        
-        .navbar-link:hover::after {
-            width: 100%;
-        }
-        
-        .navbar-cta {
-            background: #E8E8E8;
-            color: #111214;
-            padding: 0.75rem 1.75rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .navbar-cta:hover {
-            background: #FFFFFF;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        /* ====== HERO SECTION ====== */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 8rem 0 4rem;
-            background: #111214;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-            pointer-events: none;
-        }
-        
-        .hero-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .hero-content {
-            animation: fadeInUp 0.8s ease;
-        }
-        
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #202126;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            margin-bottom: 2rem;
-            font-size: 0.85rem;
-            color: #B5B5B5;
-            font-weight: 500;
-        }
-        
-        .hero-badge-dot {
-            width: 8px;
-            height: 8px;
-            background: #9CA3AF;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.1;
-            color: #ffffff;
-            margin-bottom: 1.5rem;
-            letter-spacing: -1px;
-        }
-        
-        .hero-title-gradient {
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.8;
-            margin-bottom: 2.5rem;
-            max-width: 550px;
-        }
-        
-        .hero-cta {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .btn-primary {
-            background: #E8E8E8;
-            color: #111214;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary:hover {
-            background: #FFFFFF;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #202126;
-            color: #F2F2F2;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-secondary:hover {
-            background: #292A2E;
-            border-color: rgba(255, 255, 255, 0.18);
-        }
-        
-        .hero-visual {
-            animation: fadeInRight 0.8s ease;
-        }
-        
-        .mockup-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        
-        .mockup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .mockup-title {
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 0.95rem;
-        }
-        
-        .mockup-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #9CA3AF;
-        }
-        
-        .mockup-status-dot {
-            width: 6px;
-            height: 6px;
-            background: #9CA3AF;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        .ticket-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .ticket-item:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .ticket-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-        
-        .ticket-id {
-            font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 0.25rem;
-        }
-        
-        .ticket-subject {
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 0.95rem;
-        }
-        
-        .ticket-badges {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        
-        .ticket-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .badge-dept {
-            background: #202126;
-            color: #D5D5D5;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        
-        .badge-priority {
-            background: #202126;
-            color: #9CA3AF;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        
-        .badge-status {
-            background: #202126;
-            color: #9CA3AF;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        
-        /* ====== CAPABILITIES SECTION ====== */
-        .capabilities {
-            padding: 6rem 0;
-            background: #18191C;
-        }
-        
-        .section-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .section-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-        
-        .section-badge {
-            display: inline-block;
-            background: #202126;
-            color: #D5D5D5;
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            margin-bottom: 1.5rem;
-        }
-        
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 1rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .section-subtitle {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.6);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        .capabilities-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-        }
-        
-        .capability-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .capability-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-        
-        .capability-card:hover::before {
-            transform: scaleX(1);
-        }
-        
-        .capability-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-4px);
-        }
-        
-        .capability-icon {
-            width: 56px;
-            height: 56px;
-            background: #202126;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: #D5D5D5;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        
-        .capability-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.75rem;
-        }
-        
-        .capability-description {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.6);
-            line-height: 1.7;
-        }
-        
-        /* ====== ARCHITECTURE SECTION ====== */
-        .architecture {
-            padding: 6rem 0;
-            background: #18191C;
-        }
-        
-        .architecture-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-        
-        .architecture-text {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.8;
-        }
-        
-        .architecture-text p {
-            margin-bottom: 1.5rem;
-        }
-        
-        .architecture-visual {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 2rem;
-        }
-        
-        .arch-flow {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .arch-step {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .arch-step-number {
-            width: 36px;
-            height: 36px;
-            background: #25262A;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-        
-        .arch-step-text {
-            flex: 1;
-        }
-        
-        .arch-step-title {
-            font-weight: 600;
-            color: #ffffff;
-            font-size: 0.95rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .arch-step-desc {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* ====== FOOTER ====== */
-        .footer {
-            background: #111214;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 3rem 0;
-        }
-        
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-        
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .footer-brand-icon {
-            width: 36px;
-            height: 36px;
-            background: #25262A;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            color: white;
-        }
-        
-        .footer-brand-text {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        
-        .footer-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .footer-status-dot {
-            width: 8px;
-            height: 8px;
-            background: #9CA3AF;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .footer-link {
-            color: rgba(255, 255, 255, 0.6);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.2s ease;
-        }
-        
-        .footer-link:hover {
-            color: #ffffff;
-        }
-        
-        .footer-bottom {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 0.85rem;
-        }
-
-        /* ====== ANIMATIONS ====== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes fadeInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        /* ====== RESPONSIVE ====== */
-        @media (max-width: 1024px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                gap: 3rem;
-            }
-            
-            .hero-title {
-                font-size: 2.5rem;
-            }
-            
-            .capabilities-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .architecture-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .navbar-links {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-            }
-            
-            .hero {
-                padding: 6rem 0 3rem;
-            }
-            
-            .hero-title {
-                font-size: 2rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1rem;
-            }
-            
-            .hero-cta {
-                flex-direction: column;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .footer-links {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar" id="navbar">
-        <div class="navbar-container">
-            <a href="#" class="navbar-brand">
-                <div class="navbar-brand-icon">
-                    <i class="bi bi-compass"></i>
-                </div>
-                <span class="navbar-brand-text">CompassIQ</span>
-                <span class="navbar-badge">Enterprise Platform</span>
-            </a>
-            
-            <div class="navbar-links">
-                <a href="#overview" class="navbar-link">Overview</a>
-                <a href="#capabilities" class="navbar-link">Platform Capabilities</a>
-                <a href="#architecture" class="navbar-link">Architecture</a>
-                {% if session.get('custid') or session.get('user_id') %}
-                    <!-- Role-aware Dashboard Button -->
-                    {% if session.get('role') == 'admin' %}
-                        <a href="{{ url_for('admin_dashboard') }}" class="navbar-cta">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    {% elif session.get('role') == 'agent' %}
-                        <a href="{{ url_for('agent_dashboard') }}" class="navbar-cta">
-                            <i class="bi bi-briefcase"></i> Workspace
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('customer_dashboard') }}" class="navbar-cta">
-                            <i class="bi bi-person"></i> My Tickets
-                        </a>
-                    {% endif %}
-                    <!-- Sign Out Button -->
-                    <a href="{{ url_for('logout') }}" class="navbar-cta" style="background: #EF4444; color: #ffffff; border-color: rgba(239, 68, 68, 0.3);">
-                        <i class="bi bi-box-arrow-right"></i> Sign Out
-                    </a>
+<body class="landing-body">
+
+<!-- ============================================================
+     LANDING NAVBAR
+     ============================================================ -->
+<nav class="landing-nav">
+    <div class="landing-nav-inner">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <div class="navbar-brand-icon">C</div>
+            <span class="navbar-brand-name">CompassIQ</span>
+        </a>
+        <ul class="landing-nav-links" id="landingNav">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#roles">Roles</a></li>
+            <li><a href="#workflow">Workflow</a></li>
+        </ul>
+        <div class="landing-nav-cta">
+            {% if g.user %}
+                {% set role = g.user.role | lower %}
+                {% if role == 'admin' %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-accent btn-sm">Go to Dashboard</a>
+                {% elif role == 'agent' %}
+                    <a href="{{ url_for('agent_dashboard') }}" class="btn btn-accent btn-sm">Go to Dashboard</a>
                 {% else %}
-                    <a href="{{ url_for('login') }}" class="navbar-cta">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        Sign In / Launch Portal
-                    </a>
+                    <a href="{{ url_for('customer_dashboard') }}" class="btn btn-accent btn-sm">Go to Dashboard</a>
                 {% endif %}
-            </div>
-            
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class="bi bi-list"></i>
-            </button>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-ghost btn-sm btn-landing-ghost">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-accent btn-sm btn-landing-cta">Get Started</a>
+            {% endif %}
         </div>
-    </nav>
-    
-    <!-- Mobile Menu -->
-    <div id="mobileMenu" style="display: none; position: fixed; top: 72px; left: 0; right: 0; background: rgba(17, 18, 20, 0.98); backdrop-filter: blur(20px); padding: 1.5rem; z-index: 999; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <a href="#overview" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Overview</a>
-            <a href="#capabilities" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Platform Capabilities</a>
-            <a href="#architecture" class="navbar-link" onclick="toggleMobileMenu()" style="padding: 0.75rem 0;">Architecture</a>
-            {% if session.get('custid') or session.get('user_id') %}
-                <!-- Role-aware Dashboard Button -->
-                {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('admin_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
-                        <i class="bi bi-speedometer2"></i> Dashboard
-                    </a>
-                {% elif session.get('role') == 'agent' %}
-                    <a href="{{ url_for('agent_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
-                        <i class="bi bi-briefcase"></i> Workspace
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('customer_dashboard') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
-                        <i class="bi bi-person"></i> My Tickets
-                    </a>
-                {% endif %}
-                <!-- Sign Out Button -->
-                <a href="{{ url_for('logout') }}" class="navbar-cta" style="background: #EF4444; color: #ffffff; border-color: rgba(239, 68, 68, 0.3); text-align: center; margin-top: 0.5rem;" onclick="toggleMobileMenu()">
-                    <i class="bi bi-box-arrow-right"></i> Sign Out
+    </div>
+</nav>
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-eyebrow">AI-Powered Ticket Intelligence</div>
+        <h1 class="hero-title">
+            Smarter Support.<br><span>Faster Resolutions.</span>
+        </h1>
+        <p class="hero-desc">
+            CompassIQ understands incoming support tickets using NLP, predicts category and priority using trained ML models, routes to the right department, and helps agents resolve issues faster using historical similar cases.
+        </p>
+        <div class="hero-cta">
+            {% if g.user %}
+                <a href="{% if g.user.role|lower == 'admin' %}{{ url_for('admin_dashboard') }}{% elif g.user.role|lower == 'agent' %}{{ url_for('agent_dashboard') }}{% else %}{{ url_for('customer_dashboard') }}{% endif %}" class="btn btn-accent btn-xl">
+                    <i class="bi bi-arrow-right-circle"></i> Go to Dashboard
                 </a>
             {% else %}
-                <a href="{{ url_for('login') }}" class="navbar-cta" style="text-align: center; margin-top: 1rem;" onclick="toggleMobileMenu()">
-                    Sign In / Launch Portal
+                <a href="{{ url_for('register') }}" class="btn btn-accent btn-xl">
+                    <i class="bi bi-person-plus"></i> Get Started
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary-landing btn-xl">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
                 </a>
             {% endif %}
         </div>
     </div>
-    
-    <!-- Hero Section -->
-    <section id="overview" class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <span class="hero-badge-dot"></span>
-                    <span>Production-Ready ITSM Platform</span>
-                </div>
-                <h1 class="hero-title">
-                    Enterprise Ticket<br>
-                    <span class="hero-title-gradient">Intelligence & Automated Triage</span>
-                </h1>
-                <p class="hero-subtitle">
-                    CompassIQ automates incident classification, predicts ticket priority on ingestion, and routes requests to the right departmental queues without manual intervention.
-                </p>
-                <div class="hero-cta">
-                    {% if g.user %}
-                        <a href="{% if g.user['role'] == 'customer' %}{{ url_for('customer_dashboard') }}{% elif g.user['role'] == 'agent' %}{{ url_for('agent_dashboard') }}{% elif g.user['role'] == 'admin' %}{{ url_for('admin_dashboard') }}{% endif %}" class="btn-primary">
-                            <i class="bi bi-speedometer2"></i>
-                            Open Dashboard
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('login') }}" class="btn-primary">
-                            <i class="bi bi-rocket-takeoff"></i>
-                            Open Support Portal
-                        </a>
-                    {% endif %}
-                    <a href="#capabilities" class="btn-secondary">
-                        <i class="bi bi-info-circle"></i>
-                        View System Specs
-                    </a>
-                </div>
-            </div>
-            
-            <div class="hero-visual">
-                <div class="mockup-card">
-                    <div class="mockup-header">
-                        <span class="mockup-title">Live Ticket Ingestion</span>
-                        <div class="mockup-status">
-                            <span class="mockup-status-dot"></span>
-                            <span>Processing</span>
-                        </div>
-                    </div>
-                    
-                    <div class="ticket-item">
-                        <div class="ticket-id">TKT-847291</div>
-                        <div class="ticket-header">
-                            <span class="ticket-subject">Unauthorized credit card charge - $499.99</span>
-                            <div class="ticket-badges">
-                                <span class="ticket-badge badge-dept">Billing</span>
-                                <span class="ticket-badge badge-priority">High</span>
-                            </div>
-                        </div>
-                        <div class="ticket-badges">
-                            <span class="ticket-badge badge-status">Queued</span>
-                        </div>
-                    </div>
-                    
-                    <div class="ticket-item">
-                        <div class="ticket-id">TKT-847292</div>
-                        <div class="ticket-header">
-                            <span class="ticket-subject">API gateway timeout - 502 errors</span>
-                            <div class="ticket-badges">
-                                <span class="ticket-badge badge-dept">Technical</span>
-                                <span class="ticket-badge badge-priority">Critical</span>
-                            </div>
-                        </div>
-                        <div class="ticket-badges">
-                            <span class="ticket-badge badge-status">Assigned</span>
-                        </div>
-                    </div>
-                    
-                    <div class="ticket-item">
-                        <div class="ticket-id">TKT-847293</div>
-                        <div class="ticket-header">
-                            <span class="ticket-subject">Password reset request for account access</span>
-                            <div class="ticket-badges">
-                                <span class="ticket-badge badge-dept">Account</span>
-                                <span class="ticket-badge badge-priority">Medium</span>
-                            </div>
-                        </div>
-                        <div class="ticket-badges">
-                            <span class="ticket-badge badge-status">Queued</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Platform Capabilities Section -->
-    <section id="capabilities" class="capabilities">
-        <div class="section-container">
-            <div class="section-header">
-                <span class="section-badge">Platform Capabilities</span>
-                <h2 class="section-title">Intelligent Support Automation</h2>
-                <p class="section-subtitle">
-                    Production-grade features designed for enterprise support operations
-                </p>
-            </div>
-            
-            <div class="capabilities-grid">
-                <div class="capability-card">
-                    <div class="capability-icon">
-                        <i class="bi bi-diagram-3"></i>
-                    </div>
-                    <h3 class="capability-title">Automated Incident Triage</h3>
-                    <p class="capability-description">
-                        Immediate extraction of subject intent and accurate routing to Technical, Billing, or Account desks. Eliminates manual triage bottlenecks and reduces mean time to assignment.
-                    </p>
-                </div>
-                
-                <div class="capability-card">
-                    <div class="capability-icon">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                    <h3 class="capability-title">Dynamic Priority Scoring</h3>
-                    <p class="capability-description">
-                        Identifies urgent blockers instantly using supervised NLP classification. Prevents SLA breaches by flagging Critical and High priority issues for immediate agent attention.
-                    </p>
-                </div>
-                
-                <div class="capability-card">
-                    <div class="capability-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <h3 class="capability-title">Unified Agent Workspace</h3>
-                    <p class="capability-description">
-                        Clean department queues equipped with threaded customer communication, resolution tracking, and priority-based sorting. Enables efficient workflow management for support teams.
-                    </p>
-                </div>
-                
-                <div class="capability-card">
-                    <div class="capability-icon">
-                        <i class="bi bi-graph-up"></i>
-                    </div>
-                    <h3 class="capability-title">Service Quality Analytics</h3>
-                    <p class="capability-description">
-                        Real-time CSAT scoring and distribution metrics for operations leaders. Track resolution times, category distribution, and agent performance across the organization.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Architecture Section -->
-    <section id="architecture" class="architecture">
-        <div class="section-container">
-            <div class="section-header">
-                <span class="section-badge">System Architecture</span>
-                <h2 class="section-title">How CompassIQ Works</h2>
-                <p class="section-subtitle">
-                    Supervised NLP pipeline for real-time ticket classification
-                </p>
-            </div>
-            
-            <div class="architecture-content">
-                <div class="architecture-text">
-                    <p>
-                        CompassIQ processes incoming support tickets through a supervised machine learning pipeline. The system uses TF-IDF vectorization to convert text into numerical feature vectors, which are then classified by Logistic Regression models trained on historical support data.
-                    </p>
-                    <p>
-                        Each ticket is analyzed for both category (Technical, Billing, Account, General Inquiry) and priority (Critical, High, Medium, Low) simultaneously. The classification results drive automatic routing to the appropriate departmental queue, ensuring urgent issues receive immediate attention from qualified agents.
-                    </p>
-                    <p>
-                        The platform maintains a closed-loop feedback system through CSAT ratings, allowing continuous monitoring of service quality and model performance. All classification decisions include confidence scores, enabling manual review for low-confidence predictions.
-                    </p>
-                </div>
-                
-                <div class="architecture-visual">
-                    <div class="arch-flow">
-                        <div class="arch-step">
-                            <div class="arch-step-number">1</div>
-                            <div class="arch-step-text">
-                                <div class="arch-step-title">Ticket Ingestion</div>
-                                <div class="arch-step-desc">Raw subject and description captured from web form or API</div>
-                            </div>
-                        </div>
-                        
-                        <div class="arch-step">
-                            <div class="arch-step-number">2</div>
-                            <div class="arch-step-text">
-                                <div class="arch-step-title">Text Preprocessing</div>
-                                <div class="arch-step-desc">Lowercasing, stopword removal, lemmatization, TF-IDF vectorization</div>
-                            </div>
-                        </div>
-                        
-                        <div class="arch-step">
-                            <div class="arch-step-number">3</div>
-                            <div class="arch-step-text">
-                                <div class="arch-step-title">ML Classification</div>
-                                <div class="arch-step-desc">Logistic Regression predicts category and priority with confidence scoring</div>
-                            </div>
-                        </div>
-                        
-                        <div class="arch-step">
-                            <div class="arch-step-number">4</div>
-                            <div class="arch-step-text">
-                                <div class="arch-step-title">Queue Dispatch</div>
-                                <div class="arch-step-desc">Automatic routing to department-specific agent workspaces</div>
-                            </div>
-                        </div>
-                        
-                        <div class="arch-step">
-                            <div class="arch-step-number">5</div>
-                            <div class="arch-step-text">
-                                <div class="arch-step-title">Resolution & Feedback</div>
-                                <div class="arch-step-desc">Agent resolution, CSAT collection, performance analytics</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
+</section>
 
-    
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-brand-icon">
-                        <i class="bi bi-compass"></i>
+<!-- ============================================================
+     HOW COMPASSIQ THINKS (ML Pipeline)
+     ============================================================ -->
+<section class="landing-section landing-section-alt" id="how-it-works">
+    <div class="landing-section-inner">
+        <div class="landing-section-header">
+            <div class="section-eyebrow">Intelligence Pipeline</div>
+            <h2 class="section-heading">How CompassIQ Thinks</h2>
+            <p class="section-subheading">Every ticket passes through a structured ML/NLP pipeline — from raw text to suggested resolution.</p>
+        </div>
+        <div class="grid-2col-responsive" style="gap:2.5rem;align-items:start;">
+            <div class="pipeline-landing">
+                <div class="pipeline-landing-step">
+                    <div class="pipeline-landing-num">01</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Understand</h4>
+                        <p>NLP preprocessing: lowercasing, tokenization, stopword removal, lemmatization. The raw ticket text is cleaned and normalized.</p>
                     </div>
-                    <span class="footer-brand-text">CompassIQ</span>
                 </div>
-                
-                <div class="footer-status">
-                    <span class="footer-status-dot"></span>
-                    <span>All Systems Operational</span>
+                <div class="pipeline-landing-step">
+                    <div class="pipeline-landing-num">02</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Vectorize</h4>
+                        <p>TF-IDF transforms the cleaned text into a sparse numerical feature vector used by the trained classification models.</p>
+                    </div>
                 </div>
-                
-                <div class="footer-links">
-                    <a href="{{ url_for('login') }}" class="footer-link">Support Portal</a>
-                    <a href="#capabilities" class="footer-link">Documentation</a>
+                <div class="pipeline-landing-step">
+                    <div class="pipeline-landing-num">03</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Classify</h4>
+                        <p>Two Logistic Regression models independently predict the ticket <strong>Category</strong> and <strong>Priority</strong> with confidence scores.</p>
+                    </div>
+                </div>
+                <div class="pipeline-landing-step">
+                    <div class="pipeline-landing-num">04</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Route</h4>
+                        <p>The predicted category determines the appropriate department. The ticket is automatically routed without manual triage.</p>
+                    </div>
+                </div>
+                <div class="pipeline-landing-step">
+                    <div class="pipeline-landing-num">05</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Retrieve</h4>
+                        <p>Sparse cosine similarity against the historical corpus retrieves the Top-3 most similar resolved tickets.</p>
+                    </div>
+                </div>
+                <div class="pipeline-landing-step step-highlight">
+                    <div class="pipeline-landing-num">06</div>
+                    <div class="pipeline-landing-info">
+                        <h4>Assist</h4>
+                        <p>A suggested resolution is presented to the agent, derived from actual historical resolved cases. The agent reviews and acts.</p>
+                    </div>
                 </div>
             </div>
-            
-            <div class="footer-bottom">
-                © 2024 CompassIQ Platform. Enterprise Ticket Intelligence & Automated Triage System.
+            <div>
+                <div class="landing-preview-card">
+                    <div class="landing-preview-header">
+                        <i class="bi bi-cpu"></i> ML Pipeline — Live Example
+                    </div>
+                    <div class="landing-preview-body">
+                        <div class="landing-preview-ticket">
+                            <div class="landing-preview-label">Incoming Ticket</div>
+                            <div class="landing-preview-subject">"Unable to login to my account after password reset"</div>
+                        </div>
+                        <div class="landing-preview-pipeline">
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">NLP Preprocessing</span>
+                                <span class="landing-preview-mono">Cleaned text ready</span>
+                            </div>
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">TF-IDF</span>
+                                <span class="landing-preview-mono">Sparse vector generated</span>
+                            </div>
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">Predicted Category</span>
+                                <span class="landing-preview-val">Account <span class="landing-preview-badge">↑ High Conf.</span></span>
+                            </div>
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">Predicted Priority</span>
+                                <span class="badge badge-high">High</span>
+                            </div>
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">Routed To</span>
+                                <span class="landing-preview-val">Account Department</span>
+                            </div>
+                            <div class="landing-preview-row">
+                                <span class="landing-preview-key">Similar Tickets</span>
+                                <span class="landing-preview-accent">3 retrieved via cosine similarity</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
+</section>
 
-    <script>
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
+<!-- ============================================================
+     CORE CAPABILITIES
+     ============================================================ -->
+<section class="landing-section" id="features">
+    <div class="landing-section-inner">
+        <div class="landing-section-header">
+            <div class="section-eyebrow">Core Capabilities</div>
+            <h2 class="section-heading">ML-First Ticket Management</h2>
+            <p class="section-subheading">CompassIQ doesn't just store tickets — it analyzes, classifies, routes, and assists resolution.</p>
+        </div>
+        <div class="capabilities-grid">
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-diagram-2"></i></div>
+                <h3 class="capability-title">AI Ticket Classification</h3>
+                <p class="capability-desc">Logistic Regression models trained on TF-IDF features automatically classify every ticket into the correct category.</p>
+            </div>
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-sort-down"></i></div>
+                <h3 class="capability-title">Priority Prediction</h3>
+                <p class="capability-desc">A separate ML model predicts ticket priority (Low / Medium / High / Critical) with confidence scoring.</p>
+            </div>
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-signpost-split"></i></div>
+                <h3 class="capability-title">Intelligent Department Routing</h3>
+                <p class="capability-desc">Predicted category maps tickets to the right department queue — Technical, Billing, Account, General, or Fraud & Security.</p>
+            </div>
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-search"></i></div>
+                <h3 class="capability-title">Historical Ticket Retrieval</h3>
+                <p class="capability-desc">Sparse cosine similarity retrieves the top-3 most relevant resolved tickets from the historical corpus.</p>
+            </div>
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-lightbulb"></i></div>
+                <h3 class="capability-title">Suggested Resolution</h3>
+                <p class="capability-desc">Resolution text from similar historical tickets is surfaced for the agent — insertable into the reply composer with one click.</p>
+            </div>
+            <div class="capability-card">
+                <div class="capability-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <h3 class="capability-title">Ticket Lifecycle Tracking</h3>
+                <p class="capability-desc">Full lifecycle from submission through AI analysis, department assignment, agent response, resolution, and CSAT feedback.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href !== '#' && href.length > 1) {
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                }
-            });
-        });
-    </script>
+<!-- ============================================================
+     WORKFLOW
+     ============================================================ -->
+<section class="landing-section landing-section-alt" id="workflow">
+    <div class="landing-section-inner">
+        <div class="landing-section-header">
+            <div class="section-eyebrow">End-to-End Workflow</div>
+            <h2 class="section-heading">From Ticket to Resolution</h2>
+            <p class="section-subheading">The ML intelligence layer connects every step of the support workflow.</p>
+        </div>
+        <div class="workflow-steps">
+            <div class="workflow-step">
+                <div class="workflow-num"><i class="bi bi-person"></i></div>
+                <div class="workflow-label">Customer</div>
+            </div>
+            <div class="workflow-step">
+                <div class="workflow-num"><i class="bi bi-ticket-perforated"></i></div>
+                <div class="workflow-label">Ticket Created</div>
+            </div>
+            <div class="workflow-step step-highlight">
+                <div class="workflow-num"><i class="bi bi-cpu"></i></div>
+                <div class="workflow-label">CompassIQ ML</div>
+            </div>
+            <div class="workflow-step">
+                <div class="workflow-num"><i class="bi bi-diagram-3"></i></div>
+                <div class="workflow-label">Department</div>
+            </div>
+            <div class="workflow-step">
+                <div class="workflow-num"><i class="bi bi-headset"></i></div>
+                <div class="workflow-label">Agent Action</div>
+            </div>
+            <div class="workflow-step step-success">
+                <div class="workflow-num"><i class="bi bi-check-circle"></i></div>
+                <div class="workflow-label">Resolution</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     ROLE OVERVIEW
+     ============================================================ -->
+<section class="landing-section" id="roles">
+    <div class="landing-section-inner">
+        <div class="landing-section-header">
+            <div class="section-eyebrow">User Roles</div>
+            <h2 class="section-heading">Three Practical Roles</h2>
+            <p class="section-subheading">Each role has a purpose-built workspace with the right level of ML visibility.</p>
+        </div>
+        <div class="roles-grid">
+            <div class="role-card">
+                <div class="role-card-header">
+                    <div class="role-card-title"><i class="bi bi-person-circle"></i> Customer</div>
+                    <p class="role-card-sub">Submit, track, and communicate</p>
+                </div>
+                <div class="role-card-body">
+                    <ul class="role-feature-list">
+                        <li>Create support tickets</li>
+                        <li>Track ticket status and lifecycle</li>
+                        <li>View category, priority & department</li>
+                        <li>Communicate with support agents</li>
+                        <li>Submit CSAT satisfaction feedback</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="role-card">
+                <div class="role-card-header">
+                    <div class="role-card-title"><i class="bi bi-headset"></i> Agent / Department</div>
+                    <p class="role-card-sub">Resolve with ML assistance</p>
+                </div>
+                <div class="role-card-body">
+                    <ul class="role-feature-list">
+                        <li>Manage assigned department tickets</li>
+                        <li>View ML predictions with confidence</li>
+                        <li>Access Top-3 similar historical tickets</li>
+                        <li>Use suggested resolution (editable)</li>
+                        <li>Resolve and update ticket status</li>
+                        <li>Full AI Intelligence pipeline view</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="role-card">
+                <div class="role-card-header">
+                    <div class="role-card-title"><i class="bi bi-shield-check"></i> Admin</div>
+                    <p class="role-card-sub">Monitor, manage & analyze</p>
+                </div>
+                <div class="role-card-body">
+                    <ul class="role-feature-list">
+                        <li>System-wide ticket management</li>
+                        <li>User and department management</li>
+                        <li>Analytics and performance metrics</li>
+                        <li>Detailed ML pipeline visibility</li>
+                        <li>Model information and metrics</li>
+                        <li>Department workload monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     CTA SECTION
+     ============================================================ -->
+<section class="cta-section">
+    <div class="landing-section-inner">
+        <h2 class="cta-title">Ready to Explore CompassIQ?</h2>
+        <p class="cta-desc">Experience an actual ML/NLP pipeline integrated into a complete ticket management workflow.</p>
+        <div class="cta-buttons">
+            {% if g.user %}
+                <a href="{% if g.user.role|lower == 'admin' %}{{ url_for('admin_dashboard') }}{% elif g.user.role|lower == 'agent' %}{{ url_for('agent_dashboard') }}{% else %}{{ url_for('customer_dashboard') }}{% endif %}" class="btn btn-accent btn-xl">
+                    <i class="bi bi-arrow-right-circle"></i> Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-accent btn-xl">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary-landing btn-xl">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="landing-footer">
+    <div class="landing-footer-inner">
+        <div>
+            <div class="footer-brand">CompassIQ</div>
+            <p class="footer-tagline">AI-Powered Ticket Intelligence & Management System</p>
+        </div>
+        <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
+        </ul>
+        <p class="footer-copyright">&copy; {{ 2025 }} CompassIQ. All rights reserved.</p>
+    </div>
+</footer>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert-modal-backdrop show">
+                <div class="alert-modal-box">
+                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()">&times;</button>
+                    <h3 class="alert-modal-title">
+                        {% if category == 'success' %}<i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
+                        {% elif category == 'danger' %}<i class="bi bi-shield-x" style="color:var(--danger);"></i> Error
+                        {% else %}<i class="bi bi-info-circle" style="color:var(--info);"></i> Notice{% endif %}
+                    </h3>
+                    <p class="alert-modal-message">{{ message }}</p>
+                    <div class="alert-modal-buttons">
+                        <button class="btn btn-primary btn-sm" onclick="this.closest('.alert-modal-backdrop').remove()">OK</button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<script>
+    window.addEventListener('pageshow', e => { if (e.persisted) window.location.reload(); });
+</script>
 </body>
 </html>

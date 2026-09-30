@@ -1,642 +1,149 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}Dashboard — CompassIQ{% endblock %}
-{% block breadcrumb %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">Welcome, {{ g.user.custname }}</h1>
-    <p class="page-subtitle">Manage your support tickets and track resolutions in real-time</p>
-</div>
+<div class="page-content">
+<div class="page-container">
 
-<!-- Summary Metrics -->
-<div id="customer-stats-section" class="grid grid-auto-fit mb-2xl" style="margin-bottom: var(--spacing-3xl);">
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-ticket-perforated"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Total Tickets</div>
-            <div class="metric-value">{{ tickets|length }}</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-inbox"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Open Tickets</div>
-            <div class="metric-value">{{ tickets|selectattr('status', 'in', ['Submitted', 'Under Review', 'In Progress'])|list|length }}</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-check2-circle"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Resolved</div>
-            <div class="metric-value">{{ tickets|selectattr('status', 'in', ['Resolved', 'Closed'])|list|length }}</div>
-        </div>
-    </div>
-</div>
-
-<!-- Create Ticket Section -->
-<div id="create-ticket-section" class="card mb-2xl">
-    <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-inner">
             <div>
-                <h3 class="card-title">Create New Ticket</h3>
-                <p class="card-subtitle">Our AI engine will automatically classify and route your request</p>
+                <h1 class="page-title">Welcome, {{ g.user.custname }}</h1>
+                <p class="page-subtitle">Here's an overview of your support activity.</p>
             </div>
-            <div style="display: flex; gap: var(--spacing-md);">
-                <button class="btn btn-secondary" onclick="toggleCreateForm()">Create / Close</button>
-            </div>
+            <a href="{{ url_for('create_ticket_page') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create New Ticket
+            </a>
         </div>
     </div>
-    <div class="card-body">
-        <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm" onsubmit="return validateTicketForm(this)">
-            <div class="form-group">
-                <label class="form-label">Subject *</label>
-                <input type="text" id="subject" name="subject" class="form-input" placeholder="Brief summary of your issue" required>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label">Description *</label>
-                <textarea name="description" class="form-textarea" placeholder="Provide detailed information including steps to reproduce, error messages, etc." required></textarea>
-            </div>
+    <!-- Stats -->
+    {% set total = tickets | length %}
+    {% set open_t = tickets | selectattr('status', 'equalto', 'Submitted') | list | length %}
+    {% set inprog = tickets | selectattr('status', 'equalto', 'In Progress') | list | length %}
+    {% set resolved = tickets | selectattr('status', 'in', ['Resolved', 'Closed']) | list | length %}
 
-            <div style="display: flex; gap: var(--spacing-md); justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="toggleCreateForm()">Cancel</button>
-                <button type="submit" class="btn btn-accent" id="submitTicketBtn">
-                    <i class="bi bi-plus-circle"></i> Submit Ticket
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Tickets List -->
-<div id="customer-tickets-table">
-    <h2 class="mb-lg" style="font-size: 1.3rem; font-weight: var(--font-weight-bold);">Your Tickets</h2>
-
-    {% if tickets|length == 0 %}
-        <div class="card" style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg);">
-            <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-muted); margin-bottom: var(--spacing-lg);"></i>
-            <h3 class="text-secondary">No tickets yet</h3>
-            <p class="text-muted">Create your first support ticket above to get started</p>
+    <div class="stats-grid">
+        <div class="stat-card accent-top">
+            <div class="stat-label">Total Tickets</div>
+            <div class="stat-value">{{ total }}</div>
+            <p class="stat-desc">All time</p>
         </div>
-    {% else %}
-        <div class="table-responsive">
-            <table class="enterprise-table customer-tickets-table">
-                <thead>
-                    <tr>
-                        <th class="col-ticket-id">Ticket ID</th>
-                        <th class="col-subject">Subject</th>
-                        <th class="col-category">Category</th>
-                        <th class="col-priority">Priority</th>
-                        <th class="col-status">Status</th>
-                        <th class="col-department">Department</th>
-                        <th class="col-created">Created</th>
-                        <th class="col-actions" style="text-align: right;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
+        <div class="stat-card">
+            <div class="stat-label">Open</div>
+            <div class="stat-value" style="color:var(--info);">{{ open_t }}</div>
+            <p class="stat-desc">Awaiting response</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value" style="color:var(--warning);">{{ inprog }}</div>
+            <p class="stat-desc">Being worked on</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Resolved</div>
+            <div class="stat-value" style="color:var(--success);">{{ resolved }}</div>
+            <p class="stat-desc">Closed tickets</p>
+        </div>
+    </div>
+
+    <!-- Two Column: Recent Tickets + Activity -->
+    <div class="dashboard-grid">
+        <!-- Recent Tickets Table -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Tickets</h2>
+                <a href="{{ url_for('my_tickets') }}" class="btn btn-ghost btn-sm">
+                    View All <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            {% if tickets %}
+            <div class="table-wrapper" style="border:none;border-radius:0;">
+                <table style="min-width:680px;">
+                    <thead>
                         <tr>
-                            <td class="col-ticket-id text-ellipsis">
-                                <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-semibold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
-                            </td>
-                            <td class="col-subject">
-                                <div class="ticket-subject-title" style="font-weight: var(--font-weight-medium); color: var(--text-primary);">{{ ticket.subject }}</div>
-                                <div class="ticket-subject-desc" style="font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px;">{{ ticket.description }}</div>
-                            </td>
-                            <td class="col-category">
-                                <span class="badge badge-category badge-category-{{ (ticket.department_name or 'General Inquiry')|replace(' ', '')|replace('&', '') }}">
-                                    {{ ticket.department_name or 'General Inquiry' }}
-                                </span>
-                            </td>
-                            <td class="col-priority">
-                                <span class="badge badge-priority badge-priority-{{ ticket.predicted_priority or 'Medium' }}">
+                            <th class="col-id" style="width:150px;min-width:140px;white-space:nowrap;">ID</th>
+                            <th>Subject</th>
+                            <th style="white-space:nowrap;width:95px;">Priority</th>
+                            <th style="white-space:nowrap;width:105px;">Status</th>
+                            <th class="col-created" style="white-space:nowrap;width:110px;">Updated</th>
+                            <th class="col-actions" style="width:80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets[:8] %}
+                        <tr>
+                            <td class="cell-id" style="white-space:nowrap;"><span class="ticket-id">{{ ticket.ticketno }}</span></td>
+                            <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ticket.subject }}</td>
+                            <td style="white-space:nowrap;">
+                                <span class="badge badge-{{ ticket.predicted_priority | lower if ticket.predicted_priority else 'medium' }}">
                                     {{ ticket.predicted_priority or 'Medium' }}
                                 </span>
                             </td>
-                            <td class="col-status">
-                                <span class="badge badge-status badge-status-{{ (ticket.status or 'Submitted')|replace(' ', '') }}">
-                                    {{ ticket.status or 'Submitted' }}
-                                </span>
+                            <td style="white-space:nowrap;">
+                                {% set s = ticket.status | lower | replace(' ', '-') %}
+                                <span class="badge badge-{{ s }}">{{ ticket.status }}</span>
                             </td>
-                            <td class="col-department">{{ ticket.department_name or 'General Inquiry' }}</td>
-                            <td class="col-created no-wrap">{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
-                            <td class="col-actions" style="text-align: right;">
-                                <button type="button"
-                                    class="btn btn-secondary btn-sm"
-                                    onclick="openTicketDetail('{{ ticket.ticketno }}')"
-                                        style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <i class="bi bi-eye"></i> View Details
-                                </button>
+                            <td class="cell-created" style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                                {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
+                            </td>
+                            <td class="cell-actions" style="white-space:nowrap;text-align:right;">
+                                <a href="{{ url_for('customer_ticket_view', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm">View</a>
                             </td>
                         </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-ticket-perforated empty-state-icon"></i>
+                <div class="empty-state-title">No tickets yet</div>
+                <p class="empty-state-desc">Create your first support ticket and our AI will analyze and route it automatically.</p>
+                <a href="{{ url_for('create_ticket_page') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Create Ticket
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Activity</h2>
+            </div>
+            <div class="card-body">
+                {% if tickets %}
+                <div class="timeline">
+                    {% for ticket in tickets[:6] %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot {% if ticket.status in ['Resolved', 'Closed'] %}success{% elif ticket.status == 'In Progress' %}active{% endif %}"></div>
+                        <div class="timeline-content">
+                            <p class="timeline-text">
+                                {% if ticket.status in ['Resolved', 'Closed'] %}
+                                    Ticket <strong>{{ ticket.ticketno }}</strong> resolved
+                                {% elif ticket.status == 'In Progress' %}
+                                    Agent is working on <strong>{{ ticket.ticketno }}</strong>
+                                {% else %}
+                                    Ticket <strong>{{ ticket.ticketno }}</strong> submitted
+                                {% endif %}
+                            </p>
+                            <p class="timeline-time">{{ ticket.submitdate[:16] if ticket.submitdate else '' }}</p>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% endif %}
-</div>
-
-<!-- Profile Section (hidden, used for modal display) -->
-<div id="profile-section" style="display: none;"></div>
-
-<!-- User Profile Modal -->
-<div id="userProfileModal" class="alert-modal-backdrop">
-    <div class="alert-modal-box" style="max-width: 500px; text-align: left;">
-        <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="card-title">Account Profile</h3>
-                <button type="button" class="modal-close-btn" onclick="closeProfileModal()">
-                    &times;
-                </button>
+                </div>
+                {% else %}
+                <div class="empty-state" style="padding:2rem 1rem;">
+                    <i class="bi bi-clock-history empty-state-icon"></i>
+                    <div class="empty-state-title">No activity yet</div>
+                    <p class="empty-state-desc">Your ticket activity will appear here.</p>
+                </div>
+                {% endif %}
             </div>
-        </div>
-        <div class="card-body">
-            <div style="display: flex; align-items: center; gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
-                <div style="width: 64px; height: 64px; background: var(--surface-mint); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: var(--font-weight-bold); color: var(--primary);">
-                    {{ g.user.custname[0].upper() }}
-                </div>
-                <div>
-                    <div style="font-size: 1.1rem; font-weight: var(--font-weight-semibold); color: var(--text-primary);">{{ g.user.custname }}</div>
-                    <div style="font-size: 0.9rem; color: var(--text-muted);">{{ g.user.role|title }}</div>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-md);">
-                <div>
-                    <div class="form-label">Email Address</div>
-                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
-                        <i class="bi bi-envelope me-2"></i>{{ g.user.email }}
-                        <i class="bi bi-check-circle-fill" style="color: var(--success); margin-left: var(--spacing-sm);"></i> Verified
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Account Status</div>
-                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem;">
-                        {% if g.user.account_status == 'APPROVED' %}
-                            <span class="badge badge-status-Resolved"><i class="bi bi-check2-circle me-1"></i>Approved</span>
-                        {% elif g.user.account_status == 'PENDING' %}
-                            <span class="badge badge-status-UnderReview"><i class="bi bi-hourglass-split me-1"></i>Pending Verification</span>
-                        {% elif g.user.account_status == 'REJECTED' %}
-                            <span class="badge badge-status-Closed"><i class="bi bi-x-circle me-1"></i>Rejected</span>
-                        {% elif g.user.account_status == 'BANNED' %}
-                            <span class="badge badge-status-Closed" style="background: var(--danger-bg); color: var(--danger);"><i class="bi bi-slash-circle me-1"></i>Banned</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Member Since</div>
-                    <div style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-secondary);">
-                        <i class="bi bi-calendar me-2"></i>{{ g.user.created_at[:10] if g.user.created_at else 'N/A' }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Close</button>
         </div>
     </div>
+
 </div>
-
-<!-- Ticket Detail Modal -->
-<div id="ticketDetailModal" class="alert-modal-backdrop">
-    <div class="alert-modal-box customer-ticket-modal">
-        <div id="ticketDetailContent">
-            <!-- Content loaded via JavaScript -->
-        </div>
-    </div>
 </div>
-
-<!-- Unified Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
-<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
-
-<!-- Load main CompassIQ JS -->
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
-{% endblock %}
-
-{% block scripts %}
-<script>
-function toggleCreateForm() {
-    const form = document.getElementById('createTicketForm');
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-}
-
-function validateTicketForm(form) {
-    const subject = form.querySelector('input[name="subject"]').value.trim();
-    const description = form.querySelector('textarea[name="description"]').value.trim();
-    
-    if (!subject || !description) {
-        alert('Please fill in both subject and description fields.');
-        return false;
-    }
-    
-    // Add loading state to submit button
-    const submitBtn = document.getElementById('submitTicketBtn');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Processing...';
-    }
-    
-    return true;
-}
-
-function openProfileModal() {
-    const modal = document.getElementById('userProfileModal');
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeProfileModal() {
-    const modal = document.getElementById('userProfileModal');
-    modal.classList.remove('show');
-    document.body.style.overflow = '';
-}
-
-function filterTicketHistory() {
-    const table = document.querySelector('#customer-tickets-table table tbody');
-    if (!table) return;
-
-    const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        const statusCell = row.querySelector('td:nth-child(5)');
-        if (statusCell) {
-            const statusText = statusCell.textContent.trim();
-            if (statusText === 'Resolved' || statusText === 'Closed') {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        }
-    });
-}
-
-function resetTicketFilter() {
-    const table = document.querySelector('#customer-tickets-table table tbody');
-    if (!table) return;
-
-    const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        row.style.display = '';
-    });
-}
-
-function openTicketDetail(ticketId) {
-    const modal = document.getElementById('ticketDetailModal');
-    const content = document.getElementById('ticketDetailContent');
-    
-    content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bi bi-arrow-clockwise" style="font-size: 2rem; color: var(--text-muted);"></i><p class="text-muted">Loading ticket details...</p></div>';
-    modal.classList.add('show');
-    
-    fetch(`/customer/tickets/${encodeURIComponent(ticketId)}`, {
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-        .then(async response => {
-            if (response.redirected && response.url.includes('/login')) {
-                throw new Error('Your session has expired. Please sign in again.');
-            }
-            const contentType = response.headers.get('content-type') || '';
-            if (!response.ok) {
-                let errDetail = `Server returned HTTP ${response.status}`;
-                if (contentType.includes('application/json')) {
-                    try {
-                        const errData = await response.json();
-                        errDetail = errData.message || errData.error || errDetail;
-                    } catch(e) {}
-                }
-                throw new Error(errDetail);
-            }
-            if (!contentType.includes('application/json')) {
-                throw new Error('Received non-JSON response from server. Your session may have expired.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success' || data.success === true) {
-                const ticket = data.ticket || {};
-                const ticketNo = ticket.ticketno || ticket.ticket_id || ticketId;
-                
-                const isResolved = (ticket.status === 'Resolved' || ticket.status === 'Closed');
-                const cat = ticket.predicted_category || ticket.department_name || 'General Inquiry';
-                const catClass = cat.replace(/[^a-zA-Z0-9]/g, '');
-                const prio = ticket.predicted_priority || 'Medium';
-                const status = ticket.status || 'Submitted';
-                const statusClass = status.replace(/[^a-zA-Z0-9]/g, '');
-                const dept = ticket.department_name || cat || 'General Inquiry';
-                
-                const rawScore = parseInt(ticket.satisfaction_score, 10);
-                const hasScore = !isNaN(rawScore) && rawScore >= 1 && rawScore <= 5;
-                const stars = hasScore ? ('★'.repeat(rawScore) + '☆'.repeat(5 - rawScore)) : '';
-                
-                let html = `
-                    <div class="card-header" style="margin-bottom: var(--spacing-lg); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-subtle);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h3 class="card-title" style="margin: 0; font-size: 1.15rem; font-family: 'Courier New', monospace; color: var(--accent-green);">${ticketNo}</h3>
-                                <p class="card-subtitle" style="margin: 4px 0 0 0; font-size: 1rem; color: #FFFFFF; font-weight: 600;">${ticket.subject || 'No Subject'}</p>
-                            </div>
-                            <button type="button" class="modal-close-btn" onclick="closeTicketModal()">
-                                &times;
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        <!-- Key Metadata Chips -->
-                        <div class="grid grid-cols-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
-                            <div>
-                                <div class="form-label">Category</div>
-                                <span class="badge badge-category badge-category-${catClass}">${cat}</span>
-                            </div>
-                            <div>
-                                <div class="form-label">Priority</div>
-                                <span class="badge badge-priority-${prio}">${prio}</span>
-                            </div>
-                            <div>
-                                <div class="form-label">Status</div>
-                                <span class="badge badge-status-${statusClass}">${status}</span>
-                            </div>
-                            <div>
-                                <div class="form-label">Department</div>
-                                <span class="text-secondary" style="font-weight: 500;">${dept}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Original Issue Description -->
-                        <div class="form-label">Initial Request Description</div>
-                        <p class="text-secondary" style="background: var(--surface-subtle); padding: var(--spacing-md); border-radius: var(--radius-md); line-height: 1.5; white-space: pre-wrap;">${ticket.description || 'No description provided.'}</p>
-                        
-                        <!-- Highlighted Resolution Details Banner (Visible when Resolved or Closed) -->
-                        ${isResolved ? `
-                            <div style="margin-top: var(--spacing-lg); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: var(--spacing-lg);">
-                                <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 600; margin-bottom: 6px;">
-                                    <i class="bi bi-check2-circle" style="font-size: 1.25rem;"></i> Resolution Details & Agent Notes
-                                </div>
-                                <div style="color: #A7F3D0; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">${ticket.resolution_notes || 'This ticket has been officially resolved by our support engineering team.'}</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Customer Rating & CSAT Section -->
-                        ${isResolved && !hasScore ? `
-                            <div style="margin-top: var(--spacing-xl); padding: var(--spacing-lg); background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--radius-md);">
-                                <h4 class="card-title" style="font-size: 1rem; color: #facc15; margin-bottom: 6px;">
-                                    <i class="bi bi-star-fill me-1"></i> Rate Your Support Experience (CSAT)
-                                </h4>
-                                <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: var(--spacing-md);">How satisfied are you with the resolution of this issue?</p>
-                                <form method="POST" action="/tickets/${ticketNo}/rate" onsubmit="handleFeedbackSubmit(event, this)">
-                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                                        <label class="form-label" style="font-weight: 500;">Satisfaction Rating</label>
-                                        <select name="satisfaction_score" class="form-select" required style="width: 100%; height: 42px; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 0 12px;">
-                                            <option value="" disabled selected>Choose rating (1 to 5 stars)</option>
-                                            <option value="5">★★★★★ — 5 Stars (Excellent)</option>
-                                            <option value="4">★★★★☆ — 4 Stars (Good)</option>
-                                            <option value="3">★★★☆☆ — 3 Stars (Satisfactory)</option>
-                                            <option value="2">★★☆☆☆ — 2 Stars (Needs Improvement)</option>
-                                            <option value="1">★☆☆☆☆ — 1 Star (Unsatisfied)</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                                        <label class="form-label" style="font-weight: 500;">Feedback / Comments (Optional)</label>
-                                        <textarea name="customer_feedback" class="form-textarea" placeholder="Share your experience with our response..." style="width: 100%; background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 10px; font-family: inherit; font-size: 0.9rem; min-height: 70px;"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-weight: 600;">
-                                        <i class="bi bi-send me-1"></i> Submit CSAT Rating
-                                    </button>
-                                </form>
-                            </div>
-                        ` : ''}
-
-                        <!-- If Already Rated -->
-                        ${hasScore ? `
-                            <div style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: rgba(234, 179, 8, 0.1); border-radius: var(--radius-md); border: 1px solid rgba(234, 179, 8, 0.3);">
-                                <div class="form-label" style="color: #facc15; font-weight: 600;">Your Support Rating (CSAT)</div>
-                                <div style="color: #facc15; font-size: 1.3rem; font-weight: bold; margin-bottom: 4px;">
-                                    ${stars} (${rawScore} / 5)
-                                </div>
-                                ${ticket.customer_feedback ? `<p class="text-secondary" style="margin-top: 6px; font-style: italic; color: #E2E8F0;">"${ticket.customer_feedback}"</p>` : ''}
-                            </div>
-                        ` : ''}
-
-                    </div>
-                    
-                    <div class="card-footer" style="padding-top: var(--spacing-lg); border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end;">
-                        <button type="button" class="btn btn-secondary" onclick="closeTicketModal()">Close</button>
-                    </div>
-                `;
-                
-                content.innerHTML = html;
-            } else {
-                const msg = data.message || data.error || 'Failed to load ticket details';
-                content.innerHTML = `<div style="text-align: center; padding: 40px;"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--danger);"></i><p class="text-danger">${msg}</p></div>`;
-            }
-        })
-        .catch(error => {
-            console.error('Error loading ticket details:', error);
-            const isAuthErr = (error.message || '').toLowerCase().includes('session') || 
-                              (error.message || '').toLowerCase().includes('sign in') || 
-                              (error.message || '').toLowerCase().includes('log in') || 
-                              (error.message || '').toLowerCase().includes('unauthorized') || 
-                              (error.message || '').toLowerCase().includes('401');
-            content.innerHTML = `
-                <div style="text-align: center; padding: 40px;">
-                    <i class="bi bi-exclamation-triangle" style="font-size: 2.2rem; color: #ef4444; margin-bottom: 12px; display: inline-block;"></i>
-                    <h4 style="color: #ef4444; margin-bottom: 8px;">Error loading ticket details</h4>
-                    <p class="text-muted" style="font-size: 0.9rem; max-width: 420px; margin: 0 auto 16px;">${error.message || 'Please try again or refresh the page.'}</p>
-                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="openTicketDetail('${ticketId}')">
-                            <i class="bi bi-arrow-clockwise me-1"></i> Try Again
-                        </button>
-                        ${isAuthErr ? `<a href="/login" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-right me-1"></i> Sign In</a>` : ''}
-                    </div>
-                </div>
-            `;
-        });
-}
-
-function closeTicketModal() {
-    const modal = document.getElementById('ticketDetailModal');
-    modal.classList.remove('show');
-    document.body.style.overflow = '';
-}
-
-function handleFeedbackSubmit(event, form) {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const submitBtn = form.querySelector('button[type="submit"]');
-
-    // Disable button and show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to submit feedback');
-        }
-        return response.text();
-    })
-    .then(() => {
-        // Use system modal popup instead of browser alert
-        const modal = document.createElement('div');
-        modal.className = 'alert-modal-backdrop show';
-        modal.innerHTML = `
-            <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                <h3 class="alert-modal-title">
-                    <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
-                </h3>
-                <p class="alert-modal-message">Thank you! Your feedback has been recorded.</p>
-                <div class="alert-modal-buttons">
-                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        closeTicketModal();
-        window.location.reload();
-    })
-    .catch(error => {
-        console.error('Error submitting feedback:', error);
-        // Use system modal popup instead of browser alert
-        const modal = document.createElement('div');
-        modal.className = 'alert-modal-backdrop show';
-        modal.innerHTML = `
-            <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                <h3 class="alert-modal-title">
-                    <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Error
-                </h3>
-                <p class="alert-modal-message">Failed to submit feedback. Please try again.</p>
-                <div class="alert-modal-buttons">
-                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Feedback';
-    });
-}
-
-function handleCustomerReply(event, form) {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const submitBtn = form.querySelector('button[type="submit"]');
-
-    // Disable button and show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
-
-    fetch(form.action, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Reload ticket details to show new reply
-            const ticketId = form.action.split('/').pop();
-            openTicketDetail(ticketId);
-            // Use system modal popup instead of browser alert
-            const modal = document.createElement('div');
-            modal.className = 'alert-modal-backdrop show';
-            modal.innerHTML = `
-                <div class="alert-modal-box">
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                    <h3 class="alert-modal-title">
-                        <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
-                    </h3>
-                    <p class="alert-modal-message">Response submitted successfully!</p>
-                    <div class="alert-modal-buttons">
-                        <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        } else {
-            // Use system modal popup instead of browser alert
-            const modal = document.createElement('div');
-            modal.className = 'alert-modal-backdrop show';
-            modal.innerHTML = `
-                <div class="alert-modal-box">
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                    <h3 class="alert-modal-title">
-                        <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Error
-                    </h3>
-                    <p class="alert-modal-message">${data.message || 'Failed to send reply. Please try again.'}</p>
-                    <div class="alert-modal-buttons">
-                        <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Send Reply';
-        }
-    })
-    .catch(error => {
-        console.error('Error sending reply:', error);
-        // Use system modal popup instead of browser alert
-        const modal = document.createElement('div');
-        modal.className = 'alert-modal-backdrop show';
-        modal.innerHTML = `
-            <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove();">&times;</button>
-                <h3 class="alert-modal-title">
-                    <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Error
-                </h3>
-                <p class="alert-modal-message">Failed to send reply. Please try again.</p>
-                <div class="alert-modal-buttons">
-                    <button type="button" class="btn btn-primary" onclick="this.closest('.alert-modal-backdrop').remove();">OK</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Send Reply';
-    });
-}
-
-// Close modal on backdrop click
-document.getElementById('ticketDetailModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeTicketModal();
-    }
-});
-
-// Close profile modal on backdrop click
-document.getElementById('userProfileModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeProfileModal();
-    }
-});
-
-// Close profile modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const profileModal = document.getElementById('userProfileModal');
-        const ticketModal = document.getElementById('ticketDetailModal');
-        
-        if (profileModal && profileModal.classList.contains('show')) {
-            closeProfileModal();
-        }
-        if (ticketModal && ticketModal.classList.contains('show')) {
-            closeTicketModal();
-        }
-    }
-});
-</script>
 {% endblock %}

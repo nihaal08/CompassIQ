@@ -483,21 +483,30 @@ function renderDetailsModal(data) {
     // Build similar matches section
     let similarHtml;
     if (similar.length > 0) {
-        similarHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
-            ${similar.map(m => `
-                <div style="background: #1C1D21; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; font-size: 0.82rem;">
+        similarHtml = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+            ${similar.map(m => {
+                const resText = m.resolution_notes || m.similar_description || 'Resolution recorded in closed ticket.';
+                return `
+                <div style="background: var(--bg-subtle, #2D2033); border: 1px solid var(--border, rgba(196, 174, 146, 0.2)); border-radius: 6px; padding: 10px; font-size: 0.82rem;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="color: #10b981; font-family: monospace; font-size: 0.78rem;">${escapeHtml(m.similar_ticket_ref_id || 'HIST-REF')}</span>
-                        <span style="color: #93C5FD; font-size: 0.78rem;">${Math.round((m.similarity_score || 0.8) * 100)}% match</span>
+                        <span style="color: var(--accent, #C4AE92); font-family: monospace; font-size: 0.78rem; font-weight: 600;">${escapeHtml(m.similar_ticket_ref_id || m.ticket_id || 'HIST-REF')}</span>
+                        <span style="background: rgba(74, 222, 128, 0.15); color: #4ADE80; border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 4px; padding: 1px 6px; font-size: 0.72rem; font-weight: 600;">${Math.round((m.similarity_score || 0.8) * 100)}% match</span>
                     </div>
-                    <div style="font-weight: 500; color: #FFF; margin-bottom: 4px; font-size: 0.83rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHtml(m.similar_subject || 'Similar Historical Ticket')}</div>
-                    <div style="color: #9CA3AF; font-size: 0.78rem; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHtml(m.similar_description || 'No resolution details recorded.')}</div>
-                    <div style="color: #6B7280; font-size: 0.75rem; margin-top: 6px;"><i class="bi bi-clock"></i> Resolved in ${m.historical_resolution_hours || 12}h</div>
-                </div>`
-            ).join('')}
+                    <div style="font-weight: 600; color: var(--text-primary, #F5F1EC); margin-bottom: 4px; font-size: 0.83rem;">${escapeHtml(m.similar_subject || 'Similar Historical Ticket')}</div>
+                    ${m.description && m.description !== resText ? `
+                        <div style="color: var(--text-muted, #968D9C); font-size: 0.75rem; margin-bottom: 4px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                            <strong>Issue:</strong> ${escapeHtml(m.description)}
+                        </div>
+                    ` : ''}
+                    <div style="background: rgba(196, 174, 146, 0.08); border-left: 2px solid var(--accent, #C4AE92); border-radius: 3px; padding: 5px 8px; margin-top: 4px;">
+                        <div style="color: var(--accent, #C4AE92); font-weight: 700; font-size: 0.7rem; margin-bottom: 2px;"><i class="bi bi-check-circle-fill"></i> Resolution:</div>
+                        <div style="color: var(--text-primary, #F5F1EC); font-size: 0.76rem; line-height: 1.4;">${escapeHtml(resText)}</div>
+                    </div>
+                </div>`;
+            }).join('')}
         </div>`;
     } else {
-        similarHtml = `<p style="color: #9CA3AF; font-size: 0.84rem; margin: 0; padding: 8px 0; font-style: italic;">
+        similarHtml = `<p style="color: var(--text-muted, #968D9C); font-size: 0.84rem; margin: 0; padding: 8px 0; font-style: italic;">
             <i class="bi bi-info-circle me-1"></i>No historically similar tickets found for this issue.
         </p>`;
     }

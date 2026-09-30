@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}User Management — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div>
+                <h1 class="page-title">User & Staff Management</h1>
+                <p class="page-subtitle">Oversee registered customer accounts and departmental support staff.</p>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost btn-sm">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Section -->
+    <div class="card" style="margin-bottom:var(--space-xl);">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Department Staff & Agents ({{ agents|length }})</h2>
+                <p class="card-subtitle">Support specialists and administrators with portal access</p>
+            </div>
+        </div>
+        {% if agents %}
+        <div class="table-wrapper" style="border:none;border-radius:0;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in agents %}
+                    <tr>
+                        <td><span style="font-weight:600;color:var(--text-muted);">#{{ agent.agent_id }}</span></td>
+                        <td style="font-weight:600;color:var(--text-primary);">{{ agent.agent_name }}</td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">{{ agent.email }}</td>
+                        <td>
+                            <span class="role-pill role-{{ agent.role }}">{{ agent.role | title }}</span>
+                        </td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">
+                            {{ agent.deptname or agent.deptid or 'General' }}
+                        </td>
+                        <td>
+                            <span class="badge badge-resolved">{{ agent.account_status }}</span>
+                        </td>
+                        <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                            {{ agent.created_at[:10] if agent.created_at else '—' }}
+                        </td>
+                        <td style="text-align:right;">
+                            {% if (g.user and (g.user.email|lower == agent.email|lower or g.user.agent_id == agent.agent_id or g.user.user_id == agent.agent_id)) %}
+                                <span class="badge badge-resolved" style="font-size:0.75rem;">
+                                    <i class="bi bi-shield-check"></i> Current User
+                                </span>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('admin_delete_user', user_id=agent.agent_id) }}"
+                                      onsubmit="return confirm('Delete staff account {{ agent.agent_name }}? Any tickets assigned to this agent will be unassigned.');"
+                                      style="display:inline;">
+                                    <input type="hidden" name="user_type" value="agent">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);" title="Delete Agent">
+                                        <i class="bi bi-trash3"></i> Delete
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-person-workspace empty-state-icon"></i>
+            <div class="empty-state-title">No staff accounts found</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Customers Section -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Registered Customers ({{ customers|length }})</h2>
+                <p class="card-subtitle">Client accounts registered through the customer portal</p>
+            </div>
+        </div>
+        {% if customers %}
+        <div class="table-wrapper" style="border:none;border-radius:0;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer Name</th>
+                        <th>Email Address</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td><span style="font-weight:600;color:var(--text-muted);">#{{ customer.custid }}</span></td>
+                        <td style="font-weight:600;color:var(--text-primary);">{{ customer.custname }}</td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">{{ customer.email }}</td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">{{ customer.phone_no or '—' }}</td>
+                        <td>
+                            <span class="badge badge-resolved">{{ customer.account_status }}</span>
+                        </td>
+                        <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                            {{ customer.created_at[:10] if customer.created_at else '—' }}
+                        </td>
+                        <td style="text-align:right;">
+                            <form method="POST" action="{{ url_for('admin_delete_user', user_id=customer.custid) }}"
+                                  onsubmit="return confirm('Delete customer {{ customer.custname }} ({{ customer.email }})? Their tickets will be preserved.');"
+                                  style="display:inline;">
+                                <input type="hidden" name="user_type" value="customer">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);" title="Delete Customer">
+                                    <i class="bi bi-trash3"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-people empty-state-icon"></i>
+            <div class="empty-state-title">No customers registered yet</div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

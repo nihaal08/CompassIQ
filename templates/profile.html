@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Profile — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container" style="max-width:900px;">
+
+    <div class="page-header">
+        <h1 class="page-title">Profile</h1>
+        <p class="page-subtitle">Manage your personal information and security settings.</p>
+    </div>
+
+    <div class="two-col" style="align-items:start;">
+
+        <!-- Personal Information -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Personal Information</h2>
+                </div>
+                <div class="card-body">
+                    <div style="display:flex;align-items:center;gap:var(--space-lg);margin-bottom:var(--space-xl);">
+                        <div class="profile-avatar">{{ (g.user.custname or g.user.full_name or 'U')[0].upper() }}</div>
+                        <div>
+                            <div style="font-size:1.125rem;font-weight:700;color:var(--text-primary);">{{ g.user.custname or g.user.full_name }}</div>
+                            <div style="font-size:0.875rem;color:var(--text-muted);">{{ g.user.email }}</div>
+                            <span class="role-pill role-{{ g.user.role }}" style="margin-top:0.375rem;display:inline-flex;">{{ g.user.role | title }}</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for(request.endpoint) }}" id="profileForm">
+                        <input type="hidden" name="action" value="update_profile">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="full_name" class="form-control" value="{{ g.user.custname or g.user.full_name or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" value="{{ g.user.email }}" disabled style="background:var(--bg-subtle);cursor:not-allowed;">
+                            <p class="form-hint">Email cannot be changed.</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" name="phone_no" class="form-control" value="{{ g.user.phone_no or '' }}" placeholder="Your phone number">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check2"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Security</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for(request.endpoint) }}" id="pwdForm">
+                        <input type="hidden" name="action" value="change_password">
+                        <div class="form-group">
+                            <label class="form-label">Current Password <span class="required">*</span></label>
+                            <input type="password" name="current_password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password <span class="required">*</span></label>
+                            <input type="password" name="new_password" class="form-control" placeholder="Min. 6 characters" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password <span class="required">*</span></label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="Repeat new password" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline btn-sm">
+                            <i class="bi bi-key"></i> Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Account Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="info-row">
+                    <div class="info-label">Account Status</div>
+                    <div class="info-value">
+                        <span class="badge badge-resolved">{{ g.user.account_status or 'Active' }}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Role</div>
+                    <div class="info-value">{{ g.user.role | title }}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" style="font-size:0.875rem;">{{ g.user.email }}</div>
+                </div>
+                {% if g.user.created_at %}
+                <div class="info-row">
+                    <div class="info-label">Account Created</div>
+                    <div class="info-value" style="font-size:0.875rem;">{{ g.user.created_at[:10] }}</div>
+                </div>
+                {% endif %}
+                {% if g.user.department %}
+                <div class="info-row">
+                    <div class="info-label">Department</div>
+                    <div class="info-value">{{ g.user.department }}</div>
+                </div>
+                {% endif %}
+
+                <div class="divider"></div>
+
+                <div style="font-size:0.8125rem;color:var(--text-muted);line-height:1.5;">
+                    <i class="bi bi-shield-check" style="color:var(--accent-dark);"></i>
+                    Your account credentials are securely hashed using werkzeug's scrypt algorithm.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+{% endblock %}

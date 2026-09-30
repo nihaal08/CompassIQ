@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CompassIQ — AI-Powered Ticket Intelligence{% endblock %}</title>
+    <meta name="description" content="{% block meta_desc %}CompassIQ is an AI-powered ticket intelligence system that classifies, routes, and resolves support tickets using NLP and machine learning.{% endblock %}">
     
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,74 +19,178 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div id="app">
-        <!-- ========== MAIN CONTENT ========== -->
-        <main class="main-content">
-            <!-- Scrolling Header -->
-            <header class="header">
-                <div class="header-content">
-                    <div class="header-left">
-                        <div class="header-breadcrumb">
-                            {% block breadcrumb %}Dashboard{% endblock %}
+    <!-- ====================================================
+         TOP NAVIGATION BAR
+         ==================================================== -->
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="navbar-inner">
+            <!-- Brand -->
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <div class="navbar-brand-icon">C</div>
+                <span class="navbar-brand-name">CompassIQ</span>
+            </a>
+
+            <!-- Navigation Links -->
+            {% if g.user %}
+                {% set role = g.user.role | lower %}
+                <ul class="navbar-nav" id="mainNav">
+                    {% if role == 'customer' %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('customer_dashboard') }}" class="nav-link {% if request.endpoint == 'customer_dashboard' %}active{% endif %}">
+                                <i class="bi bi-grid"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('create_ticket_page') }}" class="nav-link {% if request.endpoint == 'create_ticket_page' %}active{% endif %}">
+                                <i class="bi bi-plus-circle"></i> Create Ticket
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('my_tickets') }}" class="nav-link {% if request.endpoint == 'my_tickets' %}active{% endif %}">
+                                <i class="bi bi-ticket-perforated"></i> My Tickets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('customer_profile') }}" class="nav-link {% if request.endpoint == 'customer_profile' %}active{% endif %}">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+
+                    {% elif role == 'agent' %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('agent_dashboard') }}" class="nav-link {% if request.endpoint == 'agent_dashboard' %}active{% endif %}">
+                                <i class="bi bi-grid"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('agent_assigned_tickets') }}" class="nav-link {% if request.endpoint == 'agent_assigned_tickets' %}active{% endif %}">
+                                <i class="bi bi-list-task"></i> Assigned Tickets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('agent_intelligence') }}" class="nav-link {% if request.endpoint == 'agent_intelligence' %}active{% endif %}">
+                                <i class="bi bi-cpu"></i> AI Intelligence
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('agent_profile') }}" class="nav-link {% if request.endpoint == 'agent_profile' %}active{% endif %}">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+
+                    {% elif role == 'admin' %}
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                                <i class="bi bi-grid"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_tickets') }}" class="nav-link {% if request.endpoint == 'admin_tickets' %}active{% endif %}">
+                                <i class="bi bi-ticket-perforated"></i> Tickets
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_intelligence') }}" class="nav-link {% if request.endpoint == 'admin_intelligence' %}active{% endif %}">
+                                <i class="bi bi-cpu"></i> AI Intelligence
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_analytics') }}" class="nav-link {% if request.endpoint == 'admin_analytics' %}active{% endif %}">
+                                <i class="bi bi-bar-chart"></i> Analytics
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_users') }}" class="nav-link {% if request.endpoint == 'admin_users' %}active{% endif %}">
+                                <i class="bi bi-people"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_departments') }}" class="nav-link {% if request.endpoint == 'admin_departments' %}active{% endif %}">
+                                <i class="bi bi-diagram-3"></i> Departments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ url_for('admin_profile') }}" class="nav-link {% if request.endpoint == 'admin_profile' %}active{% endif %}">
+                                <i class="bi bi-person"></i> Profile
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Mobile View: User Account & Logout in drawer -->
+                    <li class="nav-item nav-item-mobile-user">
+                        <div class="navbar-mobile-user-card">
+                            <div class="navbar-user">
+                                <div class="navbar-avatar">{{ (g.user.custname or g.user.full_name or 'U')[0].upper() }}</div>
+                                <div>
+                                    <div class="navbar-user-name">{{ g.user.custname or g.user.full_name }}</div>
+                                    <div class="navbar-user-role">{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-nav-logout mobile-logout" onclick="showLogoutModal()">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            {% endif %}
+
+            <div class="navbar-spacer"></div>
+
+            <!-- Right side: user info + logout (Desktop) -->
+            <div class="navbar-right">
+                {% if g.user %}
+                    <div class="navbar-user">
+                        <div class="navbar-avatar">{{ (g.user.custname or g.user.full_name or 'U')[0].upper() }}</div>
+                        <div>
+                            <div class="navbar-user-name">{{ g.user.custname or g.user.full_name }}</div>
+                            <div class="navbar-user-role">{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}</div>
                         </div>
                     </div>
-                    <div class="header-actions">
-                        {% if g.user %}
-                            <a href="#" class="user-profile-pill">
-                                <div class="user-avatar">{{ g.user.custname[0].upper() }}</div>
-                                <span>{{ g.user.role|title }}</span>
-                                {% if g.user.deptid %}
-                                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ g.user.department }}</span>
-                                {% endif %}
-                            </a>
-                            <button type="button" class="user-profile-pill sign-out-pill" onclick="showLogoutModal()" style="background: #202126; border-color: rgba(255, 255, 255, 0.12); color: #9CA3AF;">
-                                <i class="bi bi-box-arrow-right"></i>
-                                <span>Sign Out</span>
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-wrapper">
-                {% block content %}{% endblock %}
+                    <button class="btn-nav-logout" onclick="showLogoutModal()">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </button>
+                {% endif %}
             </div>
-        </main>
-    </div>
 
-    <!-- ========== MODAL ALERTS ========== -->
+            <!-- Mobile toggle -->
+            {% if g.user %}
+            <button class="navbar-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle navigation" aria-expanded="false">
+                <i class="bi bi-list" style="font-size:1.25rem;"></i>
+            </button>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ====================================================
+         FLASH MESSAGES
+         ==================================================== -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
                 <div class="alert-modal-backdrop show" id="flashAlertModal_{{ loop.index }}">
                     <div class="alert-modal-box">
-                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)">
-                            &times;
-                        </button>
-
+                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)">&times;</button>
                         <h3 class="alert-modal-title">
                             {% if category == 'danger' %}
-                                <i class="bi bi-shield-x" style="color: var(--danger);"></i> Access Denied
+                                <i class="bi bi-shield-x" style="color:var(--danger);"></i> Error
                             {% elif category == 'success' %}
-                                <i class="bi bi-check2-circle" style="color: var(--success);"></i> Success
+                                <i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
                             {% elif category == 'warning' %}
-                                <i class="bi bi-exclamation-triangle" style="color: var(--warning);"></i> Notice
+                                <i class="bi bi-exclamation-triangle" style="color:var(--warning);"></i> Notice
                             {% else %}
-                                <i class="bi bi-info-circle" style="color: var(--info);"></i> Information
+                                <i class="bi bi-info-circle" style="color:var(--info);"></i> Information
                             {% endif %}
                         </h3>
-                        
                         <p class="alert-modal-message">{{ message }}</p>
-
                         <div class="alert-modal-buttons">
-                            <button type="button" class="btn btn-primary" onclick="closeFlashModal(this)">
-                                OK
-                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="closeFlashModal(this)">OK</button>
                         </div>
                     </div>
                 </div>
@@ -93,75 +198,112 @@
         {% endif %}
     {% endwith %}
 
-    <!-- ========== LOGOUT CONFIRMATION MODAL ========== -->
+    <!-- ====================================================
+         MAIN PAGE CONTENT
+         ==================================================== -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ====================================================
+         LOGOUT CONFIRMATION MODAL
+         ==================================================== -->
     <div class="alert-modal-backdrop" id="logoutModal">
         <div class="alert-modal-box">
-            <button type="button" class="modal-close-btn" onclick="closeLogoutModal()">
-                &times;
-            </button>
-
+            <button type="button" class="modal-close-btn" onclick="closeLogoutModal()">&times;</button>
             <h3 class="alert-modal-title">
-                <i class="bi bi-box-arrow-right" style="color: var(--accent-primary);"></i> Confirm Sign Out
+                <i class="bi bi-box-arrow-right" style="color:var(--accent);"></i> Confirm Logout
             </h3>
-            
-            <p class="alert-modal-message">Are you sure you want to end your current session?</p>
-
+            <p class="alert-modal-message">Are you sure you want to end your current session and logout?</p>
             <div class="alert-modal-buttons">
-                <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-primary" onclick="confirmLogout()">
-                    OK / Sign Out
-                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeLogoutModal()">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="confirmLogout()">Logout</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== SCRIPTS ========== -->
+    <!-- ====================================================
+         GLOBAL SCRIPTS
+         ==================================================== -->
     <script>
-        function closeFlashModal(button) {
-            const backdrop = button.closest('.alert-modal-backdrop');
-            if (backdrop) {
-                backdrop.classList.remove('show');
-                setTimeout(() => backdrop.remove(), 250);
+        // Nav toggle for mobile
+        function toggleNav() {
+            const nav = document.getElementById('mainNav');
+            const btn = document.getElementById('navToggle');
+            if (nav) {
+                nav.classList.toggle('open');
+                const isOpen = nav.classList.contains('open');
+                if (btn) {
+                    btn.innerHTML = isOpen ? '<i class="bi bi-x-lg" style="font-size:1.25rem;"></i>' : '<i class="bi bi-list" style="font-size:1.25rem;"></i>';
+                    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                }
             }
         }
 
+        // Close mobile nav when clicking outside
+        document.addEventListener('click', function(e) {
+            const nav = document.getElementById('mainNav');
+            const toggle = document.getElementById('navToggle');
+            if (nav && nav.classList.contains('open')) {
+                if (!nav.contains(e.target) && !toggle.contains(e.target)) {
+                    toggleNav();
+                }
+            }
+        });
+
+        // Flash modal management
+        function closeFlashModal(btn) {
+            const backdrop = btn.closest('.alert-modal-backdrop');
+            if (backdrop) { backdrop.classList.remove('show'); setTimeout(() => backdrop.remove(), 200); }
+        }
+
+        // Logout modal
         function showLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) {
-                modal.classList.add('show');
-            }
+            document.getElementById('logoutModal')?.classList.add('show');
         }
-
         function closeLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) {
-                modal.classList.remove('show');
-            }
+            document.getElementById('logoutModal')?.classList.remove('show');
         }
-
         function confirmLogout() {
             window.location.href = "{{ url_for('logout') }}";
         }
 
-        // Auto-close modal after 5 seconds if success
-        document.querySelectorAll('.alert-modal-backdrop.show').forEach(backdrop => {
-            const isSuccess = backdrop.querySelector('.alert-modal-title i.bi-check2-circle');
-            if (isSuccess) {
-                setTimeout(() => {
-                    backdrop.classList.remove('show');
-                    setTimeout(() => backdrop.remove(), 250);
-                }, 5000);
+        // Auto-close success modals
+        document.querySelectorAll('.alert-modal-backdrop.show').forEach(b => {
+            if (b.querySelector('.bi-check2-circle')) {
+                setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 200); }, 4000);
             }
         });
 
-        // Prevent browser back/forward cache navigation after logout
-        window.addEventListener('pageshow', function (event) {
-            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload();
-            }
+        // Prevent cache on back navigation
+        window.addEventListener('pageshow', e => {
+            if (e.persisted) window.location.reload();
         });
+
+        // Helper: status badge class
+        function getStatusClass(status) {
+            const map = {
+                'Submitted': 'badge-submitted', 'Under Review': 'badge-under-review',
+                'In Progress': 'badge-in-progress', 'Resolved': 'badge-resolved', 'Closed': 'badge-closed'
+            };
+            return map[status] || 'badge-submitted';
+        }
+
+        // Helper: priority badge class
+        function getPriorityClass(priority) {
+            const map = {
+                'Critical': 'badge-critical', 'High': 'badge-high',
+                'Medium': 'badge-medium', 'Low': 'badge-low'
+            };
+            return map[priority] || 'badge-medium';
+        }
+
+        // Format similarity score
+        function formatSim(score) {
+            if (!score && score !== 0) return '—';
+            const pct = typeof score === 'number' ? (score * 100).toFixed(0) : score;
+            return `${pct}%`;
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}System Tickets — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div>
+                <h1 class="page-title">System Ticket Registry</h1>
+                <p class="page-subtitle">Centralized record of all tickets created across departments and customers.</p>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost btn-sm">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card" style="margin-bottom:var(--space-lg);">
+        <div class="card-body" style="padding:var(--space-md);">
+            <form method="GET" action="{{ url_for('admin_tickets') }}" id="adminTicketsFilter">
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="q" class="form-control"
+                               placeholder="Search ticket ID, subject, or customer…"
+                               value="{{ request.args.get('q', '') }}">
+                    </div>
+                    <div class="filter-group">
+                        <select name="department" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Departments</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.deptname }}" {% if request.args.get('department') == dept.deptname %}selected{% endif %}>
+                                {{ dept.deptname }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Statuses</option>
+                            <option value="Submitted" {% if request.args.get('status') == 'Submitted' %}selected{% endif %}>Submitted</option>
+                            <option value="Under Review" {% if request.args.get('status') == 'Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="In Progress" {% if request.args.get('status') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if request.args.get('status') == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if request.args.get('status') == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                        <select name="priority" class="form-select" onchange="this.form.submit()">
+                            <option value="">All Priorities</option>
+                            <option value="Critical" {% if request.args.get('priority') == 'Critical' %}selected{% endif %}>Critical</option>
+                            <option value="High" {% if request.args.get('priority') == 'High' %}selected{% endif %}>High</option>
+                            <option value="Medium" {% if request.args.get('priority') == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="Low" {% if request.args.get('priority') == 'Low' %}selected{% endif %}>Low</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        {% if request.args.get('q') or request.args.get('department') or request.args.get('status') or request.args.get('priority') %}
+                        <a href="{{ url_for('admin_tickets') }}" class="btn btn-ghost btn-sm">
+                            <i class="bi bi-x"></i> Clear
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">All Tickets ({{ tickets|length }})</h2>
+        </div>
+        {% if tickets %}
+        <div class="table-wrapper" style="border:none;border-radius:0;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Subject</th>
+                        <th>Customer</th>
+                        <th>Department</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td><span class="ticket-id">{{ ticket.ticketno }}</span></td>
+                        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">
+                            {{ ticket.subject }}
+                        </td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">
+                            {{ ticket.customer_name or 'Customer #' ~ ticket.custid }}
+                        </td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);">
+                            {{ ticket.department_name or ticket.deptname or 'General' }}
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">
+                                {{ ticket.predicted_priority or 'Medium' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
+                            <span class="badge badge-{{ s }}">{{ ticket.status or 'Submitted' }}</span>
+                        </td>
+                        <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                            {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
+                        </td>
+                        <td style="text-align:right;">
+                            <div style="display:inline-flex;gap:4px;">
+                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm" title="View details in workspace">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                {% if ticket.status not in ['Closed'] %}
+                                <form method="POST" action="{{ url_for('admin_close_ticket', ticket_id=ticket.ticketno) }}" onsubmit="return confirm('Close ticket {{ ticket.ticketno }}?');" style="display:inline;">
+                                    <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);" title="Close ticket">
+                                        <i class="bi bi-x-circle"></i> Close
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-ticket-perforated empty-state-icon"></i>
+            <div class="empty-state-title">No matching tickets found</div>
+            <p class="empty-state-desc">Try clearing your search query or filters to display tickets.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

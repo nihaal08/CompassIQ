@@ -301,7 +301,8 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
             subject, description, historical_tickets, top_k=top_k
         )
         for ticket in similar_tickets:
-            ticket['description'] = ticket.get('description') or ticket.get('resolution_notes', '')
+            ticket['description'] = ticket.get('description') or ''
+            ticket['resolution_notes'] = ticket.get('resolution_notes') or ''
     except Exception as similarity_error:
         print(f"[AI Engine] Similarity retrieval skipped: {similarity_error}")
 
@@ -342,10 +343,9 @@ def compute_similar_tickets(subject: str, description: str, historical_tickets: 
     global vectorizer, _is_initialized
     
     if not _is_initialized or vectorizer is None:
-        print("[AI Engine] Warning: Vectorizer not loaded, cannot compute similar tickets")
-        return []
+        load_ai_engine()
     
-    if not historical_tickets:
+    if vectorizer is None or not historical_tickets:
         return []
     
     try:
@@ -365,8 +365,9 @@ def compute_similar_tickets(subject: str, description: str, historical_tickets: 
         for idx, ticket in enumerate(historical_tickets):
             scored_tickets.append({
                 'ticket_id': ticket.get('ticket_id', 'UNKNOWN'),
-                'subject': ticket['subject'],
-                'description': ticket['description'],
+                'subject': ticket.get('subject', ''),
+                'description': ticket.get('description', ''),
+                'resolution_notes': ticket.get('resolution_notes') or '',
                 'similarity_score': float(similarities[idx]),
                 'resolution_hours': ticket.get('resolution_hours', None)
             })

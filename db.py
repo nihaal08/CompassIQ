@@ -158,9 +158,11 @@ def ensure_demo_accounts(conn):
     from werkzeug.security import generate_password_hash
     
     # Pre-generate hashes for standard demo credentials
-    admin_pwd_hash = generate_password_hash('Admin@123', method='scrypt')
-    agent_pwd_hash = generate_password_hash('Agent@123', method='scrypt')
-    user_pwd_hash = generate_password_hash('Customer@123', method='scrypt')
+    admin_pwd_hash = generate_password_hash('password123', method='scrypt')
+    agent_pwd_hash = generate_password_hash('password123', method='scrypt')
+    user_pwd_hash = generate_password_hash('password123', method='scrypt')
+    nihal_pwd_hash = generate_password_hash('Nihal@123', method='scrypt')
+    aizen_pwd_hash = generate_password_hash('Aizen@123', method='scrypt')
     
     # Clean, strictly standardized demo accounts (1 per role/department)
     agent_accounts = [
@@ -220,6 +222,20 @@ def ensure_demo_accounts(conn):
             'custname': 'Customer Client',
             'phone_no': '9876543210',
             'password_hash': user_pwd_hash,
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'nihal@gmail.com',
+            'custname': 'Nihal',
+            'phone_no': '9876543211',
+            'password_hash': nihal_pwd_hash,
+            'account_status': 'APPROVED'
+        },
+        {
+            'email': 'aizen@gmail.com',
+            'custname': 'Aizen',
+            'phone_no': '9876543212',
+            'password_hash': aizen_pwd_hash,
             'account_status': 'APPROVED'
         }
     ]
@@ -301,16 +317,30 @@ def ensure_demo_accounts(conn):
                       account['phone_no'], account['account_status']))
                 print(f"[CompassIQ DB] Created demo customer: {account['email']}")
                 
-        # Remap foreign keys before purging duplicate accounts
-        # 1. Remap complaints custid to retained customer@compassiq.com
+        # Map ticket ownership to corresponding users
+        cursor.execute("SELECT custid FROM customers WHERE LOWER(email) = 'nihal@gmail.com'")
+        nihal_row = cursor.fetchone()
+        if nihal_row:
+            n_custid = nihal_row['custid']
+            cursor.execute("""
+                UPDATE complaints 
+                SET custid = ? 
+                WHERE ticketno IN ('TKT-TECH-0101', 'TKT-BILL-0202', 'TKT-ACCT-0303', 'TKT-GEN-0404', 'TKT-FRD-0505')
+            """, (n_custid,))
+
+        cursor.execute("SELECT custid FROM customers WHERE LOWER(email) = 'aizen@gmail.com'")
+        aizen_row = cursor.fetchone()
+        if aizen_row:
+            a_custid = aizen_row['custid']
+            cursor.execute("UPDATE complaints SET custid = ? WHERE ticketno = 'TKT-AIZEN-099'", (a_custid,))
+
         cursor.execute("SELECT custid FROM customers WHERE LOWER(email) = 'customer@compassiq.com'")
         primary_cust = cursor.fetchone()
         if primary_cust:
             p_custid = primary_cust['custid']
-            cursor.execute("UPDATE complaints SET custid = ? WHERE custid != ?", (p_custid, p_custid))
-            cursor.execute("UPDATE ticket_replies SET sender_id = ? WHERE sender_id IN (SELECT custid FROM customers WHERE custid != ?)", (p_custid, p_custid))
+            cursor.execute("UPDATE complaints SET custid = ? WHERE custid IS NULL", (p_custid,))
 
-        # 2. Remap assigned agents in complaints to retained agents per department
+        # Remap assigned agents in complaints to retained agents per department
         cursor.execute("SELECT agent_id FROM department_agents WHERE LOWER(email) = 'tech.agent@compassiq.com'")
         tech_agent = cursor.fetchone()
         if tech_agent:
@@ -335,24 +365,6 @@ def ensure_demo_accounts(conn):
         fraud_agent = cursor.fetchone()
         if fraud_agent:
             cursor.execute("UPDATE complaints SET assigned_agent_id = ? WHERE deptid = 5", (fraud_agent['agent_id'],))
-
-        # 3. Purge duplicate department agents and customers
-        cursor.execute("""
-            DELETE FROM department_agents 
-            WHERE LOWER(email) NOT IN (
-                'admin@compassiq.com', 
-                'tech.agent@compassiq.com', 
-                'billing.agent@compassiq.com', 
-                'account.agent@compassiq.com', 
-                'general.agent@compassiq.com',
-                'fraud.agent@compassiq.com'
-            )
-        """)
-        cursor.execute("""
-            DELETE FROM customers 
-            WHERE LOWER(email) NOT IN ('customer@compassiq.com')
-        """)
-        print("[CompassIQ DB] Duplicate demo accounts purged and foreign keys remapped.")
                 
         # Ensure unified users view exists with clean role, department, and active status
         cursor.execute("DROP VIEW IF EXISTS users;")

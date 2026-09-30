@@ -1,175 +1,91 @@
-/* ==========================================================================
-   CompassIQ — CSS Variables & Design Tokens
-   Premium Dark Monochrome Theme — Black/Charcoal Palette
-   ========================================================================== */
+/* ============================================================
+   CompassIQ — Design System Variables
+   Deep Dark Purple + Warm Gold/Beige Luxury SaaS Theme
+   ============================================================ */
 
 :root {
-  /* ====== TYPOGRAPHY ====== */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-size-base: 14px;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  /* ── Primary Colors ── */
+  --primary: #24192B;
+  --primary-light: #2D2033;
+  --primary-dark: #1A1220;
+  --accent: #C4AE92;
+  --accent-light: #D4C3AC;
+  --accent-dark: #A9957D;
 
-  /* ====== COLOR PALETTE — Premium Dark Monochrome ====== */
-  /* Primary Accent — Neutral Monochrome */
-  --accent-gradient: linear-gradient(135deg, #E8E8E8, #FFFFFF);
-  --accent-primary: #E8E8E8;            /* Light gray */
-  --accent-secondary: #D5D5D5;         /* Neutral gray */
-  --accent-tertiary: #C5C5C5;           /* Muted gray */
+  /* ── Backgrounds (Dark SaaS) ── */
+  --bg-page: #1A1220;
+  --bg-surface: #24192B;
+  --bg-subtle: #2D2033;
+  --bg-muted: #33263A;
 
-  /* Backgrounds — Deep Black/Charcoal */
-  --bg-primary: #111214;                /* Deep black background */
-  --bg-secondary: #18191C;              /* Dark charcoal secondary */
-  --bg-canvas: radial-gradient(circle at top, #1A1B1F 0%, #111214 45%, #0D0E10 100%);
-  --bg-canvas-solid: #111214;           /* Solid fallback */
+  /* ── Text ── */
+  --text-primary: #F5F1EC;
+  --text-secondary: #C8C0CC;
+  --text-muted: #968D9C;
+  --text-light: #FAF8F5;
 
-  /* Surface & Cards — Dark Charcoal */
-  --card-bg: #18191C;                   /* Dark charcoal surface */
-  --card-bg-hover: #1D1E22;             /* Slightly lighter charcoal */
-  --card-bg-solid: #202126;             /* Input/card background */
+  /* ── Borders ── */
+  --border: rgba(196, 174, 146, 0.20);
+  --border-strong: rgba(196, 174, 146, 0.35);
+  --border-subtle: rgba(196, 174, 146, 0.12);
 
-  /* Borders & Dividers — Subtle Gray */
-  --border-color: rgba(255, 255, 255, 0.10);
-  --border-color-hover: rgba(255, 255, 255, 0.18);
-  --border-accent: rgba(255, 255, 255, 0.12);
+  /* ── Status Colors ── */
+  --success: #4ADE80;
+  --success-bg: rgba(74, 222, 128, 0.12);
+  --success-border: rgba(74, 222, 128, 0.35);
+  --warning: #FBBF24;
+  --warning-bg: rgba(251, 191, 36, 0.12);
+  --warning-border: rgba(251, 191, 36, 0.35);
+  --danger: #F87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  --danger-border: rgba(248, 113, 113, 0.35);
+  --info: #60A5FA;
+  --info-bg: rgba(96, 165, 250, 0.12);
+  --info-border: rgba(96, 165, 250, 0.35);
 
-  /* Typography — White/Off-White/Gray */
-  --text-main: #F5F5F5;                 /* Primary white headings */
-  --text-secondary: #B5B5B5;           /* Light gray secondary text */
-  --text-muted: #858585;                /* Muted gray text */
-  --text-light: rgba(255, 255, 255, 0.7);
+  /* ── Priority Colors ── */
+  --priority-critical: #F87171;
+  --priority-critical-bg: rgba(248, 113, 113, 0.18);
+  --priority-high: #FB923C;
+  --priority-high-bg: rgba(251, 146, 60, 0.18);
+  --priority-medium: #FBBF24;
+  --priority-medium-bg: rgba(251, 191, 36, 0.18);
+  --priority-low: #4ADE80;
+  --priority-low-bg: rgba(74, 222, 128, 0.18);
 
-  /* Semantic Feedback Colors — Muted Neutral */
-  --success: #9CA3AF;                   /* Muted gray-green */
-  --success-bg: rgba(156, 163, 175, 0.15);
-  --success-border: rgba(156, 163, 175, 0.3);
-  
-  --warning: #D1D5DB;                   /* Light gray */
-  --warning-bg: rgba(209, 213, 219, 0.15);
-  --warning-border: rgba(209, 213, 219, 0.3);
-  
-  --danger: #9CA3AF;                    /* Muted gray-red */
-  --danger-bg: rgba(156, 163, 175, 0.15);
-  --danger-border: rgba(156, 163, 175, 0.3);
-  
-  --info: #9CA3AF;                      /* Muted gray */
-  --info-bg: rgba(156, 163, 175, 0.15);
-  --info-border: rgba(156, 163, 175, 0.3);
+  /* ── Navbar ── */
+  --navbar-bg: #1A1220;
+  --navbar-text: rgba(245, 241, 236, 0.85);
+  --navbar-text-active: #F5F1EC;
+  --navbar-accent: #C4AE92;
+  --navbar-border: rgba(196, 174, 146, 0.15);
+  --navbar-height: 60px;
 
-  /* Status Colors — Muted Neutral Variants */
-  --status-submitted: #9CA3AF;
-  --status-submitted-bg: rgba(156, 163, 175, 0.15);
-  --status-submitted-border: rgba(156, 163, 175, 0.3);
-  
-  --status-review: #D1D5DB;
-  --status-review-bg: rgba(209, 213, 219, 0.15);
-  --status-review-border: rgba(209, 213, 219, 0.3);
-  
-  --status-progress: #A1A1AA;
-  --status-progress-bg: rgba(161, 161, 170, 0.15);
-  --status-progress-border: rgba(161, 161, 170, 0.3);
-  
-  --status-resolved: #9CA3AF;
-  --status-resolved-bg: rgba(156, 163, 175, 0.15);
-  --status-resolved-border: rgba(156, 163, 175, 0.3);
-  
-  --status-closed: #6B7280;
-  --status-closed-bg: rgba(107, 114, 128, 0.15);
-  --status-closed-border: rgba(107, 114, 128, 0.3);
+  /* ── Typography ── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
-  /* Priority Colors — Muted Neutral Variants */
-  --priority-low: #9CA3AF;
-  --priority-low-bg: rgba(156, 163, 175, 0.15);
-  --priority-low-border: rgba(156, 163, 175, 0.3);
-  
-  --priority-medium: #D1D5DB;
-  --priority-medium-bg: rgba(209, 213, 219, 0.15);
-  --priority-medium-border: rgba(209, 213, 219, 0.3);
-  
-  --priority-high: #E5E7EB;
-  --priority-high-bg: rgba(229, 231, 235, 0.15);
-  --priority-high-border: rgba(229, 231, 235, 0.3);
-  
-  --priority-critical: #F3F4F6;
-  --priority-critical-bg: rgba(243, 244, 246, 0.15);
-  --priority-critical-border: rgba(243, 244, 246, 0.3);
+  /* ── Spacing ── */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
 
-  /* Category Colors — Muted Neutral Variants */
-  --category-technical: #9CA3AF;
-  --category-technical-bg: rgba(156, 163, 175, 0.15);
-  --category-technical-border: rgba(156, 163, 175, 0.3);
-  
-  --category-billing: #D1D5DB;
-  --category-billing-bg: rgba(209, 213, 219, 0.15);
-  --category-billing-border: rgba(209, 213, 219, 0.3);
-  
-  --category-account: #A1A1AA;
-  --category-account-bg: rgba(161, 161, 170, 0.15);
-  --category-account-border: rgba(161, 161, 170, 0.3);
-  
-  --category-inquiry: #6B7280;
-  --category-inquiry-bg: rgba(107, 114, 128, 0.15);
-  --category-inquiry-border: rgba(107, 114, 128, 0.3);
-
-  /* Legacy color aliases for compatibility */
-  --primary: #E8E8E8;
-  --primary-dark: #D1D5DB;
-  --primary-light: rgba(232, 232, 232, 0.15);
-  --accent-green: #9CA3AF;
-  --accent-lime: #9CA3AF;
-  --accent-teal: #9CA3AF;
-  --accent-hover: #D5D5D5;
-  --surface-mint: rgba(156, 163, 175, 0.15);
-  --surface-mint-light: rgba(156, 163, 175, 0.2);
-  --surface-white: #18191C;
-  --surface-subtle: #141518;
-  --surface-hover: #292A2E;
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-mint: rgba(156, 163, 175, 0.3);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --text-primary: #F5F5F5;
-  --text-secondary: #B5B5B5;
-  --text-muted: #858585;
-  --text-light: rgba(255, 255, 255, 0.5);
-
-  /* ====== SPACING ====== */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 16px;
-  --spacing-xl: 24px;
-  --spacing-2xl: 32px;
-  --spacing-3xl: 48px;
-
-  /* ====== BORDER RADIUS ====== */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* ── Border Radius ── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
   --radius-full: 9999px;
 
-  /* ====== SHADOWS ====== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.3);
+  /* ── Shadows (Dark SaaS) ── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.55);
 
-  /* ====== LAYOUT ====== */
-  --sidebar-width: 260px;
-  --header-height: 64px;
-  --mobile-breakpoint: 768px;
-  --tablet-breakpoint: 1024px;
-
-  /* ====== Z-INDEX ====== */
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
-  --z-fixed: 1030;
-  --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
-  --z-tooltip: 1070;
+  /* ── Transitions ── */
+  --transition: 150ms ease;
+  --transition-md: 250ms ease;
 }

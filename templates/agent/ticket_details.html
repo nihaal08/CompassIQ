@@ -1,100 +1,410 @@
 {% extends "base.html" %}
-
-{% block title %}Ticket {{ ticket.ticketno or ticket.ticket_id }} - CompassIQ{% endblock %}
-
-{% block breadcrumb %}
-<a href="{{ url_for('agent_dashboard') }}" style="color: var(--text-muted); text-decoration: none;">Agent Dashboard</a>
-<span style="color: var(--text-muted);"> / Ticket Details / </span>
-<span style="color: var(--accent-green); font-family: 'Courier New', monospace;">{{ ticket.ticketno or ticket.ticket_id }}</span>
-{% endblock %}
+{% block title %}{{ ticket.ticketno }} — Agent Workspace — CompassIQ{% endblock %}
 
 {% block content %}
-<style>
-    .ticket-details-page {
-        max-width: 980px;
-    }
+<div class="page-content">
+<div class="page-container">
 
-    .ticket-meta-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: var(--spacing-md);
-        margin-top: var(--spacing-lg);
-    }
-
-    .ticket-meta-label {
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        margin-bottom: 4px;
-    }
-
-    .ticket-meta-value {
-        color: #F3F4F6;
-        font-size: 0.92rem;
-    }
-
-</style>
-
-<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-xl);">
-    <div>
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
-            <span style="font-family: 'Courier New', monospace; color: var(--accent-green); font-size: 1.25rem; font-weight: 700;">{{ ticket.ticketno or ticket.ticket_id }}</span>
-            <span class="badge badge-status-{{ (ticket.status or 'Submitted')|replace(' ', '') }}">{{ ticket.status or 'Submitted' }}</span>
-            <span class="badge badge-priority-{{ ticket.predicted_priority or 'Medium' }}">{{ ticket.predicted_priority or 'Medium' }}</span>
-        </div>
-        <h1 class="page-title" style="margin: 0;">{{ ticket.subject or 'No Subject' }}</h1>
+    <!-- Back -->
+    <div style="margin-bottom:var(--space-md);">
+        <a href="{{ url_for('agent_assigned_tickets') }}" class="btn btn-ghost btn-sm">
+            <i class="bi bi-arrow-left"></i> Assigned Tickets
+        </a>
     </div>
-    <a href="{{ url_for('agent_dashboard') }}" class="btn btn-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
-    </a>
-</div>
 
-<div class="ticket-details-page">
-    <main>
-        <section class="card" style="margin-bottom: var(--spacing-xl);">
-            <div class="card-header">
-                <h2 class="card-title">Ticket Information</h2>
-                <div class="ticket-meta-grid">
-                    <div><div class="ticket-meta-label">Created</div><div class="ticket-meta-value">{{ ticket.submitdate or 'N/A' }}</div></div>
-                    <div><div class="ticket-meta-label">Department</div><div class="ticket-meta-value">{{ ticket.department_name or 'General Inquiry' }}</div></div>
-                    <div><div class="ticket-meta-label">Category</div><div class="ticket-meta-value">{{ ticket.predicted_category or 'Not classified' }}</div></div>
-                    <div><div class="ticket-meta-label">Customer</div><div class="ticket-meta-value">{{ customer.name or 'Customer Client' }}</div></div>
-                    <div><div class="ticket-meta-label">Email</div><div class="ticket-meta-value">{{ customer.email or 'customer@compassiq.com' }}</div></div>
-                </div>
-            </div>
-            <div class="card-body">
-                <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">Original Issue</h3>
-                <div style="font-weight: 600; color: #F3F4F6; margin-bottom: var(--spacing-md);">{{ ticket.subject or 'No Subject' }}</div>
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius-md); padding: var(--spacing-lg); color: #E5E7EB; line-height: 1.6; white-space: pre-wrap;">{{ ticket.description or 'No description provided.' }}</div>
-            </div>
-        </section>
-
-        <section class="card">
-            <div class="card-header">
-                <h2 class="card-title">Agent Resolution</h2>
-                <p class="card-subtitle">Send a response and update the ticket workflow.</p>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('agent_ticket_resolve', ticket_id=ticket.ticketno) }}">
-                    <label class="form-label" for="resolution_notes">Quick Reply / Resolution Notes</label>
-                    <textarea id="resolution_notes" name="resolution_notes" class="form-textarea agent-resolution-notes" rows="6" required placeholder="Explain the response sent to the customer, troubleshooting performed, or resolution steps taken.">{{ ticket.resolution_notes or '' }}</textarea>
-                    <div style="display: flex; align-items: end; justify-content: space-between; gap: var(--spacing-md); flex-wrap: wrap; margin-top: var(--spacing-lg);">
-                        <div style="min-width: 220px; flex: 1;">
-                            <label class="form-label" for="status">Ticket Status</label>
-                            <select id="status" name="status" class="form-select agent-resolution-status" required>
-                                <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check2-circle"></i> Submit Response / Resolve Ticket
-                        </button>
+    <!-- Ticket Header -->
+    <div class="card" style="margin-bottom:var(--space-lg);">
+        <div class="card-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-lg);flex-wrap:wrap;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-sm);">
+                        <span class="ticket-id">{{ ticket.ticketno }}</span>
+                        {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
+                        <span class="badge badge-{{ s }}">{{ ticket.status }}</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority or 'Medium' }}</span>
                     </div>
+                    <h1 style="font-size:1.25rem;font-weight:700;color:var(--text-primary);margin:0 0 0.5rem;">{{ ticket.subject }}</h1>
+                    <div style="display:flex;gap:var(--space-lg);flex-wrap:wrap;font-size:0.8125rem;color:var(--text-muted);">
+                        <span><i class="bi bi-person"></i> {{ ticket.customer_name }}</span>
+                        <span><i class="bi bi-envelope"></i> {{ ticket.customer_email }}</span>
+                        <span><i class="bi bi-diagram-3"></i> {{ ticket.department_name }}</span>
+                        <span><i class="bi bi-calendar3"></i> {{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</span>
+                    </div>
+                </div>
+                <!-- Quick status update -->
+                <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="quickStatusForm" style="display:flex;gap:var(--space-sm);align-items:center;flex-wrap:wrap;">
+                    <input type="hidden" name="resolution_notes" id="quickNotes" value="">
+                    <select name="status" class="form-select" style="width:auto;" id="quickStatus">
+                        <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="quickUpdate()">
+                        <i class="bi bi-arrow-repeat"></i> Update Status
+                    </button>
                 </form>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
+
+    <!-- Workspace Grid: Main + Sidebar -->
+    <div class="workspace-grid">
+
+        <!-- 1. CONVERSATION COLUMN -->
+        <div class="workspace-conversation">
+
+            <!-- Issue Description -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Issue Description</h2>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:0.9375rem;line-height:1.65;color:var(--text-primary);white-space:pre-wrap;">{{ ticket.description }}</p>
+                </div>
+            </div>
+
+            <!-- Conversation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Conversation</h2>
+                </div>
+                <div class="card-body">
+                    {% if replies %}
+                    <div class="conversation" id="conversationThread">
+                        {% for reply in replies %}
+                        <div class="message-bubble {{ 'customer' if reply.sender_role == 'customer' else 'agent' }}">
+                            <div class="message-sender">{{ reply.sender_name }}</div>
+                            <div class="message-body">{{ reply.message }}</div>
+                            <div class="message-time">{{ reply.created_at[:16] if reply.created_at else '' }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;">
+                        <div class="empty-state-title">No messages yet</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 2. AI SIDEBAR -->
+        <div class="workspace-sidebar">
+
+            <!-- CompassIQ Analysis -->
+            <div class="ml-analysis">
+                <div class="ml-analysis-header">
+                    <i class="bi bi-cpu"></i> CompassIQ Analysis
+                </div>
+                <div class="ml-analysis-body">
+                    <div class="ml-row">
+                        <span class="ml-row-label">Category</span>
+                        <span class="ml-row-value">{{ ticket.predicted_category }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Priority</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Department</span>
+                        <span class="ml-row-value">{{ ticket.department_name }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Assigned To</span>
+                        <span class="ml-row-value">{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar Historical Tickets & Resolutions -->
+            <div class="card" style="border: 1px solid var(--border-strong);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);">
+                    <div>
+                        <h2 class="card-title" style="font-size:0.875rem;display:flex;align-items:center;gap:0.35rem;">
+                            <i class="bi bi-robot" style="color:var(--accent);"></i> Similar Tickets &amp; Resolutions
+                        </h2>
+                        <span style="font-size:0.7rem;color:var(--text-muted);">TF-IDF Cosine Similarity Search</span>
+                    </div>
+                    <button type="button" class="btn btn-accent btn-sm" id="btnFindSimilarAgent" onclick="findSimilarTicketsAgent('{{ ticket.ticketno }}')">
+                        <i class="bi bi-search"></i> Find Similar Tickets
+                    </button>
+                </div>
+                <div class="card-body" id="similarAgentContainer" style="padding:var(--space-md);">
+                    {% if similar_matches %}
+                        {% for match in similar_matches %}
+                        <div class="similar-ticket-card" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.75rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+                                <span class="ticket-id" style="font-size:0.75rem;">{{ match.similar_ticket_ref_id or match.ticket_id }}</span>
+                                <span class="badge badge-resolved" style="font-size:0.7rem;">{{ (match.similarity_score * 100) | int }}% Match</span>
+                            </div>
+                            <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">
+                                {{ match.similar_subject or match.subject }}
+                            </div>
+                            {% if match.department_name %}
+                            <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.35rem;">
+                                <i class="bi bi-diagram-3"></i> {{ match.department_name }}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Problem preview -->
+                            {% if match.description and match.description != match.resolution_notes %}
+                            <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.4rem;line-height:1.4;">
+                                <strong>Issue:</strong> {{ match.description[:110] }}{{ '…' if match.description | length > 110 else '' }}
+                            </div>
+                            {% endif %}
+
+                            <!-- Resolution Box -->
+                            <div style="background:rgba(196, 174, 146, 0.08);border:1px solid rgba(196, 174, 146, 0.25);border-left:3px solid var(--accent);border-radius:4px;padding:0.5rem 0.65rem;margin-top:0.4rem;">
+                                <div style="font-size:0.7rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:0.3rem;margin-bottom:0.25rem;">
+                                    <i class="bi bi-check-circle-fill"></i> Department Resolution:
+                                </div>
+                                <div class="resolution-text-content" style="font-size:0.78rem;color:var(--text-primary);line-height:1.45;">
+                                    {{ match.resolution_notes or match.similar_description or 'Resolution documented in closed case.' }}
+                                </div>
+                            </div>
+                            
+                            <!-- Action button -->
+                            <div style="margin-top:0.5rem;display:flex;justify-content:flex-end;">
+                                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="useSpecificResolution(this.getAttribute('data-res'))" data-res="{{ (match.resolution_notes or match.similar_description or '') | e }}">
+                                    <i class="bi bi-clipboard-plus"></i> Use This Resolution
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align:center;padding:1.25rem 0.5rem;" id="similarAgentEmpty">
+                            <i class="bi bi-robot" style="font-size:1.75rem;color:var(--accent);margin-bottom:0.5rem;display:block;"></i>
+                            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:0.75rem;">Click "Find Similar Tickets" to retrieve past matching tickets and their department solutions.</p>
+                            <button type="button" class="btn btn-accent btn-sm" onclick="findSimilarTicketsAgent('{{ ticket.ticketno }}')">
+                                <i class="bi bi-search"></i> Search Similar Tickets Now
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" style="font-size:0.875rem;">Timeline</h2>
+                </div>
+                <div class="card-body" style="padding:var(--space-md);">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot success"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Ticket created</p>
+                                <p class="timeline-time">{{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">AI analyzed → <strong>{{ ticket.department_name }}</strong></p>
+                                <p class="timeline-time">Automated</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if ticket.status != 'Submitted' %}active{% endif %}"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Status: <strong>{{ ticket.status }}</strong></p>
+                                <p class="timeline-time">Current</p>
+                            </div>
+                        </div>
+                        {% if ticket.status in ['Resolved', 'Closed'] %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot success"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Resolved</p>
+                                <p class="timeline-time">{{ ticket.resolved_at[:16] if ticket.resolved_at else '' }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- 3. RESPONSE COMPOSER -->
+        <div class="workspace-composer">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Send Response & Resolve</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="resolveForm">
+                        <div class="form-group">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-xs);">
+                                <label class="form-label" style="margin:0;">Resolution Notes / Response <span class="required">*</span></label>
+                            </div>
+                            <textarea id="resolutionTextarea" name="resolution_notes" class="form-control" rows="5"
+                                      placeholder="Enter your response to the customer. You can use the suggested resolution from the sidebar as a starting point."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Update Status <span class="required">*</span></label>
+                            <select name="status" class="form-select">
+                                <option value="In Progress">In Progress</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Send Response
+                            </button>
+                            <button type="button" class="btn btn-ghost" onclick="document.getElementById('resolutionTextarea').value = ''">
+                                <i class="bi bi-x"></i> Clear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentSimilarTickets = [];
+
+    function useSpecificResolution(resText) {
+        const textarea = document.getElementById('resolutionTextarea');
+        if (textarea && resText) {
+            textarea.value = resText.trim();
+            textarea.focus();
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function useResolution() {
+        const resText = document.getElementById('suggestedResText');
+        if (resText) {
+            useSpecificResolution(resText.textContent);
+        }
+    }
+
+    function applySimilarResolution(index) {
+        if (currentSimilarTickets && currentSimilarTickets[index]) {
+            const t = currentSimilarTickets[index];
+            const res = t.resolution_notes || t.description || '';
+            useSpecificResolution(res);
+        }
+    }
+
+    async function findSimilarTicketsAgent(ticketNo) {
+        const btn = document.getElementById('btnFindSimilarAgent');
+        const container = document.getElementById('similarAgentContainer');
+        if (!container) return;
+
+        const originalBtnText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.75rem;height:0.75rem;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.75s linear infinite;margin-right:4px;"></span> Searching...';
+        }
+
+        try {
+            const resp = await fetch(`/api/tickets/${encodeURIComponent(ticketNo)}/similar`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            
+            if (!resp.ok) {
+                const errData = await resp.json().catch(() => null);
+                const errMsg = (errData && errData.error) ? errData.error : `Server returned status ${resp.status}`;
+                throw new Error(errMsg);
+            }
+
+            const data = await resp.json();
+
+            if (data.success && data.similar_tickets && data.similar_tickets.length > 0) {
+                currentSimilarTickets = data.similar_tickets;
+                let html = '';
+                data.similar_tickets.forEach((ticket, idx) => {
+                    const matchPercent = ticket.match_percent || Math.round((ticket.similarity_score || 0.8) * 100);
+                    const resolution = ticket.resolution_notes || ticket.description || 'Resolution confirmed by team.';
+                    
+                    html += `
+                        <div class="similar-ticket-card" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.75rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+                                <span class="ticket-id" style="font-size:0.75rem;">${escapeHtml(ticket.ticket_id || ticket.similar_ticket_ref_id)}</span>
+                                <span class="badge badge-resolved" style="font-size:0.7rem;">${matchPercent}% Match</span>
+                            </div>
+                            <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">
+                                ${escapeHtml(ticket.subject || 'Similar Incident')}
+                            </div>
+                            ${ticket.department_name ? `
+                                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.35rem;">
+                                    <i class="bi bi-diagram-3"></i> ${escapeHtml(ticket.department_name)}
+                                </div>
+                            ` : ''}
+                            ${ticket.description && ticket.description !== ticket.resolution_notes ? `
+                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.4rem;line-height:1.4;">
+                                    <strong>Issue:</strong> ${escapeHtml(ticket.description.substring(0, 110))}${ticket.description.length > 110 ? '…' : ''}
+                                </div>
+                            ` : ''}
+                            <div style="background:rgba(196, 174, 146, 0.08);border:1px solid rgba(196, 174, 146, 0.25);border-left:3px solid var(--accent);border-radius:4px;padding:0.5rem 0.65rem;margin-top:0.4rem;">
+                                <div style="font-size:0.7rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:0.3rem;margin-bottom:0.25rem;">
+                                    <i class="bi bi-check-circle-fill"></i> Department Resolution:
+                                </div>
+                                <div class="resolution-text-content" style="font-size:0.78rem;color:var(--text-primary);line-height:1.45;">
+                                    ${escapeHtml(resolution)}
+                                </div>
+                            </div>
+                            <div style="margin-top:0.5rem;display:flex;justify-content:flex-end;">
+                                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="applySimilarResolution(${idx})">
+                                    <i class="bi bi-clipboard-plus"></i> Use This Resolution
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:1rem;">
+                        <i class="bi bi-info-circle" style="font-size:1.5rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;"></i>
+                        <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0;">No resolved tickets with significant cosine similarity found in corpus.</p>
+                    </div>
+                `;
+            }
+        } catch (err) {
+            console.error('Similarity fetch error:', err);
+            container.innerHTML = `
+                <div style="text-align:center;padding:1rem;color:var(--danger);">
+                    <i class="bi bi-exclamation-triangle"></i> Failed to compute similarity: ${escapeHtml(err.message || 'Please try again.')}
+                </div>
+            `;
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalBtnText;
+            }
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function quickUpdate() {
+        const status = document.getElementById('quickStatus').value;
+        const notes = document.getElementById('resolutionTextarea')?.value || 'Status updated.';
+        document.getElementById('quickNotes').value = notes;
+
+        if (status === 'Resolved' && !notes.trim()) {
+            alert('Please enter resolution notes before resolving.');
+            return;
+        }
+        document.getElementById('quickStatusForm').querySelector('[name="resolution_notes"]').value = notes || 'Status updated.';
+        document.getElementById('quickStatusForm').submit();
+    }
+</script>
 {% endblock %}

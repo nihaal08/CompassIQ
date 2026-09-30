@@ -1,224 +1,90 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}Administrator Dashboard — CompassIQ{% endblock %}
-{% block breadcrumb %}Administration{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-title">Administrator Dashboard</h1>
-    <p class="page-subtitle">System overview and ticket management</p>
-</div>
+<div class="page-content">
+<div class="page-container">
 
-<!-- KPI Metric Cards -->
-<div id="admin-kpi-summary" class="kpi-grid">
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-ticket-perforated"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Total Tickets</div>
-            <div class="metric-value">{{ metrics.total_tickets }}</div>
-            <div class="metric-trend text-muted">Across all departments</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper" style="background-color: var(--warning-bg); color: var(--warning);">
-            <i class="bi bi-inbox"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Open Tickets</div>
-            <div class="metric-value">{{ metrics.total_tickets - metrics.resolved_tickets }}</div>
-            <div class="metric-trend text-muted">Awaiting resolution</div>
-        </div>
-    </div>
-    <div class="metric-card">
-        <div class="metric-icon-wrapper">
-            <i class="bi bi-check2-circle"></i>
-        </div>
-        <div class="metric-content">
-            <div class="metric-label">Resolved Tickets</div>
-            <div class="metric-value">{{ metrics.resolved_tickets }}</div>
-            <div class="metric-trend text-muted">Successfully completed</div>
-        </div>
-    </div>
-</div>
-
-<!-- Analytics Chart -->
-<div id="admin-analytics-section" class="chart-card">
-    <div class="card-header">
-        <h3 class="card-title">Category Distribution</h3>
-    </div>
-    <div class="card-body">
-        <div class="chart-wrapper">
-            <canvas id="deptVolumeChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Customer Management -->
-<div id="customer-management-card" class="card">
-    <div class="card-header">
-        <h3 class="card-title">Registered Customers</h3>
-        <p class="card-subtitle">External client accounts</p>
-    </div>
-    <div class="card-body">
-        {% if customers|length == 0 %}
-            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
-                <i class="bi bi-people" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-                <p>No customers found in system.</p>
-            </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="enterprise-table">
-                    <thead>
-                        <tr>
-                            <th>Customer ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th style="text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for customer in customers %}
-                            <tr>
-                                <td>{{ customer.custid }}</td>
-                                <td>{{ customer.custname }}</td>
-                                <td>{{ customer.email }}</td>
-                                <td>{{ customer.phone_no if customer.phone_no else '—' }}</td>
-                                <td>
-                                    {% if customer.account_status == 'APPROVED' %}
-                                        <span class="badge badge-status-Resolved">Approved</span>
-                                    {% elif customer.account_status == 'BANNED' %}
-                                        <span class="badge badge-status-Closed" style="background: var(--danger-bg); color: var(--danger);">Banned</span>
-                                    {% else %}
-                                        <span class="badge badge-status-UnderReview">{{ customer.account_status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ customer.created_at[:10] if customer.created_at else 'N/A' }}</td>
-                                <td style="text-align: right;">
-                                    <form method="POST" action="{{ url_for('admin_delete_user', user_id=customer.custid) }}" onsubmit="return confirm('Are you sure you want to delete customer {{ customer.custname }} ({{ customer.email }})? All related ticket data will be safely handled.');" style="display: inline;">
-                                        <input type="hidden" name="user_type" value="customer">
-                                        <button type="submit" class="btn btn-sm" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.08)'; this.style.color='#ef4444';">
-                                            <i class="bi bi-trash3"></i> Delete
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Department Staff Management -->
-<div id="staff-management-card" class="card" style="margin-top: var(--spacing-3xl);">
-    <div class="card-header">
-        <h3 class="card-title">Department Staff & Agents</h3>
-        <p class="card-subtitle">Internal staff and administrator accounts</p>
-    </div>
-    <div class="card-body">
-        {% if agents|length == 0 %}
-            <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
-                <i class="bi bi-person-workspace" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-                <p>No staff found in system.</p>
-            </div>
-        {% else %}
-            <div class="table-responsive">
-                <table class="enterprise-table">
-                    <thead>
-                        <tr>
-                            <th>Agent ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th style="text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for agent in agents %}
-                            <tr>
-                                <td>{{ agent.agent_id }}</td>
-                                <td>{{ agent.agent_name }}</td>
-                                <td>{{ agent.email }}</td>
-                                <td>
-                                    <span class="badge badge-category-{{ agent.role|replace(' ', '') }}">
-                                        {{ agent.role|title }}
-                                    </span>
-                                </td>
-                                <td>{{ agent.deptid if agent.deptid else '—' }}</td>
-                                <td>
-                                    {% if agent.account_status == 'APPROVED' %}
-                                        <span class="badge badge-status-Resolved">Approved</span>
-                                    {% elif agent.account_status == 'BANNED' %}
-                                        <span class="badge badge-status-Closed" style="background: var(--danger-bg); color: var(--danger);">Banned</span>
-                                    {% else %}
-                                        <span class="badge badge-status-UnderReview">{{ agent.account_status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ agent.created_at[:10] if agent.created_at else 'N/A' }}</td>
-                                <td style="text-align: right;">
-                                    {% if (g.user and (g.user.email|lower == agent.email|lower or g.user.agent_id == agent.agent_id or g.user.user_id == agent.agent_id)) %}
-                                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; padding: 4px 8px;">
-                                            <i class="bi bi-shield-check"></i> Active Admin
-                                        </span>
-                                    {% else %}
-                                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=agent.agent_id) }}" onsubmit="return confirm('Are you sure you want to delete staff account {{ agent.agent_name }} ({{ agent.email }})? Any tickets assigned to this agent will be unassigned.');" style="display: inline;">
-                                            <input type="hidden" name="user_type" value="agent">
-                                            <button type="submit" class="btn btn-sm" style="color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff';" onmouseout="this.style.background='rgba(239, 68, 68, 0.08)'; this.style.color='#ef4444';">
-                                                <i class="bi bi-trash3"></i> Delete
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endif %}
-    </div>
-</div>
-
-
-
-<!-- All Tickets Section (System Ticket Registry) -->
-<div id="admin-all-tickets-section" style="margin-top: var(--spacing-3xl);">
-    <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-inner">
             <div>
-                <h3 class="card-title">System Ticket Registry</h3>
-                <p class="card-subtitle">Full overview of all tickets across all departments</p>
+                <h1 class="page-title">Administrator Dashboard</h1>
+                <p class="page-subtitle">Complete overview of system metrics, department queues, and ML operations.</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <label for="adminDeptFilter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Filter Department:</label>
-                <select id="adminDeptFilter" onchange="filterAdminTickets(this.value)" class="form-select" style="background: #1C1D21; color: white; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem;">
-                    <option value="all">All Departments (All 5)</option>
-                    <option value="Technical">Technical Support</option>
-                    <option value="Billing">Billing Support</option>
-                    <option value="Account">Account Support</option>
-                    <option value="General Inquiry">General Inquiry</option>
-                    <option value="Fraud & Security">Fraud & Security</option>
-                </select>
+            <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+                <a href="{{ url_for('admin_tickets') }}" class="btn btn-outline btn-sm">
+                    <i class="bi bi-ticket-perforated"></i> View All Tickets
+                </a>
+                <a href="{{ url_for('admin_intelligence') }}" class="btn btn-accent btn-sm">
+                    <i class="bi bi-cpu"></i> AI Intelligence
+                </a>
             </div>
         </div>
-        <div class="card-body">
-            {% if tickets|length == 0 %}
-                <div style="text-align: center; padding: var(--spacing-3xl) var(--spacing-lg); color: var(--text-muted);">
-                    <i class="bi bi-ticket-perforated" style="font-size: 2rem; display: block; margin-bottom: var(--spacing-lg);"></i>
-                    <p>No tickets found in system.</p>
+    </div>
+
+    <!-- KPI Stats Grid -->
+    {% set open_tickets = metrics.total_tickets - metrics.resolved_tickets %}
+    <div class="stats-grid">
+        <div class="stat-card accent-top">
+            <div class="stat-label">Total Tickets</div>
+            <div class="stat-value">{{ metrics.total_tickets }}</div>
+            <p class="stat-desc">Across all 5 departments</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active / Open</div>
+            <div class="stat-value" style="color:var(--warning);">{{ open_tickets }}</div>
+            <p class="stat-desc">Requiring resolution</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Resolved Tickets</div>
+            <div class="stat-value" style="color:var(--success);">{{ metrics.resolved_tickets }}</div>
+            <p class="stat-desc">{% if metrics.total_tickets > 0 %}{{ ((metrics.resolved_tickets / metrics.total_tickets) * 100) | round(1) }}% resolution rate{% else %}0% resolution rate{% endif %}</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">System Accounts</div>
+            <div class="stat-value" style="color:var(--accent);">{{ customers|length + agents|length }}</div>
+            <p class="stat-desc">{{ customers|length }} customers · {{ agents|length }} staff</p>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid">
+        <!-- Main Column: Charts + Recent Tickets -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+            
+            <!-- Category Distribution Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Category Distribution</h2>
+                        <p class="card-subtitle">AI-classified tickets routed per department</p>
+                    </div>
+                    <a href="{{ url_for('admin_analytics') }}" class="btn btn-ghost btn-sm">
+                        Full Analytics <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
-            {% else %}
-                <div class="table-responsive">
-                    <table class="enterprise-table">
+                <div class="card-body">
+                    <div style="position:relative;height:260px;width:100%;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent System Tickets -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title">Recent Tickets</h2>
+                        <p class="card-subtitle">Latest tickets processed across the platform</p>
+                    </div>
+                    <a href="{{ url_for('admin_tickets') }}" class="btn btn-ghost btn-sm">
+                        View All ({{ tickets|length }}) <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                {% if tickets %}
+                <div class="table-wrapper" style="border:none;border-radius:0;">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Ticket ID</th>
@@ -226,137 +92,213 @@
                                 <th>Category</th>
                                 <th>Priority</th>
                                 <th>Status</th>
-                                <th>Created</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
-                        <tbody id="adminTicketTableBody">
-                            {% for ticket in tickets %}
-                                <tr data-department="{{ ticket.category }}">
-                                    <td>
-                                        <span class="no-wrap" style="font-family: 'Courier New', monospace; font-weight: var(--font-weight-bold); color: var(--accent-green);">{{ ticket.ticketno }}</span>
-                                    </td>
-                                    <td>{{ ticket.subject }}</td>
-                                    <td>
-                                        <span class="badge badge-category-{{ (ticket.category or 'General Inquiry')|replace(' ', '')|replace('&', '') }}">
-                                            {{ ticket.category or 'General Inquiry' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-priority-{{ ticket.predicted_priority or 'Medium' }}">
-                                            {{ ticket.predicted_priority or 'Medium' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge {% if ticket.admin_status == 'Solved' %}badge-status-Resolved{% else %}badge-status-UnderReview{% endif %}">
-                                            {{ ticket.admin_status or 'Pending' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ ticket.submitdate[:10] if ticket.submitdate else 'N/A' }}</td>
-                                </tr>
+                        <tbody>
+                            {% for ticket in tickets[:8] %}
+                            <tr>
+                                <td><span class="ticket-id">{{ ticket.ticketno }}</span></td>
+                                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">{{ ticket.subject }}</td>
+                                <td style="font-size:0.8125rem;color:var(--text-secondary);">{{ ticket.category or 'General' }}</td>
+                                <td>
+                                    <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">
+                                        {{ ticket.predicted_priority or 'Medium' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if ticket.admin_status == 'Solved' %}
+                                        <span class="badge badge-resolved">Solved</span>
+                                    {% else %}
+                                        <span class="badge badge-submitted">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                                    {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            {% endif %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-ticket-perforated empty-state-icon"></i>
+                    <div class="empty-state-title">No tickets registered</div>
+                    <p class="empty-state-desc">Tickets created by customers will appear here automatically.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Sidebar Column: AI Pipeline Status + Quick Links + Department Queues -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+
+            <!-- AI Engine Status Card -->
+            <div class="card" style="border-left:3px solid var(--accent);">
+                <div class="card-header">
+                    <h2 class="card-title" style="font-size:0.9375rem;display:flex;align-items:center;gap:0.5rem;">
+                        <i class="bi bi-cpu" style="color:var(--accent-dark);"></i>
+                        ML Engine Operations
+                    </h2>
+                </div>
+                <div class="card-body" style="font-size:0.8125rem;">
+                    <div style="display:flex;flex-direction:column;gap:var(--space-sm);">
+                        <div style="display:flex;justify-content:space-between;padding-bottom:0.5rem;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">TF-IDF Vectorizer</span>
+                            <span class="badge badge-resolved" style="font-size:0.6875rem;">Active (5K dim)</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding-bottom:0.5rem;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">Category Classifier</span>
+                            <span class="badge badge-resolved" style="font-size:0.6875rem;">Logistic Regression</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding-bottom:0.5rem;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">Priority Predictor</span>
+                            <span class="badge badge-resolved" style="font-size:0.6875rem;">Multi-class Softmax</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding-bottom:0.5rem;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">Similarity Search</span>
+                            <span class="badge badge-resolved" style="font-size:0.6875rem;">Cosine Matrix</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="color:var(--text-muted);">Database Schema</span>
+                            <span style="font-weight:600;color:var(--text-primary);">Relational SQLite3</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:var(--space-md);">
+                        <a href="{{ url_for('admin_intelligence') }}" class="btn btn-primary btn-sm btn-block" style="width:100%;justify-content:center;">
+                            <i class="bi bi-eye"></i> Inspect AI Pipeline
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Navigation Shortcuts -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" style="font-size:0.9375rem;">Quick Navigation</h2>
+                </div>
+                <div class="card-body" style="padding:var(--space-sm);">
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        <a href="{{ url_for('admin_tickets') }}" style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;font-size:0.875rem;transition:var(--transition);" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">
+                            <span style="display:flex;align-items:center;gap:0.6rem;">
+                                <i class="bi bi-ticket-perforated" style="color:var(--primary);"></i> Tickets Registry
+                            </span>
+                            <i class="bi bi-chevron-right" style="font-size:0.75rem;color:var(--text-muted);"></i>
+                        </a>
+                        <a href="{{ url_for('admin_users') }}" style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;font-size:0.875rem;transition:var(--transition);" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">
+                            <span style="display:flex;align-items:center;gap:0.6rem;">
+                                <i class="bi bi-people" style="color:var(--primary);"></i> User & Staff Management
+                            </span>
+                            <i class="bi bi-chevron-right" style="font-size:0.75rem;color:var(--text-muted);"></i>
+                        </a>
+                        <a href="{{ url_for('admin_departments') }}" style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;font-size:0.875rem;transition:var(--transition);" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">
+                            <span style="display:flex;align-items:center;gap:0.6rem;">
+                                <i class="bi bi-diagram-3" style="color:var(--primary);"></i> Departments & SLA
+                            </span>
+                            <i class="bi bi-chevron-right" style="font-size:0.75rem;color:var(--text-muted);"></i>
+                        </a>
+                        <a href="{{ url_for('admin_analytics') }}" style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-radius:var(--radius-md);color:var(--text-primary);text-decoration:none;font-size:0.875rem;transition:var(--transition);" onmouseover="this.style.background='var(--bg-subtle)'" onmouseout="this.style.background='transparent'">
+                            <span style="display:flex;align-items:center;gap:0.6rem;">
+                                <i class="bi bi-bar-chart" style="color:var(--primary);"></i> System Analytics
+                            </span>
+                            <i class="bi bi-chevron-right" style="font-size:0.75rem;color:var(--text-muted);"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Roster Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" style="font-size:0.9375rem;">Support Staff Overview</h2>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-ghost btn-sm">Manage</a>
+                </div>
+                <div class="card-body" style="padding:var(--space-sm);">
+                    {% for agent in agents[:4] %}
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.8rem;border-bottom:1px solid var(--border-subtle);">
+                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">
+                                {{ agent.agent_name[0].upper() }}
+                            </div>
+                            <div>
+                                <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);">{{ agent.agent_name }}</div>
+                                <div style="font-size:0.75rem;color:var(--text-muted);">{{ agent.role | title }}</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-resolved" style="font-size:0.6875rem;">{{ agent.account_status }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
     </div>
+
 </div>
-{% endblock %}
+</div>
 
-{% block scripts %}
-<!-- Chart data stored as JSON in hidden script -->
-<script type="application/json" id="chartData">
-{
-    "deptLabels": {{ dept_labels | tojson }},
-    "deptData": {{ dept_data | tojson }}
-}
-</script>
 <script>
-    // Parse chart data from hidden JSON script
-    var CHART_DATA = JSON.parse(document.getElementById('chartData').textContent);
-    var deptLabels = CHART_DATA.deptLabels;
-    var deptData = CHART_DATA.deptData;
-    
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
 
+    const labels = {{ dept_labels | tojson }};
+    const dataValues = {{ dept_data | tojson }};
 
-    function initAdminCharts(deptLabels, deptData) {
-        const deptCtx = document.getElementById('deptVolumeChart');
-        if (deptCtx) {
-            new Chart(deptCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: deptLabels,
-                    datasets: [{
-                        label: 'Ticket Volume',
-                        data: deptData,
-                        backgroundColor: 'rgba(232, 232, 232, 0.7)',
-                        borderColor: '#E8E8E8',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tickets',
+                data: dataValues,
+                backgroundColor: [
+                    '#2C1F33',
+                    '#B9A38B',
+                    '#4F3F56',
+                    '#D4C4B5',
+                    '#1A1220'
+                ],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#2C1F33',
+                    titleColor: '#fff',
+                    bodyColor: '#B9A38B',
+                    padding: 10,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                        font: { family: 'Inter', size: 11 }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { 
-                                color: '#94a3b8',
-                                stepSize: 1
-                            },
-                            grid: { 
-                                color: 'rgba(255, 255, 255, 0.05)'
-                            }
-                        },
-                        x: {
-                            ticks: { 
-                                color: '#cbd5e1'
-                            },
-                            grid: { 
-                                display: false
-                            }
-                        }
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
                     }
-                }
-            });
-        }
-    }
-
-    function filterAdminTickets(dept) {
-        var rows = document.querySelectorAll('#adminTicketTableBody tr');
-        rows.forEach(function(row) {
-            var cat = (row.getAttribute('data-department') || '').toLowerCase();
-            if (dept === 'all' || cat.indexOf(dept.toLowerCase()) !== -1) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        try {
-            // Ensure CHART_DATA is available
-            if (typeof CHART_DATA !== 'undefined' && CHART_DATA) {
-                deptLabels = CHART_DATA.deptLabels;
-                deptData = CHART_DATA.deptData;
-                
-                if (deptLabels && deptData) {
-                    initAdminCharts(deptLabels, deptData);
+                },
+                x: {
+                    ticks: {
+                        font: { family: 'Inter', size: 11 }
+                    },
+                    grid: { display: false }
                 }
             }
-        } catch (error) {
-            console.error('Error initializing admin charts:', error);
         }
     });
+});
 </script>
-
-<!-- Unified Ticket Details Modal Container (populated by renderDetailsModal in main.js) -->
-<div id="agentTicketDetailsModal" class="custom-modal-backdrop"></div>
-
-<!-- Load main CompassIQ JS -->
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}

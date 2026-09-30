@@ -115,19 +115,19 @@ INSERT INTO department_agents (agent_name, email, password, role, account_status
 
 -- Technical Support Agent (deptid = 1)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
-('Technical Support Agent', 'tech.support@compassiq.com', 'scrypt:32768:8:1$41LC77CMSkCZvn1S$52aec941b3e86314c172e1ca10999edade497e4b2a87074d951d0c59010c3aa330a0a4ffe279a4a5d4a23a9911070da9135c5a955300937f60ac4a825644acdc', 1, 'agent', 'APPROVED');
+('Technical Support Agent', 'tech.agent@compassiq.com', 'scrypt:32768:8:1$41LC77CMSkCZvn1S$52aec941b3e86314c172e1ca10999edade497e4b2a87074d951d0c59010c3aa330a0a4ffe279a4a5d4a23a9911070da9135c5a955300937f60ac4a825644acdc', 1, 'agent', 'APPROVED');
 
 -- Billing Support Agent (deptid = 2)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
-('Billing Support Agent', 'billing.support@compassiq.com', 'scrypt:32768:8:1$y6WhHAO3i5UjLD1S$6fb1676d0ac0d747ee19cfe107cd7c1a133a90a3d2adbdba5b6a9911c8289397cc6d1e40a697eb0a635af541483e082c5080f2b16c0dff52745d6c2dd86c17a5', 2, 'agent', 'APPROVED');
+('Billing Support Agent', 'billing.agent@compassiq.com', 'scrypt:32768:8:1$y6WhHAO3i5UjLD1S$6fb1676d0ac0d747ee19cfe107cd7c1a133a90a3d2adbdba5b6a9911c8289397cc6d1e40a697eb0a635af541483e082c5080f2b16c0dff52745d6c2dd86c17a5', 2, 'agent', 'APPROVED');
 
 -- Account Support Agent (deptid = 3)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
-('Account Support Agent', 'account.support@compassiq.com', 'scrypt:32768:8:1$UUYqos2NaN5hhfvQ$5f1a5221445117bd5462e63e8ba9fe9e2a2ae0c64a13a41ebc61b2caa4b7348abc400d7d1a558632a8b7ddda963e8f9d6b36bfcf08506bb134ab54eee7dfd9ce', 3, 'agent', 'APPROVED');
+('Account Support Agent', 'account.agent@compassiq.com', 'scrypt:32768:8:1$UUYqos2NaN5hhfvQ$5f1a5221445117bd5462e63e8ba9fe9e2a2ae0c64a13a41ebc61b2caa4b7348abc400d7d1a558632a8b7ddda963e8f9d6b36bfcf08506bb134ab54eee7dfd9ce', 3, 'agent', 'APPROVED');
 
 -- General Inquiry Agent (deptid = 4)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES
-('General Inquiry Agent', 'general.support@compassiq.com', 'scrypt:32768:8:1$uy4tAoA7SF6xoE0R$707ce097767ad179ae509d3d62703cb2a0322b01f695bb816481ed8880de737dbc61b08e5b56dab61de932c11e5e3866c1576c97d1501c2892ab12bdbe88571a', 4, 'agent', 'APPROVED');
+('General Inquiry Agent', 'general.agent@compassiq.com', 'scrypt:32768:8:1$uy4tAoA7SF6xoE0R$707ce097767ad179ae509d3d62703cb2a0322b01f695bb816481ed8880de737dbc61b08e5b56dab61de932c11e5e3866c1576c97d1501c2892ab12bdbe88571a', 4, 'agent', 'APPROVED');
 
 -- Fraud & Security Agent (deptid = 5)
 INSERT INTO department_agents (agent_name, email, password, deptid, role, account_status) VALUES

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}My Tickets — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container">
+
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div>
+                <h1 class="page-title">My Tickets</h1>
+                <p class="page-subtitle">All your support tickets in one place.</p>
+            </div>
+            <a href="{{ url_for('create_ticket_page') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Ticket
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="card" style="margin-bottom:var(--space-lg);">
+        <div class="card-body" style="padding:var(--space-md);">
+            <form method="GET" action="{{ url_for('my_tickets') }}" id="filterForm">
+                <div class="search-bar">
+                    <div class="search-input-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text" name="q" id="searchInput" class="form-control"
+                               placeholder="Search tickets by ID, subject or description…"
+                               value="{{ request.args.get('q', '') }}">
+                    </div>
+                    <div class="filter-group">
+                        <select name="status" class="form-select" id="statusFilter" onchange="this.form.submit()">
+                            <option value="">All Status</option>
+                            <option value="Submitted" {% if request.args.get('status') == 'Submitted' %}selected{% endif %}>Submitted</option>
+                            <option value="Under Review" {% if request.args.get('status') == 'Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="In Progress" {% if request.args.get('status') == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if request.args.get('status') == 'Resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="Closed" {% if request.args.get('status') == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                        <select name="priority" class="form-select" id="priorityFilter" onchange="this.form.submit()">
+                            <option value="">All Priorities</option>
+                            <option value="Critical" {% if request.args.get('priority') == 'Critical' %}selected{% endif %}>Critical</option>
+                            <option value="High" {% if request.args.get('priority') == 'High' %}selected{% endif %}>High</option>
+                            <option value="Medium" {% if request.args.get('priority') == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="Low" {% if request.args.get('priority') == 'Low' %}selected{% endif %}>Low</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                        {% if request.args.get('q') or request.args.get('status') or request.args.get('priority') %}
+                        <a href="{{ url_for('my_tickets') }}" class="btn btn-ghost btn-sm">
+                            <i class="bi bi-x"></i> Clear
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="card">
+        {% if tickets %}
+        <div class="table-wrapper" style="border:none;border-radius:var(--radius-lg);">
+            <table style="min-width:820px;">
+                <thead>
+                    <tr>
+                        <th class="col-id" style="width:155px;min-width:145px;white-space:nowrap;">Ticket ID</th>
+                        <th>Subject</th>
+                        <th style="white-space:nowrap;">Category</th>
+                        <th style="white-space:nowrap;">Priority</th>
+                        <th style="white-space:nowrap;">Department</th>
+                        <th style="white-space:nowrap;">Status</th>
+                        <th class="col-created" style="white-space:nowrap;width:115px;">Created</th>
+                        <th class="col-actions" style="width:85px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td class="cell-id" style="white-space:nowrap;"><span class="ticket-id">{{ ticket.ticketno }}</span></td>
+                        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">{{ ticket.subject }}</td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);white-space:nowrap;">{{ ticket.predicted_category or '—' }}</td>
+                        <td style="white-space:nowrap;">
+                            <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">
+                                {{ ticket.predicted_priority or 'Medium' }}
+                            </span>
+                        </td>
+                        <td style="font-size:0.8125rem;color:var(--text-secondary);white-space:nowrap;">{{ ticket.department_name or '—' }}</td>
+                        <td style="white-space:nowrap;">
+                            {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
+                            <span class="badge badge-{{ s }}">{{ ticket.status or 'Submitted' }}</span>
+                        </td>
+                        <td class="cell-created" style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
+                            {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
+                        </td>
+                        <td class="cell-actions" style="white-space:nowrap;text-align:right;">
+                            <a href="{{ url_for('customer_ticket_view', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer" style="font-size:0.8125rem;color:var(--text-muted);">
+            Showing {{ tickets | length }} ticket{{ 's' if tickets | length != 1 else '' }}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-ticket-perforated empty-state-icon"></i>
+            <div class="empty-state-title">
+                {% if request.args.get('q') or request.args.get('status') or request.args.get('priority') %}
+                    No tickets match your filters
+                {% else %}
+                    No tickets yet
+                {% endif %}
+            </div>
+            <p class="empty-state-desc">
+                {% if request.args.get('q') or request.args.get('status') or request.args.get('priority') %}
+                    Try adjusting your search or filters.
+                {% else %}
+                    Submit your first support ticket and CompassIQ will analyze and route it automatically.
+                {% endif %}
+            </p>
+            {% if not (request.args.get('q') or request.args.get('status') or request.args.get('priority')) %}
+            <a href="{{ url_for('create_ticket_page') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Create Ticket
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Create Ticket — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container" style="max-width:720px;">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Create Support Ticket</h1>
+            <p class="page-subtitle">Describe your issue and we'll take care of the rest.</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">New Ticket</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_ticket') }}" id="createTicketForm" enctype="multipart/form-data">
+
+                <div class="form-group">
+                    <label class="form-label" for="subject">Subject <span class="required">*</span></label>
+                    <input type="text" id="subject" name="subject" class="form-control"
+                           placeholder="Brief summary of your issue" required maxlength="200">
+                    <p class="form-hint">A clear, concise subject helps our AI classify your ticket accurately.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description <span class="required">*</span></label>
+                    <textarea id="description" name="description" class="form-control"
+                              rows="6" placeholder="Provide detailed information about your issue. Include any error messages, steps to reproduce, or relevant context." required></textarea>
+                    <p class="form-hint">More detail leads to better AI classification and faster resolution.</p>
+                </div>
+
+                <!-- AI Info Notice -->
+                <div style="background:var(--bg-subtle);border:1px solid var(--accent);border-left:3px solid var(--accent);border-radius:var(--radius-md);padding:0.875rem 1rem;margin-bottom:var(--space-lg);display:flex;align-items:flex-start;gap:0.75rem;">
+                    <i class="bi bi-cpu" style="color:var(--accent-dark);font-size:1.125rem;flex-shrink:0;margin-top:0.125rem;"></i>
+                    <div>
+                        <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">Powered by CompassIQ AI</div>
+                        <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0;line-height:1.5;">
+                            CompassIQ automatically analyzes your ticket after submission using NLP and trained ML models. It will predict the category, determine priority, and route your ticket to the appropriate department — no manual selection needed.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:var(--space-md);align-items:center;">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        <i class="bi bi-send"></i> Submit Ticket
+                    </button>
+                    <a href="{{ url_for('customer_dashboard') }}" class="btn btn-ghost btn-lg">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- What happens next -->
+    <div class="card" style="margin-top:var(--space-lg);">
+        <div class="card-header">
+            <h2 class="card-title">What Happens After Submission</h2>
+        </div>
+        <div class="card-body">
+            <div class="pipeline">
+                <div class="pipeline-step">
+                    <div class="pipeline-num">1</div>
+                    <div class="pipeline-content">
+                        <p class="pipeline-label">Ticket Stored</p>
+                        <p class="pipeline-desc">Your ticket is saved to the system and assigned a unique ID.</p>
+                    </div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-num">2</div>
+                    <div class="pipeline-content">
+                        <p class="pipeline-label">NLP Processing</p>
+                        <p class="pipeline-desc">Your ticket text is cleaned, tokenized, and transformed using TF-IDF.</p>
+                    </div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-num">3</div>
+                    <div class="pipeline-content">
+                        <p class="pipeline-label">Category & Priority Predicted</p>
+                        <p class="pipeline-desc">Trained ML models classify your ticket and determine its priority level.</p>
+                    </div>
+                </div>
+                <div class="pipeline-step">
+                    <div class="pipeline-num accent">4</div>
+                    <div class="pipeline-content">
+                        <p class="pipeline-label">Department Routed</p>
+                        <p class="pipeline-desc">Your ticket is automatically routed to the correct support department.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('createTicketForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting…';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

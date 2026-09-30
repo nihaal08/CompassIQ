@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.ticketno }} — CompassIQ{% endblock %}
+
+{% block content %}
+<div class="page-content">
+<div class="page-container">
+
+    <!-- Back link -->
+    <div style="margin-bottom:var(--space-md);">
+        <a href="{{ url_for('my_tickets') }}" class="btn btn-ghost btn-sm">
+            <i class="bi bi-arrow-left"></i> My Tickets
+        </a>
+    </div>
+
+    <!-- Ticket Header -->
+    <div class="card" style="margin-bottom:var(--space-lg);">
+        <div class="card-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-lg);flex-wrap:wrap;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-sm);">
+                        <span class="ticket-id">{{ ticket.ticketno }}</span>
+                        {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
+                        <span class="badge badge-{{ s }}">{{ ticket.status }}</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority or 'Medium' }}</span>
+                    </div>
+                    <h1 style="font-size:1.25rem;font-weight:700;color:var(--text-primary);margin:0 0 0.5rem;">{{ ticket.subject }}</h1>
+                    <div style="display:flex;gap:var(--space-lg);flex-wrap:wrap;font-size:0.8125rem;color:var(--text-muted);">
+                        <span><i class="bi bi-tag"></i> {{ ticket.predicted_category or '—' }}</span>
+                        <span><i class="bi bi-diagram-3"></i> {{ ticket.department_name or '—' }}</span>
+                        <span><i class="bi bi-calendar3"></i> {{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</span>
+                        <span><i class="bi bi-person"></i> Agent: {{ ticket.assigned_agent_name or 'Unassigned' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Main Column: Description + Conversation -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+
+            <!-- Original Issue -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Issue Description</h2>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:0.9375rem;line-height:1.65;color:var(--text-primary);white-space:pre-wrap;">{{ ticket.description }}</p>
+                </div>
+            </div>
+
+            <!-- Conversation -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Conversation</h2>
+                </div>
+                <div class="card-body">
+                    {% if replies %}
+                    <div class="conversation">
+                        {% for reply in replies %}
+                        <div class="message-bubble {{ 'customer' if reply.sender_role == 'customer' else 'agent' }}">
+                            <div class="message-sender">
+                                {{ reply.sender_name or ('You' if reply.sender_role == 'customer' else 'Support Agent') }}
+                            </div>
+                            <div class="message-body">{{ reply.message }}</div>
+                            <div class="message-time">{{ reply.created_at[:16] if reply.created_at else '' }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state" style="padding:1.5rem;">
+                        <i class="bi bi-chat-dots empty-state-icon" style="font-size:1.5rem;"></i>
+                        <div class="empty-state-title">No messages yet</div>
+                        <p class="empty-state-desc">The agent will reply to your ticket shortly.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Customer Reply Box -->
+            {% if ticket.status != 'Closed' %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Send a Reply</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('customer_ticket_reply', ticket_id=ticket.ticketno) }}">
+                        <div class="form-group">
+                            <textarea name="message" class="form-control" rows="3" placeholder="Type your message or follow-up question here..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-send"></i> Send Reply
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- CSAT if resolved -->
+            {% if ticket.status in ['Resolved', 'Closed'] %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Satisfaction Feedback</h2>
+                </div>
+                <div class="card-body">
+                    {% if ticket.satisfaction_score %}
+                    <div style="display:flex;align-items:center;gap:var(--space-md);">
+                        <div style="font-size:2rem;">
+                            {% for i in range(5) %}
+                                {% if i < ticket.satisfaction_score %}★{% else %}☆{% endif %}
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;font-size:0.9375rem;">{{ ticket.satisfaction_score }}/5 — Thank you!</div>
+                            {% if ticket.customer_feedback %}
+                            <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0.25rem 0 0;">{{ ticket.customer_feedback }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:var(--space-md);">How satisfied were you with the resolution? (1 = Poor, 5 = Excellent)</p>
+                    <form method="POST" action="{{ url_for('submit_feedback', ticket_id=ticket.ticketno) }}" id="csatForm">
+                        <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-md);align-items:center;">
+                            {% for i in range(1, 6) %}
+                            <label style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0.25rem;">
+                                <input type="radio" name="satisfaction_score" value="{{ i }}" required style="width:auto;" id="star{{ i }}">
+                                <span style="font-size:1.5rem;" id="starLabel{{ i }}">☆</span>
+                                <span style="font-size:0.6875rem;color:var(--text-muted);">{{ i }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Comments (optional)</label>
+                            <textarea name="customer_feedback" class="form-control" rows="2" placeholder="Any additional feedback?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Submit Feedback</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Sidebar: ML Info + Timeline -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
+
+            <!-- AI Analysis Result -->
+            <div class="ml-analysis">
+                <div class="ml-analysis-header">
+                    <i class="bi bi-cpu"></i> AI Analysis
+                </div>
+                <div class="ml-analysis-body">
+                    <div class="ml-row">
+                        <span class="ml-row-label">Category</span>
+                        <span class="ml-row-value">{{ ticket.predicted_category or '—' }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Priority</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority or 'Medium' }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Department</span>
+                        <span class="ml-row-value">{{ ticket.department_name or '—' }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Assigned Agent</span>
+                        <span class="ml-row-value">{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Ticket Timeline</h2>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot success"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Ticket <strong>{{ ticket.ticketno }}</strong> created</p>
+                                <p class="timeline-time">{{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">AI analysis completed — routed to <strong>{{ ticket.department_name or 'department' }}</strong></p>
+                                <p class="timeline-time">Automated</p>
+                            </div>
+                        </div>
+                        {% if ticket.status not in ['Submitted'] %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot active"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Status: <strong>{{ ticket.status }}</strong></p>
+                                <p class="timeline-time">Updated</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if ticket.status in ['Resolved', 'Closed'] %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot success"></div>
+                            <div class="timeline-content">
+                                <p class="timeline-text">Ticket resolved</p>
+                                <p class="timeline-time">{{ ticket.resolved_at[:16] if ticket.resolved_at else '' }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resolution notes if resolved -->
+            {% if ticket.resolution_notes %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Resolution</h2>
+                </div>
+                <div class="card-body">
+                    <div class="resolution-box">{{ ticket.resolution_notes }}</div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Star rating interaction
+document.querySelectorAll('input[name="satisfaction_score"]').forEach((radio, idx) => {
+    radio.addEventListener('change', function() {
+        const val = parseInt(this.value);
+        for (let i = 1; i <= 5; i++) {
+            const lbl = document.getElementById('starLabel' + i);
+            if (lbl) lbl.textContent = i <= val ? '★' : '☆';
+        }
+    });
+});
+</script>
+{% endblock %}
