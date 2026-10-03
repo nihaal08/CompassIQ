@@ -240,13 +240,19 @@
 </div>
 </div>
 
+<script type="application/json" id="deptChartData">
+{{ {'labels': dept_labels, 'data': dept_data} | tojson }}
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('categoryChart');
     if (!ctx) return;
 
-    const labels = {{ dept_labels | tojson }};
-    const dataValues = {{ dept_data | tojson }};
+    const dataEl = document.getElementById('deptChartData');
+    const chartData = dataEl ? JSON.parse(dataEl.textContent) : { labels: [], data: [] };
+    const labels = chartData.labels || [];
+    const dataValues = chartData.data || [];
 
     new Chart(ctx, {
         type: 'bar',
