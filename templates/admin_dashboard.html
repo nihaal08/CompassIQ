@@ -93,6 +93,7 @@
                                 <th>Priority</th>
                                 <th>Status</th>
                                 <th>Date</th>
+                                <th style="text-align:right;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -107,14 +108,22 @@
                                     </span>
                                 </td>
                                 <td>
-                                    {% if ticket.admin_status == 'Solved' %}
-                                        <span class="badge badge-resolved">Solved</span>
+                                    {% set st = ticket.status or ticket.admin_status or 'Submitted' %}
+                                    {% if st in ['Resolved', 'Closed', 'Solved'] %}
+                                        <span class="badge badge-resolved">{{ ticket.status or 'Resolved' }}</span>
+                                    {% elif st == 'In Progress' %}
+                                        <span class="badge badge-in-progress">In Progress</span>
                                     {% else %}
-                                        <span class="badge badge-submitted">Pending</span>
+                                        <span class="badge badge-submitted">{{ ticket.status or 'Submitted' }}</span>
                                     {% endif %}
                                 </td>
                                 <td style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">
                                     {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
+                                </td>
+                                <td style="text-align:right;white-space:nowrap;">
+                                    <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-view btn-sm">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}

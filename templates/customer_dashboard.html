@@ -88,7 +88,9 @@
                                 {{ ticket.submitdate[:10] if ticket.submitdate else '—' }}
                             </td>
                             <td class="cell-actions" style="white-space:nowrap;text-align:right;">
-                                <a href="{{ url_for('customer_ticket_view', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm">View</a>
+                                <a href="{{ url_for('customer_ticket_view', ticket_id=ticket.ticketno) }}" class="btn btn-view btn-sm">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

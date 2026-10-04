@@ -43,7 +43,6 @@
                         <select name="status" class="form-select" onchange="this.form.submit()">
                             <option value="">All Statuses</option>
                             <option value="Submitted" {% if request.args.get('status') == 'Submitted' %}selected{% endif %}>Submitted</option>
-                            <option value="Under Review" {% if request.args.get('status') == 'Under Review' %}selected{% endif %}>Under Review</option>
                             <option value="In Progress" {% if request.args.get('status') == 'In Progress' %}selected{% endif %}>In Progress</option>
                             <option value="Resolved" {% if request.args.get('status') == 'Resolved' %}selected{% endif %}>Resolved</option>
                             <option value="Closed" {% if request.args.get('status') == 'Closed' %}selected{% endif %}>Closed</option>
@@ -116,7 +115,7 @@
                         </td>
                         <td style="text-align:right;">
                             <div style="display:inline-flex;gap:4px;">
-                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm" title="View details in workspace">
+                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-view btn-sm" title="View details in workspace">
                                     <i class="bi bi-eye"></i> View
                                 </a>
                                 {% if ticket.status not in ['Closed'] %}

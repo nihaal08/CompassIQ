@@ -1,108 +1,170 @@
 {% extends "base.html" %}
-{% block title %}AI Intelligence — CompassIQ{% endblock %}
+{% block title %}AI Intelligence Hub — CompassIQ{% endblock %}
 
 {% block content %}
 <div class="page-content">
     <div class="page-container">
 
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">CompassIQ Intelligence</h1>
-                <p class="page-subtitle">Analyze how CompassIQ understands, classifies, routes, and retrieves support
-                    tickets using the ML pipeline.</p>
+        <!-- Page Header -->
+        <div class="page-header" style="margin-bottom:var(--space-md);">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap;">
+                <div>
+                    <h1 class="page-title" style="display:flex;align-items:center;gap:0.5rem;">
+                        <i class="bi bi-cpu-fill" style="color:var(--accent);"></i>
+                        CompassIQ AI Intelligence Hub
+                    </h1>
+                    <p class="page-subtitle">
+                        Inspect the end-to-end Machine Learning pipeline: NLP preprocessing, TF-IDF vectorization, dual classification, automated routing, and cosine similarity knowledge retrieval.
+                    </p>
+                </div>
+                {% if selected_ticket and g.user.role in ['agent', 'admin'] %}
+                <div>
+                    <a href="{{ url_for('agent_ticket_details', ticket_id=selected_ticket.ticketno) }}" class="btn btn-accent btn-sm">
+                        <i class="bi bi-arrow-right-circle"></i> Open in Agent Workspace
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Ticket Selector -->
-        <div class="card" style="margin-bottom:var(--space-lg);">
-            <div class="card-header">
-                <h2 class="card-title">Select or Enter a Ticket</h2>
-            </div>
-            <div class="card-body">
+        <!-- Ticket Selector Card -->
+        <div class="card" style="margin-bottom:var(--space-lg);border:1px solid var(--border-strong);">
+            <div class="card-body" style="padding:var(--space-md) var(--space-lg);">
                 <form method="GET" action="{{ url_for(request.endpoint) }}" id="intelligenceForm">
-                    <div style="display:flex;gap:var(--space-md);align-items:flex-end;flex-wrap:wrap;">
-                        <div class="form-group" style="flex:1;min-width:200px;margin:0;">
-                            <label class="form-label">Select Existing Ticket</label>
-                            <select name="ticket_id" class="form-select" id="ticketSelector"
-                                onchange="this.form.submit()">
-                                <option value="">— Choose a ticket —</option>
+                    <div style="display:flex;gap:var(--space-md);align-items:center;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;color:var(--text-muted);font-size:0.875rem;font-weight:600;">
+                            <i class="bi bi-funnel"></i> Select Ticket:
+                        </div>
+                        <div style="flex:1;min-width:240px;">
+                            <select name="ticket_id" class="form-select" id="ticketSelector" onchange="this.form.submit()" style="font-size:0.875rem;">
+                                <option value="">— Choose a ticket to analyze —</option>
                                 {% for t in all_tickets %}
-                                <option value="{{ t.ticketno }}" {% if selected_ticket and
-                                    selected_ticket.ticketno==t.ticketno %}selected{% endif %}>
-                                    {{ t.ticketno }} — {{ t.subject[:60] }}{{ '…' if t.subject | length > 60 else '' }}
+                                <option value="{{ t.ticketno }}" {% if selected_ticket and selected_ticket.ticketno == t.ticketno %}selected{% endif %}>
+                                    {{ t.ticketno }} — {{ t.subject[:65] }}{{ '…' if t.subject | length > 65 else '' }}
                                 </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div style="margin-bottom:1px;">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-cpu"></i> Analyze</button>
-                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-lightning-charge"></i> Analyze Pipeline
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
 
         {% if selected_ticket %}
-        <!-- Ticket Info -->
-        <div class="card" style="margin-bottom:var(--space-lg);">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <span class="ticket-id">{{ selected_ticket.ticketno }}</span>
-                    &nbsp;{{ selected_ticket.subject }}
-                </h2>
-                <div style="display:flex;gap:var(--space-xs);">
-                    <span
-                        class="badge badge-{{ (selected_ticket.status or 'Submitted') | lower | replace(' ', '-') }}">{{
-                        selected_ticket.status }}</span>
+
+        <!-- Top SaaS KPI Metric Strip (No Empty Space!) -->
+        {% set top_sim = similar_matches[0] if (similar_matches and similar_matches | length > 0 and (similar_matches[0].similarity_score or 0) >= 0.35 and ((similar_matches[0].similarity_score * 100) | int >= 35)) else None %}
+        <div class="saas-stat-strip">
+            <div class="saas-stat-card">
+                <div class="saas-stat-icon">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div class="saas-stat-info">
+                    <div class="saas-stat-label">Pipeline Status</div>
+                    <div class="saas-stat-val" style="color:var(--success);">Inference Complete</div>
                 </div>
             </div>
-            <div class="card-body">
-                <p style="font-size:0.9375rem;line-height:1.65;color:var(--text-primary);">{{
-                    selected_ticket.description }}</p>
+
+            <div class="saas-stat-card">
+                <div class="saas-stat-icon">
+                    <i class="bi bi-tags"></i>
+                </div>
+                <div class="saas-stat-info">
+                    <div class="saas-stat-label">Predicted Category</div>
+                    <div class="saas-stat-val">{{ ai_result.predicted_category }} ({{ ai_result.category_confidence }})</div>
+                </div>
+            </div>
+
+            <div class="saas-stat-card">
+                <div class="saas-stat-icon">
+                    <i class="bi bi-flag"></i>
+                </div>
+                <div class="saas-stat-info">
+                    <div class="saas-stat-label">Predicted Priority</div>
+                    <div class="saas-stat-val">{{ ai_result.predicted_priority }} ({{ ai_result.priority_confidence }})</div>
+                </div>
+            </div>
+
+            <div class="saas-stat-card">
+                <div class="saas-stat-icon">
+                    <i class="bi bi-intersect"></i>
+                </div>
+                <div class="saas-stat-info">
+                    <div class="saas-stat-label">Corpus Retrieval</div>
+                    <div class="saas-stat-val" style="color:var(--accent-light);">
+                        {% if top_sim and ((top_sim.similarity_score * 100) | int >= 35) %}
+                            {{ (top_sim.similarity_score * 100) | int }}% Top Match
+                        {% else %}
+                            No Similar Tickets Found
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Pipeline Visualization -->
+        <!-- Analyzed Ticket Overview Banner -->
+        <div class="card" style="margin-bottom:var(--space-lg);">
+            <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-xs);">
+                <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+                    <span class="ticket-id" style="font-size:0.8125rem;">{{ selected_ticket.ticketno }}</span>
+                    <h2 class="card-title" style="font-size:1.0625rem;margin:0;">{{ selected_ticket.subject }}</h2>
+                </div>
+                <div style="display:flex;gap:var(--space-xs);align-items:center;">
+                    <span class="badge badge-{{ (selected_ticket.status or 'Submitted') | lower | replace(' ', '-') }}">
+                        {{ selected_ticket.status }}
+                    </span>
+                    <span style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.2rem 0.5rem;font-size:0.75rem;color:var(--text-muted);">
+                        <i class="bi bi-diagram-3"></i> {{ selected_ticket.department_name or 'General' }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p style="font-size:0.9375rem;line-height:1.65;color:var(--text-primary);margin:0;white-space:pre-wrap;">{{ selected_ticket.description }}</p>
+            </div>
+        </div>
+
+        <!-- Balanced 2-Column Inspector Architecture (50% / 50%) -->
         <div class="two-col" style="align-items:start;gap:var(--space-lg);">
 
-            <!-- LEFT: Pipeline Steps -->
+            <!-- ════════════════════════════════════════════════════════
+                 LEFT COLUMN: NLP & DUAL MODEL CLASSIFICATION
+                 ════════════════════════════════════════════════════════ -->
             <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
 
-                <!-- 1. NLP Preprocessing -->
+                <!-- Stage 1: NLP Preprocessing -->
                 <div class="card">
-                    <div class="card-header"
-                        style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">1</span>
-                            NLP Preprocessing
+                    <div class="card-header" style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                        <h2 style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
+                            <span style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">1</span>
+                            NLP Preprocessing &amp; Text Normalization
                         </h2>
                     </div>
                     <div class="card-body">
                         <div class="grid-2col-responsive" style="gap:var(--space-md);font-size:0.875rem;">
                             <div>
-                                <div
-                                    style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.375rem;">
-                                    Original Text</div>
-                                <div
-                                    style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;font-size:0.8125rem;line-height:1.5;max-height:80px;overflow:hidden;">
-                                    {{ (selected_ticket.subject + ' ' + selected_ticket.description)[:150] }}…</div>
+                                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.375rem;font-weight:600;">
+                                    Original Raw Text
+                                </div>
+                                <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;font-size:0.8125rem;line-height:1.55;max-height:85px;overflow-y:auto;color:var(--text-secondary);">
+                                    {{ (selected_ticket.subject + ' ' + selected_ticket.description)[:180] }}…
+                                </div>
                             </div>
                             <div>
-                                <div
-                                    style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.375rem;">
-                                    Cleaned Text</div>
-                                <div
-                                    style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;font-family:var(--font-mono);font-size:0.75rem;line-height:1.5;max-height:80px;overflow:hidden;">
-                                    {{ nlp_result.cleaned_text[:150] if nlp_result else '—' }}…</div>
+                                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.375rem;font-weight:600;">
+                                    Cleaned Normalized Tokens
+                                </div>
+                                <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;font-family:var(--font-mono);font-size:0.75rem;line-height:1.55;max-height:85px;overflow-y:auto;color:var(--accent-light);">
+                                    {{ nlp_result.cleaned_text[:180] if nlp_result else '—' }}…
+                                </div>
                             </div>
                         </div>
-                        <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);flex-wrap:wrap;">
-                            {% for step in ['Lowercase', 'URL removal', 'Special char removal', 'Tokenization',
-                            'Stopword removal', 'Lemmatization'] %}
-                            <span
-                                style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.5rem;background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-sm);font-size:0.6875rem;font-weight:500;color:var(--success);">
+
+                        <div style="margin-top:var(--space-md);display:flex;gap:var(--space-xs);flex-wrap:wrap;">
+                            {% for step in ['Lowercasing', 'URL Removal', 'Regex Punctuation Strip', 'Tokenization', 'Stopword Removal', 'Lemmatization'] %}
+                            <span style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.5rem;background:var(--success-bg);border:1px solid var(--success-border);border-radius:var(--radius-sm);font-size:0.6875rem;font-weight:600;color:var(--success);">
                                 <i class="bi bi-check2"></i> {{ step }}
                             </span>
                             {% endfor %}
@@ -110,245 +172,265 @@
                     </div>
                 </div>
 
-                <!-- 2. TF-IDF -->
+                <!-- Stage 2: TF-IDF Vectorization -->
                 <div class="card">
-                    <div class="card-header"
-                        style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">2</span>
-                            TF-IDF Vectorization
+                    <div class="card-header" style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                        <h2 style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
+                            <span style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">2</span>
+                            TF-IDF Feature Space Matrix
                         </h2>
                     </div>
                     <div class="card-body" style="font-size:0.875rem;">
-                        <div class="ml-row"
-                            style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);">Vectorizer</span>
-                            <span style="font-weight:600;">TF-IDF (sklearn)</span>
+                        <div class="ml-row">
+                            <span class="ml-row-label">Feature Extractor</span>
+                            <span class="ml-row-value">TF-IDF Vectorizer (scikit-learn)</span>
                         </div>
-                        <div class="ml-row"
-                            style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);">Max Features</span>
-                            <span style="font-weight:600;">5,000</span>
+                        <div class="ml-row">
+                            <span class="ml-row-label">Maximum Features</span>
+                            <span class="ml-row-value">5,000 dimensions</span>
                         </div>
-                        <div class="ml-row"
-                            style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);">N-Gram Range</span>
-                            <span style="font-weight:600;">(1, 2) — unigrams + bigrams</span>
+                        <div class="ml-row">
+                            <span class="ml-row-label">N-Gram Window</span>
+                            <span class="ml-row-value">(1, 2) — Unigrams + Bigrams</span>
                         </div>
-                        <div class="ml-row" style="display:flex;justify-content:space-between;padding:0.4rem 0;">
-                            <span style="color:var(--text-muted);">Vector Type</span>
-                            <span style="font-weight:600;">Sparse (scipy CSR matrix)</span>
+                        <div class="ml-row">
+                            <span class="ml-row-label">Matrix Representation</span>
+                            <span class="ml-row-value">Sparse scipy CSR Matrix</span>
                         </div>
-                        <p
-                            style="font-size:0.8125rem;color:var(--text-secondary);margin-top:var(--space-sm);padding:var(--space-sm);background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);">
-                            The cleaned ticket text is transformed into a sparse TF-IDF vector. This vector is fed to
-                            the Category and Priority classification models, and also used for cosine similarity
-                            retrieval against the historical corpus.
+                        <p style="font-size:0.8125rem;color:var(--text-secondary);margin-top:var(--space-sm);padding:0.65rem 0.75rem;background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);line-height:1.5;">
+                            Preprocessed tokens are projected into a 5,000-dimensional sparse feature space. This high-dimensional vector serves as input to both the category/priority classifiers and the cosine similarity search against historical resolutions.
                         </p>
                     </div>
                 </div>
 
-                <!-- 3. Classification -->
+                <!-- Stage 3 & 4: Multi-Task Classification & Routing -->
                 <div class="card">
-                    <div class="card-header"
-                        style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">3</span>
-                            Classification Results
+                    <div class="card-header" style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                        <h2 style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
+                            <span style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">3</span>
+                            Dual Classification &amp; Department Routing
                         </h2>
                     </div>
                     <div class="card-body">
-                        <div class="grid-2col-responsive" style="gap:var(--space-lg);">
+                        <div class="grid-2col-responsive" style="gap:var(--space-lg);margin-bottom:var(--space-md);">
                             <div>
-                                <div
-                                    style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:var(--space-sm);">
-                                    Category Prediction</div>
-                                <div style="font-size:1.5rem;font-weight:800;color:var(--text-primary);">{{
-                                    ai_result.predicted_category }}</div>
-                                <div class="confidence-bar" style="margin-top:0.5rem;">
+                                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.25rem;font-weight:600;">
+                                    Category Prediction
+                                </div>
+                                <div style="font-size:1.375rem;font-weight:800;color:var(--text-primary);">
+                                    {{ ai_result.predicted_category }}
+                                </div>
+                                <div class="confidence-bar" style="margin-top:0.4rem;">
                                     <div class="confidence-track">
                                         <div class="confidence-fill" data-width="{{ ai_result.category_confidence }}"></div>
                                     </div>
                                     <span class="confidence-label">{{ ai_result.category_confidence }}</span>
                                 </div>
-                                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">Model: Logistic
-                                    Regression</p>
+                                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.35rem;">
+                                    <i class="bi bi-cpu"></i> Logistic Regression Classifier
+                                </div>
                             </div>
                             <div>
-                                <div
-                                    style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:var(--space-sm);">
-                                    Priority Prediction</div>
-                                <div style="font-size:1.5rem;font-weight:800;color:var(--text-primary);">{{
-                                    ai_result.predicted_priority }}</div>
-                                <div class="confidence-bar" style="margin-top:0.5rem;">
+                                <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.25rem;font-weight:600;">
+                                    Priority Prediction
+                                </div>
+                                <div style="font-size:1.375rem;font-weight:800;color:var(--text-primary);">
+                                    {{ ai_result.predicted_priority }}
+                                </div>
+                                <div class="confidence-bar" style="margin-top:0.4rem;">
                                     <div class="confidence-track">
                                         <div class="confidence-fill" data-width="{{ ai_result.priority_confidence }}"></div>
                                     </div>
                                     <span class="confidence-label">{{ ai_result.priority_confidence }}</span>
                                 </div>
-                                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">Model: Logistic
-                                    Regression</p>
+                                <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.35rem;">
+                                    <i class="bi bi-cpu"></i> Logistic Regression Classifier
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 4. Department Routing -->
-                <div class="card">
-                    <div class="card-header"
-                        style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">4</span>
-                            Department Routing
-                        </h2>
-                    </div>
-                    <div class="card-body" style="font-size:0.875rem;">
-                        <div class="ml-row"
-                            style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);">Predicted Category</span>
-                            <span style="font-weight:600;">{{ ai_result.predicted_category }}</span>
+                        <!-- Routing Rule -->
+                        <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem 1rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+                                <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">Department Dispatch Queue</span>
+                                <span style="font-size:0.875rem;font-weight:700;color:var(--accent-light);">{{ ai_result.assigned_department }}</span>
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.45;">
+                                Deterministic routing rule maps the predicted class directly into the specialized support agent pool.
+                            </div>
                         </div>
-                        <div class="ml-row"
-                            style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border-subtle);">
-                            <span style="color:var(--text-muted);">Routing Method</span>
-                            <span style="font-weight:600;">Category → Department mapping</span>
-                        </div>
-                        <div class="ml-row" style="display:flex;justify-content:space-between;padding:0.4rem 0;">
-                            <span style="color:var(--text-muted);">Assigned Department</span>
-                            <span style="font-size:1rem;font-weight:800;color:var(--text-primary);">{{
-                                ai_result.assigned_department }}</span>
-                        </div>
-                        <p
-                            style="font-size:0.75rem;color:var(--text-secondary);margin-top:var(--space-sm);padding:var(--space-sm);background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);">
-                            The predicted category directly maps to the department: Technical → Technical, Billing →
-                            Billing, Account → Account, General Inquiry → General Inquiry, Fraud → Fraud & Security.
-                        </p>
                     </div>
                 </div>
 
             </div>
 
-            <!-- RIGHT: Similarity + Resolution + Pipeline Summary -->
+            <!-- ════════════════════════════════════════════════════════
+                 RIGHT COLUMN: HISTORICAL SIMILARITY & PIPELINE TRACE
+                 ════════════════════════════════════════════════════════ -->
             <div style="display:flex;flex-direction:column;gap:var(--space-lg);">
 
-                <!-- 5. Similarity Retrieval -->
-                <div class="card">
-                    <div class="card-header"
-                        style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">5</span>
-                            Similarity Retrieval
+                <!-- Stage 5: Similarity Retrieval (Showing EXACTLY 1 BEST MATCH) -->
+                <div class="card" style="border:1px solid var(--border-strong);">
+                    <div class="card-header" style="background:var(--primary);color:var(--text-light);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                        <h2 style="font-size:0.875rem;color:var(--text-light);font-weight:700;margin:0;display:flex;align-items:center;gap:0.5rem;">
+                            <span style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">4</span>
+                            Historical Similarity Knowledge Retrieval
                         </h2>
                     </div>
                     <div class="card-body" style="font-size:0.875rem;">
-                        <div
-                            style="margin-bottom:var(--space-sm);padding:var(--space-sm);background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);">
-                            <div style="font-size:0.75rem;color:var(--text-secondary);">Method: <strong>Sparse Cosine
-                                    Similarity</strong> | Retrieved: <strong>Top-3 historical tickets</strong></div>
+                        <div style="margin-bottom:var(--space-md);padding:0.6rem 0.85rem;background:var(--bg-subtle);border-radius:var(--radius-md);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-xs);">
+                            <span style="font-size:0.75rem;color:var(--text-secondary);">
+                                Engine: <strong>Sparse TF-IDF Cosine Similarity</strong>
+                            </span>
+                            <span style="font-size:0.75rem;color:var(--accent-light);font-weight:600;">
+                                Top-1 Best Historical Match
+                            </span>
                         </div>
-                        {% if similar_matches %}
-                        {% for match in similar_matches %}
-                        <div class="similar-ticket" style="margin-bottom:0.75rem;">
-                            <div class="similar-score">
-                                <div class="similar-score-num">{{ (match.similarity_score * 100) | int }}%</div>
-                                <div class="similar-score-label">match</div>
-                            </div>
-                            <div class="similar-info">
-                                <div class="similar-ref">{{ match.similar_ticket_ref_id }}</div>
-                                <div class="similar-subject">{{ match.similar_subject }}</div>
-                                <span class="badge badge-resolved" style="margin-top:0.25rem;">Resolved</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                        {% else %}
-                        <p style="color:var(--text-muted);font-size:0.8125rem;">No similar tickets found in the
-                            historical corpus.</p>
-                        {% endif %}
-                    </div>
-                </div>
 
-                <!-- 6. Suggested Resolution -->
-                {% if similar_matches and similar_matches[0].similar_description %}
-                <div class="card" style="border:1px solid var(--accent);">
-                    <div class="card-header"
-                        style="background:rgba(185,163,139,0.08);border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-                        <h2
-                            style="font-size:0.875rem;font-weight:700;margin:0;color:var(--accent-dark);display:flex;align-items:center;gap:0.5rem;">
-                            <span
-                                style="background:var(--accent);color:var(--primary);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;">6</span>
-                            Suggested Resolution
-                        </h2>
-                    </div>
-                    <div class="card-body">
-                        <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:var(--space-sm);">
-                            Based on the most similar resolved historical case ({{ (similar_matches[0].similarity_score
-                            * 100) | int }}% match):
-                        </p>
-                        <div class="resolution-box">{{ similar_matches[0].similar_description }}</div>
+                        {% if top_sim and ((top_sim.similarity_score * 100) | int >= 35) %}
+                        {% set score_num = (top_sim.similarity_score * 100) | int %}
+                        <div class="similar-ticket-card" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem;margin-bottom:var(--space-md);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                <span class="ticket-id" style="font-size:0.75rem;">{{ top_sim.similar_ticket_ref_id }}</span>
+                                <span class="ai-score-badge {{ 'high-match' if score_num >= 60 else '' }}">
+                                    <i class="bi bi-bullseye"></i> {{ score_num }}% Match
+                                </span>
+                            </div>
+                            <div style="font-size:0.9375rem;font-weight:700;color:var(--text-primary);margin-bottom:0.35rem;">
+                                {{ top_sim.similar_subject }}
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:0.4rem;">
+                                <span class="badge badge-resolved" style="font-size:0.65rem;">Closed / Resolved</span>
+                                <span>· Historical incident from training corpus</span>
+                            </div>
+
+                            <!-- Verified Resolution Box -->
+                            {% if top_sim.similar_description %}
+                            <div class="resolution-callout-box" style="margin:var(--space-sm) 0 0;">
+                                <div class="resolution-callout-header">
+                                    <span class="resolution-callout-title">
+                                        <i class="bi bi-check-circle-fill"></i> Suggested Historical Resolution
+                                    </span>
+                                </div>
+                                <div class="resolution-callout-text" style="font-size:0.8125rem;">
+                                    {{ top_sim.similar_description }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
                         {% if g.user.role in ['agent', 'admin'] %}
-                        <div style="margin-top:var(--space-sm);">
-                            <a href="{{ url_for('agent_ticket_details', ticket_id=selected_ticket.ticketno) }}"
-                                class="btn btn-accent btn-sm">
-                                <i class="bi bi-arrow-right-circle"></i> Open in Agent Workspace
+                        <div style="display:flex;justify-content:flex-end;">
+                            <a href="{{ url_for('agent_ticket_details', ticket_id=selected_ticket.ticketno) }}" class="btn btn-accent btn-sm">
+                                <i class="bi bi-magic"></i> Apply in Agent Workspace
                             </a>
                         </div>
                         {% endif %}
+
+                        {% else %}
+                        <div style="text-align:center;padding:1.5rem 0.5rem;">
+                            <i class="bi bi-info-circle" style="font-size:1.5rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;"></i>
+                            <div style="font-size:0.875rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">No Similar Tickets Found</div>
+                            <p style="color:var(--text-muted);font-size:0.8125rem;max-width:320px;margin:0 auto;">
+                                No closed cases in the historical partition met the minimum similarity threshold.
+                            </p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% endif %}
 
-                <!-- Pipeline Summary -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title" style="font-size:0.875rem;">End-to-End Pipeline</h2>
-                    </div>
-                    <div class="card-body" style="padding:var(--space-md);">
-                        <div class="pipeline">
-                            {% set steps = [
-                            ('Ticket Text', 'Raw input', ''),
-                            ('NLP Preprocessing', 'Tokenize, clean, lemmatize', ''),
-                            ('TF-IDF Vectorization', 'Sparse feature vector', ''),
-                            ('Category Model', ai_result.predicted_category + ' (' + ai_result.category_confidence +
-                            ')', 'accent'),
-                            ('Priority Model', ai_result.predicted_priority + ' (' + ai_result.priority_confidence +
-                            ')', 'accent'),
-                            ('Department Routing', ai_result.assigned_department, ''),
-                            ('Cosine Similarity', 'Historical corpus search', ''),
-                            ('Top-3 Similar Tickets', (similar_matches | length | string) + ' retrieved', ''),
-                            ('Suggested Resolution', 'From historical data', 'accent')
-                            ] %}
-                            {% for label, result, num_cls in steps %}
-                            <div class="pipeline-step">
-                                <div class="pipeline-num {{ num_cls }}">{{ loop.index }}</div>
-                                <div class="pipeline-content">
-                                    <p class="pipeline-label">{{ label }}</p>
-                                    <div class="pipeline-result">{{ result }}</div>
-                                </div>
-                            </div>
-                            {% endfor %}
+                <!-- Full End-to-End Pipeline Execution Trace Trigger Card -->
+                <div class="card" style="border-left:3px solid var(--accent);">
+                    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);">
+                        <div>
+                            <h2 class="card-title" style="font-size:0.9375rem;display:flex;align-items:center;gap:0.45rem;">
+                                <i class="bi bi-diagram-2" style="color:var(--accent);"></i> End-to-End Execution Trace
+                            </h2>
+                            <p class="card-subtitle">8 automated ML pipeline stages executed for this ticket</p>
                         </div>
+                        <span style="font-size:0.75rem;color:var(--success);font-weight:600;background:var(--success-bg);border:1px solid var(--success-border);padding:0.15rem 0.5rem;border-radius:999px;">
+                            <i class="bi bi-check-circle-fill"></i> Passed
+                        </span>
+                    </div>
+                    <div class="card-body" style="padding:var(--space-md);display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);flex-wrap:wrap;">
+                        <span style="font-size:0.8125rem;color:var(--text-secondary);max-width:420px;line-height:1.5;">
+                            Inspect the full 8-step pipeline audit: Input Ingestion, NLP Normalization, TF-IDF projection, Dual Classification, Department Dispatch, and Cosine Search.
+                        </span>
+                        <button type="button" class="btn btn-accent btn-sm" onclick="openTraceModal()" style="display:inline-flex;align-items:center;gap:0.45rem;font-weight:600;white-space:nowrap;">
+                            <i class="bi bi-box-arrow-up-right"></i> View Execution Trace
+                        </button>
                     </div>
                 </div>
 
             </div>
         </div>
 
+        <!-- End-to-End Execution Trace Pop-up Modal -->
+        <div class="alert-modal-backdrop" id="traceModal" style="display: none;" onclick="handleTraceBackdropClick(event)">
+            <div class="alert-modal-box" style="max-width: 660px; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding: 0; border-top: 3px solid var(--accent); background: var(--bg-surface); position: relative;">
+                <!-- Header with Close Button in Top Right -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.15rem 1.4rem; border-bottom: 1px solid var(--border); background: var(--primary);">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 36px; height: 36px; border-radius: 9px; background: rgba(196,174,146,0.18); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 1.15rem; flex-shrink: 0;">
+                            <i class="bi bi-diagram-2"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-light); display: flex; align-items: center; gap: 0.5rem;">
+                                End-to-End Execution Trace
+                                <span style="font-size: 0.7rem; color: var(--success); font-weight: 600; background: var(--success-bg); border: 1px solid var(--success-border); padding: 0.1rem 0.45rem; border-radius: 999px;">
+                                    <i class="bi bi-check-circle-fill"></i> Passed
+                                </span>
+                            </h3>
+                            <p style="margin: 0.15rem 0 0; font-size: 0.78rem; color: var(--text-secondary);">Ticket #{{ selected_ticket.ticketno }} · 8-stage automated ML inference pipeline</p>
+                        </div>
+                    </div>
+                    <button type="button" class="modal-close-btn" onclick="closeTraceModal()" aria-label="Close dialog" style="position: static; width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-subtle); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body with Scrollable Steps -->
+                <div style="padding: 1.4rem; overflow-y: auto; flex: 1;">
+                    <div class="pipeline">
+                        {% set steps = [
+                        ('1. Input Ingestion', 'Ticket text & customer metadata ingested', ''),
+                        ('2. NLP Cleaning', 'Lowercase, regex normalization & lemmatization', ''),
+                        ('3. TF-IDF Projection', 'Transformed to 5,000-dimensional sparse feature vector', ''),
+                        ('4. Category Model', ai_result.predicted_category + ' (' + ai_result.category_confidence + ')', 'accent'),
+                        ('5. Priority Model', ai_result.predicted_priority + ' (' + ai_result.priority_confidence + ')', 'accent'),
+                        ('6. Department Dispatch', ai_result.assigned_department + ' Team Queue', ''),
+                        ('7. Cosine Search', 'Corpus similarity scan (excluding current ticket)', ''),
+                        ('8. Resolution Assist', 'Top-1 historical solution surfaced for agent action', 'accent')
+                        ] %}
+                        {% for label, result, num_cls in steps %}
+                        <div class="pipeline-step">
+                            <div class="pipeline-num {{ num_cls }}">{{ loop.index }}</div>
+                            <div class="pipeline-content">
+                                <p class="pipeline-label">{{ label }}</p>
+                                <div class="pipeline-result">{{ result }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="padding: 0.85rem 1.4rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-subtle);">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="bi bi-info-circle"></i> Pipeline executed synchronously at ticket ingestion time</span>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeTraceModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
         {% else %}
-        <!-- Empty state: no ticket selected -->
+        <!-- Empty State When No Ticket is Selected -->
         <div class="card">
-            <div class="empty-state">
-                <i class="bi bi-cpu empty-state-icon"></i>
-                <div class="empty-state-title">Select a ticket to analyze</div>
-                <p class="empty-state-desc">Choose a ticket from the dropdown above to see the full ML pipeline — NLP
-                    preprocessing, TF-IDF, classification, routing, similarity retrieval, and suggested resolution.</p>
+            <div class="empty-state" style="padding:3.5rem 1.5rem;">
+                <i class="bi bi-cpu empty-state-icon" style="font-size:2.5rem;color:var(--accent);margin-bottom:1rem;display:block;"></i>
+                <div class="empty-state-title" style="font-size:1.125rem;font-weight:700;margin-bottom:0.5rem;">Select a Ticket to Inspect Pipeline</div>
+                <p class="empty-state-desc" style="max-width:480px;margin:0 auto;line-height:1.6;color:var(--text-secondary);">
+                    Choose an existing ticket from the dropdown above to view the complete ML inference pipeline: NLP normalization, sparse TF-IDF extraction, dual classification, routing, and top-1 cosine similarity retrieval.
+                </p>
             </div>
         </div>
         {% endif %}
@@ -361,6 +443,44 @@
 <script>
 document.querySelectorAll('.confidence-fill[data-width]').forEach(function(el) {
     el.style.width = el.getAttribute('data-width');
+});
+
+function openTraceModal() {
+    const modal = document.getElementById('traceModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        void modal.offsetHeight;
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeTraceModal() {
+    const modal = document.getElementById('traceModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            if (!modal.classList.contains('show')) {
+                modal.style.display = 'none';
+            }
+        }, 200);
+    }
+}
+
+function handleTraceBackdropClick(e) {
+    if (e.target === e.currentTarget) {
+        closeTraceModal();
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('traceModal');
+        if (modal && modal.classList.contains('show')) {
+            closeTraceModal();
+        }
+    }
 });
 </script>
 {% endblock %}

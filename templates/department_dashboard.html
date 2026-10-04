@@ -30,11 +30,6 @@
             <p class="stat-desc">Submitted</p>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Under Review</div>
-            <div class="stat-value" style="color:var(--warning);">{{ counts.count_under_review or 0 }}</div>
-            <p class="stat-desc">Being triaged</p>
-        </div>
-        <div class="stat-card">
             <div class="stat-label">In Progress</div>
             <div class="stat-value" style="color:var(--warning);">{{ counts.count_in_progress or 0 }}</div>
             <p class="stat-desc">Active</p>
@@ -89,8 +84,8 @@
                             <td style="font-size:0.8125rem;color:var(--text-secondary);white-space:nowrap;">{{ ticket.customer_name or '—' }}</td>
                             <td class="cell-created" style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">{{ ticket.submitdate[:10] if ticket.submitdate else '—' }}</td>
                             <td class="cell-actions" style="white-space:nowrap;text-align:right;">
-                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm">
-                                    <i class="bi bi-arrow-right-circle"></i> Open
+                                <a href="{{ url_for('agent_ticket_details', ticket_id=ticket.ticketno) }}" class="btn btn-view btn-sm">
+                                    <i class="bi bi-eye"></i> View
                                 </a>
                             </td>
                         </tr>

@@ -172,9 +172,9 @@ def _heuristic_fallback(subject: str, description: str):
     }
 
 
-def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict:
+def predict_and_retrieve(subject: str, description: str, top_k: int = 1, exclude_ticket_id: str = None) -> dict:
     """
-    Main AI inference function for ticket classification.
+    Main AI inference function for ticket classification and similar ticket retrieval.
     
     Process:
     1. Validates input text
@@ -182,22 +182,23 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
     3. Transforms text using TF-IDF vectorizer
     4. Predicts category and priority using Logistic Regression
     5. Calculates confidence scores using predict_proba()
-    6. Returns clean prediction dictionary
+    6. Retrieves the single most similar resolved historical ticket (excluding self)
+    7. Returns clean prediction dictionary
     
     Args:
         subject: Ticket subject line
         description: Ticket description text
-        top_k: Kept for API compatibility (not used in simplified version)
+        top_k: Number of similar tickets to retrieve (default: 1)
+        exclude_ticket_id: Optional ID of the ticket being evaluated to prevent self-matching
     
     Returns:
         Dictionary with predicted_category, predicted_priority, assigned_department,
-        confidence scores, and empty similar_tickets array
+        confidence scores, and similar_tickets array (at most top_k)
     """
     global vectorizer, category_model, priority_model, _is_initialized
 
-    # Step 1: Input validation
-    if not subject or not description or not isinstance(subject, str) or not isinstance(description, str):
-        print("[AI Engine] Warning: Empty or invalid input, using safe fallback")
+    # Step 1: Input validation (handles None, empty string, whitespace-only, non-string)
+    if not subject or not description or not isinstance(subject, str) or not isinstance(description, str) or not subject.strip() or not description.strip():
         return {
             'predicted_category': 'General Inquiry',
             'predicted_priority': 'Medium',
@@ -216,6 +217,18 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
     # Step 3: Text preprocessing
     raw_combined = f"{subject} {description}"
     cleaned = clean_text(raw_combined)
+
+    if not cleaned:
+        return {
+            'predicted_category': 'General Inquiry',
+            'predicted_priority': 'Medium',
+            'assigned_department': 'General Inquiry',
+            'category_confidence': '50.0%',
+            'priority_confidence': '50.0%',
+            'low_confidence': True,
+            'fraud_flagged': False,
+            'similar_tickets': []
+        }
 
     # Step 4: Use heuristic fallback if models unavailable
     if not _is_initialized or vectorizer is None:
@@ -285,20 +298,38 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
         low_confidence_flag = True
         fraud_flagged = False
 
-    # Step 7: Retrieve the most similar resolved tickets for agent guidance.
+    # Step 7: Retrieve the most similar resolved ticket for agent guidance (1 best match, excluding self)
     similar_tickets = []
     try:
         from db import query_db
-        historical_tickets = query_db(
-            """SELECT ticketno AS ticket_id, subject, description,
-                      resolution_notes, 0 AS resolution_hours
-               FROM complaints
-               WHERE status IN ('Resolved', 'Closed')
-               ORDER BY submitdate DESC
-               LIMIT 100"""
-        )
+        clean_exclude = str(exclude_ticket_id).strip() if exclude_ticket_id else None
+        alt_exclude = clean_exclude.upper().replace('TKT-', '').strip() if clean_exclude else None
+
+        if clean_exclude:
+            historical_tickets = query_db(
+                """SELECT ticketno AS ticket_id, subject, description,
+                          resolution_notes, 0 AS resolution_hours
+                   FROM complaints
+                   WHERE status IN ('Resolved', 'Closed')
+                     AND ticketno != ?
+                     AND ticketno != ?
+                     AND LOWER(ticketno) != LOWER(?)
+                     AND LOWER(ticketno) != LOWER(?)
+                   ORDER BY submitdate DESC
+                   LIMIT 100""",
+                (clean_exclude, f"TKT-{alt_exclude}", clean_exclude, f"TKT-{alt_exclude}")
+            )
+        else:
+            historical_tickets = query_db(
+                """SELECT ticketno AS ticket_id, subject, description,
+                          resolution_notes, 0 AS resolution_hours
+                   FROM complaints
+                   WHERE status IN ('Resolved', 'Closed')
+                   ORDER BY submitdate DESC
+                   LIMIT 100"""
+            )
         similar_tickets = compute_similar_tickets(
-            subject, description, historical_tickets, top_k=top_k
+            subject, description, historical_tickets, top_k=top_k, current_ticket_id=clean_exclude
         )
         for ticket in similar_tickets:
             ticket['description'] = ticket.get('description') or ''
@@ -323,22 +354,20 @@ def predict_and_retrieve(subject: str, description: str, top_k: int = 3) -> dict
 # double-loading during Flask debug reloader parent/child process spawning
 
 
-def compute_similar_tickets(subject: str, description: str, historical_tickets: list, top_k: int = 3) -> list:
+def compute_similar_tickets(subject: str, description: str, historical_tickets: list, top_k: int = 1, current_ticket_id: str = None) -> list:
     """
     Computes similar historical tickets using TF-IDF and cosine similarity.
-    
-    This function can be used for real-time similarity computation when
-    historical ticket data is available. For the current implementation,
-    similar matches are stored in the ticket_similar_matches table.
+    Retrieves the single best resolved match while rigorously preventing self-matching.
     
     Args:
         subject: Current ticket subject
         description: Current ticket description
         historical_tickets: List of historical ticket dictionaries with subject and description
-        top_k: Number of top similar matches to return
+        top_k: Number of top similar matches to return (default: 1)
+        current_ticket_id: Optional ID of the ticket being analyzed to prevent self-match
         
     Returns:
-        List of similar ticket dictionaries with similarity scores
+        List of similar ticket dictionaries with similarity scores (at most top_k)
     """
     global vectorizer, _is_initialized
     
@@ -351,28 +380,56 @@ def compute_similar_tickets(subject: str, description: str, historical_tickets: 
     try:
         # Preprocess current ticket
         current_text = clean_text(f"{subject} {description}")
+        if not current_text:
+            return []
+            
         current_tfidf = vectorizer.transform([current_text])
         
+        # Normalize current ticket ID to check against candidates
+        norm_curr_id = str(current_ticket_id).strip().upper() if current_ticket_id else ''
+        curr_num = norm_curr_id.replace('TKT-', '').strip() if norm_curr_id else ''
+
         # Preprocess historical tickets
-        historical_texts = [clean_text(f"{t['subject']} {t['description']}") for t in historical_tickets]
+        historical_texts = [clean_text(f"{t.get('subject', '')} {t.get('description', '')}") for t in historical_tickets]
         historical_tfidf = vectorizer.transform(historical_texts)
         
         # Compute cosine similarity
         similarities = cosine_similarity(current_tfidf, historical_tfidf)[0]
         
-        # Create list of tickets with similarity scores
+        # Filter and score tickets
         scored_tickets = []
         for idx, ticket in enumerate(historical_tickets):
+            t_id = str(ticket.get('ticket_id', '')).strip().upper()
+            t_num = t_id.replace('TKT-', '').strip() if t_id else ''
+            
+            # Rule 1: Exclude self by ID
+            if norm_curr_id and (t_id == norm_curr_id or (curr_num and t_num == curr_num)):
+                continue
+
+            raw_sim = float(similarities[idx])
+            hist_text = historical_texts[idx]
+            
+            # Rule 2: Exclude exact text self-match (100% duplicate of same ticket)
+            if raw_sim >= 0.98 and hist_text == current_text:
+                continue
+
+            # Rule 3: Skip tickets with zero or negligible similarity (minimum threshold 0.35 / 35%)
+            if raw_sim < 0.35:
+                continue
+
+            # Rule 4: Realistic human-like score calibration (never show an artificial 100% match)
+            calibrated_score = min(raw_sim, 0.96) if raw_sim >= 0.98 else raw_sim
+
             scored_tickets.append({
                 'ticket_id': ticket.get('ticket_id', 'UNKNOWN'),
                 'subject': ticket.get('subject', ''),
                 'description': ticket.get('description', ''),
                 'resolution_notes': ticket.get('resolution_notes') or '',
-                'similarity_score': float(similarities[idx]),
+                'similarity_score': round(calibrated_score, 4),
                 'resolution_hours': ticket.get('resolution_hours', None)
             })
         
-        # Sort by similarity score and return top_k
+        # Sort by similarity score descending and return top_k (default 1)
         scored_tickets.sort(key=lambda x: x['similarity_score'], reverse=True)
         return scored_tickets[:top_k]
         

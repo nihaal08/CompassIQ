@@ -20,7 +20,7 @@
         {% for category, message in messages %}
             <div class="alert-modal-backdrop show">
                 <div class="alert-modal-box">
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()">&times;</button>
+                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()" aria-label="Close dialog"><i class="bi bi-x-lg"></i></button>
                     <h3 class="alert-modal-title">
                         {% if category == 'success' %}<i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
                         {% elif category == 'danger' %}<i class="bi bi-shield-x" style="color:var(--danger);"></i> Error

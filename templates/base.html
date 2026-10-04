@@ -128,7 +128,7 @@
                                 <div class="navbar-avatar">{{ (g.user.custname or g.user.full_name or 'U')[0].upper() }}</div>
                                 <div>
                                     <div class="navbar-user-name">{{ g.user.custname or g.user.full_name }}</div>
-                                    <div class="navbar-user-role">{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}</div>
+                                    <div class="navbar-user-role">{% if g.user.role == 'admin' %}Administrator{% else %}{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}{% endif %}</div>
                                 </div>
                             </div>
                             <button type="button" class="btn-nav-logout mobile-logout" onclick="showLogoutModal()">
@@ -149,7 +149,7 @@
                         <div class="navbar-avatar">{{ (g.user.custname or g.user.full_name or 'U')[0].upper() }}</div>
                         <div>
                             <div class="navbar-user-name">{{ g.user.custname or g.user.full_name }}</div>
-                            <div class="navbar-user-role">{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}</div>
+                            <div class="navbar-user-role">{% if g.user.role == 'admin' %}Administrator{% else %}{{ g.user.role | title }}{% if g.user.department %} · {{ g.user.department }}{% endif %}{% endif %}</div>
                         </div>
                     </div>
                     <button class="btn-nav-logout" onclick="showLogoutModal()">
@@ -176,7 +176,9 @@
             {% for category, message in messages %}
                 <div class="alert-modal-backdrop show" id="flashAlertModal_{{ loop.index }}">
                     <div class="alert-modal-box">
-                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)">&times;</button>
+                        <button type="button" class="modal-close-btn" onclick="closeFlashModal(this)" aria-label="Close dialog">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                         <h3 class="alert-modal-title">
                             {% if category == 'danger' %}
                                 <i class="bi bi-shield-x" style="color:var(--danger);"></i> Error
@@ -210,7 +212,9 @@
          ==================================================== -->
     <div class="alert-modal-backdrop" id="logoutModal">
         <div class="alert-modal-box">
-            <button type="button" class="modal-close-btn" onclick="closeLogoutModal()">&times;</button>
+            <button type="button" class="modal-close-btn" onclick="closeLogoutModal()" aria-label="Close dialog">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <h3 class="alert-modal-title">
                 <i class="bi bi-box-arrow-right" style="color:var(--accent);"></i> Confirm Logout
             </h3>
@@ -283,7 +287,7 @@
         // Helper: status badge class
         function getStatusClass(status) {
             const map = {
-                'Submitted': 'badge-submitted', 'Under Review': 'badge-under-review',
+                'Submitted': 'badge-submitted',
                 'In Progress': 'badge-in-progress', 'Resolved': 'badge-resolved', 'Closed': 'badge-closed'
             };
             return map[status] || 'badge-submitted';
@@ -305,6 +309,7 @@
             return `${pct}%`;
         }
     </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

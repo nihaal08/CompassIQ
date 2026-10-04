@@ -13,7 +13,7 @@ An end-to-end, production-grade, AI-powered customer support ticket intelligence
    - Evaluates TF-IDF vector embeddings against historical customer support tickets.
    - Provides agents with instant context, past resolution times, satisfaction ratings, and solutions.
 3. **Role-Based Access Control (RBAC)**:
-   - **Customer Portal**: Minimal, ultra-fast ticket submission, live visual step tracker (`Submitted` → `Under Review` → `In Progress` → `Resolved` → `Closed`), conversation thread, and post-resolution CSAT star rating.
+   - **Customer Portal**: Minimal, ultra-fast ticket submission, live visual step tracker (`Submitted` → `In Progress` → `Resolved` → `Closed`), conversation thread, and post-resolution CSAT star rating.
    - **Department Agent Portal**: Dedicated department-scoped queue (`Technical`, `Billing`, `Account`, `General Inquiry`), dual-pane split workspace (conversation + AI similarity panel), one-click "Use Solution" macro.
    - **Administrator Console**: Real-time system analytics telemetry, User Verification Queue (`PENDING` customer approvals/rejections), and AI Fraud Escalation Center (one-click user bans / ticket closures).
 4. **Futuristic Glassmorphism Theme**:

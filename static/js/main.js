@@ -87,8 +87,8 @@ function showCustomAlert(title, message, type = 'info') {
         modal.className = 'alert-modal-backdrop';
         modal.innerHTML = `
             <div class="alert-modal-box">
-                <button type="button" class="modal-close-btn" title="Close">
-                    &times;
+                <button type="button" class="modal-close-btn" title="Close" aria-label="Close dialog">
+                    <i class="bi bi-x-lg"></i>
                 </button>
                 <div class="alert-icon-wrap alert-icon-${type}">
                     <i class="bi ${getIconForType(type)}"></i>
@@ -256,7 +256,7 @@ function updateStepTrackerUI(trackerId, status) {
     const tracker = document.getElementById(trackerId);
     if (!tracker) return;
 
-    const steps = ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed'];
+    const steps = ['Submitted', 'In Progress', 'Resolved', 'Closed'];
     let activeIdx = steps.indexOf(status);
     if (activeIdx === -1) activeIdx = 0;
 
@@ -605,7 +605,6 @@ function renderDetailsModal(data) {
                                 <label style="font-size:0.82rem;font-weight:500;color:#D5D5D5;display:block;margin-bottom:4px;">Update Status</label>
                                 <select name="status" class="form-select" style="width:100%;height:38px;background:#1C1D21;color:white;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:0 8px;">
                                     <option value="" selected>Keep Current (${escapeHtml(st)})</option>
-                                    <option value="Under Review">Under Review</option>
                                     <option value="In Progress">In Progress</option>
                                     <option value="Resolved">Resolved</option>
                                     <option value="Closed">Closed</option>

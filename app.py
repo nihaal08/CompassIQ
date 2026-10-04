@@ -519,9 +519,18 @@ def logout():
     return response
 
 
-# ============================================================================
-# FLOW 2: CUSTOMER PORTAL (Create Tickets, View History, Submit Feedback)
-# ============================================================================
+@app.route('/dashboard')
+def universal_dashboard():
+    """Universal dashboard endpoint that routes users to their role-specific dashboard."""
+    role = session.get('role')
+    if role == 'admin':
+        return redirect(url_for('admin_dashboard'))
+    elif role == 'agent':
+        return redirect(url_for('agent_dashboard'))
+    elif role == 'customer':
+        return redirect(url_for('customer_dashboard'))
+    return redirect(url_for('login_page'))
+
 
 @app.route('/customer/dashboard')
 @customer_required
@@ -564,8 +573,9 @@ def create_ticket():
         flash("Subject and Description cannot be empty.", "warning")
         return redirect(url_for('customer_dashboard'))
 
-    # Step 2: AI Inference for category and priority prediction
-    ai_result = predict_and_retrieve(subject, description, top_k=3)
+    # Step 2: AI Inference for category and priority prediction + top 1 similar match
+    ticket_id = generate_ticket_id()
+    ai_result = predict_and_retrieve(subject, description, top_k=1, exclude_ticket_id=ticket_id)
     
     predicted_category = ai_result['predicted_category']
     predicted_priority = ai_result['predicted_priority']
@@ -581,8 +591,6 @@ def create_ticket():
     }
     deptid = category_to_deptid.get(predicted_category, 4)  # Default to General Inquiry
 
-    ticket_id = generate_ticket_id()
-
     # Support both old and new session keys for backward compatibility
     user_id = g.user.get('custid') or g.user.get('user_id')
 
@@ -595,8 +603,11 @@ def create_ticket():
             (ticket_id, user_id, deptid, subject, description, predicted_category, predicted_priority)
         )
 
-        # Step 5: Persist AI similar historical matches
-        for sim in ai_result.get('similar_tickets', []):
+        # Step 5: Persist AI single best similar historical match (excluding self)
+        for sim in ai_result.get('similar_tickets', [])[:1]:
+            sim_ref = sim.get('ticket_id', 'HIST-000')
+            if str(sim_ref).strip().upper() == str(ticket_id).strip().upper():
+                continue
             try:
                 modify_db(
                     """INSERT INTO ticket_similar_matches (
@@ -605,7 +616,7 @@ def create_ticket():
                        ) VALUES (?, ?, ?, ?, ?, ?)""",
                     (
                         ticket_id,
-                        sim.get('ticket_id', 'HIST-000'),
+                        sim_ref,
                         float(sim.get('similarity_score', 0.85)),
                         sim.get('subject', 'Similar Incident'),
                         sim.get('description', 'Historical resolution details...'),
@@ -718,9 +729,11 @@ def customer_ticket_view(ticket_id):
            FROM ticket_similar_matches m
            LEFT JOIN complaints c ON m.similar_ticket_ref_id = c.ticketno
            LEFT JOIN departments d ON c.deptid = d.deptid
-           WHERE m.ticketno = ? OR m.ticketno = ?
-           ORDER BY m.similarity_score DESC LIMIT 5""",
-        (ticket['ticketno'], alt_id)
+           WHERE (m.ticketno = ? OR m.ticketno = ?)
+             AND m.similar_ticket_ref_id != ?
+             AND m.similar_ticket_ref_id != ?
+           ORDER BY m.similarity_score DESC LIMIT 1""",
+        (ticket['ticketno'], alt_id, ticket['ticketno'], alt_id)
     ) or []
 
     return render_template(
@@ -846,7 +859,7 @@ def view_customer_ticket(ticket_id):
         (clean_id, alt_id, clean_id, alt_id)
     ) or []
 
-    # Step 4: Fetch similar matches if any exist
+    # Step 4: Fetch similar matches if any exist (1 best match, excluding self)
     similar_matches = query_db(
         """SELECT m.match_id, m.ticketno, m.ticketno as ticket_id,
                   m.similar_ticket_ref_id, m.similarity_score, m.similar_subject, 
@@ -858,9 +871,11 @@ def view_customer_ticket(ticket_id):
            LEFT JOIN complaints c ON m.similar_ticket_ref_id = c.ticketno
            LEFT JOIN departments d ON c.deptid = d.deptid
            WHERE (m.ticketno = ? OR m.ticketno = ? OR LOWER(m.ticketno) = LOWER(?) OR LOWER(m.ticketno) = LOWER(?))
+             AND m.similar_ticket_ref_id != ? AND m.similar_ticket_ref_id != ?
+             AND LOWER(m.similar_ticket_ref_id) != LOWER(?) AND LOWER(m.similar_ticket_ref_id) != LOWER(?)
            ORDER BY m.similarity_score DESC
-           LIMIT 5""",
-        (clean_id, alt_id, clean_id, alt_id)
+           LIMIT 1""",
+        (clean_id, alt_id, clean_id, alt_id, clean_id, alt_id, clean_id, alt_id)
     ) or []
 
     return jsonify({
@@ -1022,6 +1037,8 @@ def submit_feedback(ticket_id):
 # ============================================================================
 
 @app.route('/agent/dashboard')
+@app.route('/agent/tickets')
+@app.route('/agent/queue')
 @agent_required
 def agent_dashboard():
     """
@@ -1097,7 +1114,6 @@ def agent_dashboard():
             """SELECT
                 COUNT(*) as total,
                 COALESCE(SUM(status IN ('Submitted', 'Open')), 0) as count_submitted,
-                COALESCE(SUM(status = 'Under Review'), 0) as count_under_review,
                 COALESCE(SUM(status = 'In Progress'), 0) as count_in_progress,
                 COALESCE(SUM(status IN ('Resolved', 'Closed')), 0) as count_resolved,
                 COALESCE(ROUND(AVG(satisfaction_score), 1), 5.0) as avg_csat
@@ -1119,7 +1135,6 @@ def agent_dashboard():
             """SELECT
                 COUNT(*) as total,
                 COALESCE(SUM(status IN ('Submitted', 'Open')), 0) as count_submitted,
-                COALESCE(SUM(status = 'Under Review'), 0) as count_under_review,
                 COALESCE(SUM(status = 'In Progress'), 0) as count_in_progress,
                 COALESCE(SUM(status IN ('Resolved', 'Closed')), 0) as count_resolved,
                 COALESCE(ROUND(AVG(satisfaction_score), 1), 5.0) as avg_csat
@@ -1225,7 +1240,7 @@ def get_ticket_details(ticket_id):
         (clean_id, alt_id, clean_id, alt_id)
     ) or []
 
-    # Step 4: Fetch similar historical tickets (top 5)
+    # Step 4: Fetch similar historical tickets (1 best match, excluding self)
     similar_matches = query_db(
         """SELECT m.match_id, m.ticketno, m.ticketno AS ticket_id,
                   m.similar_ticket_ref_id, m.similarity_score, m.similar_subject,
@@ -1237,29 +1252,38 @@ def get_ticket_details(ticket_id):
            LEFT JOIN complaints c ON m.similar_ticket_ref_id = c.ticketno
            LEFT JOIN departments d ON c.deptid = d.deptid
            WHERE (m.ticketno = ? OR m.ticketno = ? OR LOWER(m.ticketno) = LOWER(?) OR LOWER(m.ticketno) = LOWER(?))
+             AND m.similarity_score >= 0.35
+             AND m.similar_ticket_ref_id != ? AND m.similar_ticket_ref_id != ?
+             AND LOWER(m.similar_ticket_ref_id) != LOWER(?) AND LOWER(m.similar_ticket_ref_id) != LOWER(?)
            ORDER BY m.similarity_score DESC
-           LIMIT 5""",
-        (clean_id, alt_id, clean_id, alt_id)
+           LIMIT 1""",
+        (clean_id, alt_id, clean_id, alt_id, clean_id, alt_id, clean_id, alt_id)
     ) or []
 
     # If no similarity matches were previously stored, dynamically retrieve them using AI engine
     if not similar_matches:
         try:
             ai_retrieval = predict_and_retrieve(
-                ticket.get('subject', '') or '',
-                ticket.get('description', '') or '',
-                top_k=3
+                ticket.get('subject', '') or '', 
+                ticket.get('description', '') or '', 
+                top_k=1,
+                exclude_ticket_id=ticket.get('ticketno') or clean_id
             )
-            for sim in ai_retrieval.get('similar_tickets', []):
-                similar_matches.append({
-                    'ticketno': ticket.get('ticketno') or clean_id,
-                    'ticket_id': ticket.get('ticketno') or clean_id,
-                    'similar_ticket_ref_id': sim.get('ticket_id', 'HIST-REF'),
-                    'similarity_score': float(sim.get('similarity_score', 0.85)),
-                    'similar_subject': sim.get('subject', 'Historical Incident'),
-                    'similar_description': sim.get('description', ''),
-                    'historical_resolution_hours': int(sim.get('resolution_hours', 12) or 12)
-                })
+            for sim in ai_retrieval.get('similar_tickets', [])[:1]:
+                sim_ref = sim.get('ticket_id', 'HIST-REF')
+                sim_score = float(sim.get('similarity_score', 0))
+                if str(sim_ref).strip().upper() in [str(clean_id).upper(), str(alt_id).upper()]:
+                    continue
+                if sim_score >= 0.35:
+                    similar_matches.append({
+                        'ticketno': ticket.get('ticketno') or clean_id,
+                        'ticket_id': ticket.get('ticketno') or clean_id,
+                        'similar_ticket_ref_id': sim_ref,
+                        'similarity_score': sim_score,
+                        'similar_subject': sim.get('subject', 'Historical Incident'),
+                        'similar_description': sim.get('description', ''),
+                        'historical_resolution_hours': int(sim.get('resolution_hours', 12) or 12)
+                    })
         except Exception as sim_err:
             similar_matches = []
 
@@ -1325,7 +1349,7 @@ def api_ticket_similar(ticket_id):
     if not ticket:
         return jsonify({'success': False, 'error': f"Ticket '{ticket_id}' not found"}), 404
 
-    # Fetch resolved historical tickets
+    # Fetch resolved historical tickets (excluding the current ticket in all ID variants)
     historical = query_db(
         """SELECT c.ticketno AS ticket_id, c.subject, c.description,
                   c.resolution_notes, COALESCE(d.deptname, 'Support') AS department_name,
@@ -1333,27 +1357,31 @@ def api_ticket_similar(ticket_id):
            FROM complaints c
            LEFT JOIN departments d ON c.deptid = d.deptid
            WHERE c.status IN ('Resolved', 'Closed')
-             AND c.ticketno != ?
+             AND c.ticketno != ? AND c.ticketno != ?
+             AND LOWER(c.ticketno) != LOWER(?) AND LOWER(c.ticketno) != LOWER(?)
            ORDER BY c.submitdate DESC
            LIMIT 100""",
-        (ticket['ticketno'],)
+        (clean_id, alt_id, clean_id, alt_id)
     ) or []
 
     similar_tickets = []
     if historical:
         try:
             from ai_engine import compute_similar_tickets
-            similar_tickets = compute_similar_tickets(
+            raw_sims = compute_similar_tickets(
                 ticket.get('subject', '') or '',
                 ticket.get('description', '') or '',
                 [dict(h) for h in historical],
-                top_k=5
+                top_k=1,
+                current_ticket_id=ticket['ticketno']
             )
-            # Only keep matches with meaningful similarity (score > 0.08)
             meaningful_matches = []
             hist_map = {h['ticket_id']: h for h in historical}
-            for sim in similar_tickets:
-                if sim['similarity_score'] > 0.08:
+            for sim in raw_sims:
+                # Prevent self-match
+                if str(sim['ticket_id']).strip().upper() in [clean_id.upper(), alt_id.upper()]:
+                    continue
+                if sim['similarity_score'] >= 0.35:
                     h = hist_map.get(sim['ticket_id'])
                     if h:
                         sim['department_name'] = h['department_name']
@@ -1363,30 +1391,29 @@ def api_ticket_similar(ticket_id):
                     sim['match_percent'] = int(round(sim['similarity_score'] * 100))
                     meaningful_matches.append(sim)
 
-                    # Persist match if relevant
-                    if sim['similarity_score'] >= 0.15:
-                        try:
-                            modify_db(
-                                """INSERT OR REPLACE INTO ticket_similar_matches (
-                                       ticketno, similar_ticket_ref_id, similarity_score,
-                                       similar_subject, similar_description, historical_resolution_hours
-                                   ) VALUES (?, ?, ?, ?, ?, ?)""",
-                                (
-                                    ticket['ticketno'],
-                                    sim['ticket_id'],
-                                    float(sim['similarity_score']),
-                                    sim['subject'],
-                                    sim.get('resolution_notes') or sim.get('description', ''),
-                                    12
-                                )
+                    # Persist single best match if relevant
+                    try:
+                        modify_db(
+                            """INSERT OR REPLACE INTO ticket_similar_matches (
+                                   ticketno, similar_ticket_ref_id, similarity_score,
+                                   similar_subject, similar_description, historical_resolution_hours
+                               ) VALUES (?, ?, ?, ?, ?, ?)""",
+                            (
+                                ticket['ticketno'],
+                                sim['ticket_id'],
+                                float(sim['similarity_score']),
+                                sim['subject'],
+                                sim.get('resolution_notes') or sim.get('description', ''),
+                                12
                             )
-                        except Exception:
-                            pass
-            similar_tickets = meaningful_matches
+                        )
+                    except Exception:
+                        pass
+            similar_tickets = meaningful_matches[:1]
         except Exception as e:
             print(f"[Similarity API Error] {e}")
 
-    # Fallback to existing saved matches if ML scored zero
+    # Fallback to existing saved matches if ML scored zero (excluding self, top 1)
     if not similar_tickets:
         existing = query_db(
             """SELECT m.similar_ticket_ref_id AS ticket_id, m.similarity_score,
@@ -1397,11 +1424,14 @@ def api_ticket_similar(ticket_id):
                FROM ticket_similar_matches m
                LEFT JOIN complaints c ON m.similar_ticket_ref_id = c.ticketno
                LEFT JOIN departments d ON c.deptid = d.deptid
-               WHERE m.ticketno = ? OR m.ticketno = ?
-               ORDER BY m.similarity_score DESC LIMIT 5""",
-            (ticket['ticketno'], alt_id)
+               WHERE (m.ticketno = ? OR m.ticketno = ?)
+                 AND m.similarity_score >= 0.35
+                 AND m.similar_ticket_ref_id != ? AND m.similar_ticket_ref_id != ?
+                 AND LOWER(m.similar_ticket_ref_id) != LOWER(?) AND LOWER(m.similar_ticket_ref_id) != LOWER(?)
+               ORDER BY m.similarity_score DESC LIMIT 1""",
+            (ticket['ticketno'], alt_id, clean_id, alt_id, clean_id, alt_id)
         ) or []
-        for row in existing:
+        for row in existing[:1]:
             sim_dict = dict(row)
             sim_dict['match_percent'] = int(round((sim_dict.get('similarity_score') or 0.8) * 100))
             similar_tickets.append(sim_dict)
@@ -1503,7 +1533,7 @@ def agent_ticket_details(ticket_id):
         (clean_id, alt_id, clean_id, alt_id)
     ) or []
 
-    # Step 4: Fetch similar historical tickets (top 5)
+    # Step 4: Fetch similar historical tickets (1 best match, excluding self)
     similar_matches = query_db(
         """SELECT m.match_id, m.ticketno, m.ticketno AS ticket_id,
                   m.similar_ticket_ref_id, m.similarity_score, m.similar_subject, 
@@ -1515,9 +1545,12 @@ def agent_ticket_details(ticket_id):
            LEFT JOIN complaints c ON m.similar_ticket_ref_id = c.ticketno
            LEFT JOIN departments d ON c.deptid = d.deptid
            WHERE (m.ticketno = ? OR m.ticketno = ? OR LOWER(m.ticketno) = LOWER(?) OR LOWER(m.ticketno) = LOWER(?))
+             AND m.similarity_score >= 0.35
+             AND m.similar_ticket_ref_id != ? AND m.similar_ticket_ref_id != ?
+             AND LOWER(m.similar_ticket_ref_id) != LOWER(?) AND LOWER(m.similar_ticket_ref_id) != LOWER(?)
            ORDER BY m.similarity_score DESC
-           LIMIT 5""",
-        (clean_id, alt_id, clean_id, alt_id)
+           LIMIT 1""",
+        (clean_id, alt_id, clean_id, alt_id, clean_id, alt_id, clean_id, alt_id)
     ) or []
 
     # If no similarity matches were previously stored, dynamically retrieve them using AI engine
@@ -1526,18 +1559,24 @@ def agent_ticket_details(ticket_id):
             ai_retrieval = predict_and_retrieve(
                 ticket.get('subject', '') or '', 
                 ticket.get('description', '') or '', 
-                top_k=3
+                top_k=1,
+                exclude_ticket_id=ticket.get('ticketno') or clean_id
             )
-            for sim in ai_retrieval.get('similar_tickets', []):
-                similar_matches.append({
-                    'ticketno': ticket.get('ticketno') or clean_id,
-                    'ticket_id': ticket.get('ticketno') or clean_id,
-                    'similar_ticket_ref_id': sim.get('ticket_id', 'HIST-REF'),
-                    'similarity_score': float(sim.get('similarity_score', 0.85)),
-                    'similar_subject': sim.get('subject', 'Historical Incident'),
-                    'similar_description': sim.get('description', ''),
-                    'historical_resolution_hours': int(sim.get('resolution_hours', 12) or 12)
-                })
+            for sim in ai_retrieval.get('similar_tickets', [])[:1]:
+                sim_ref = sim.get('ticket_id', 'HIST-REF')
+                sim_score = float(sim.get('similarity_score', 0))
+                if str(sim_ref).strip().upper() in [clean_id.upper(), alt_id.upper()]:
+                    continue
+                if sim_score >= 0.35:
+                    similar_matches.append({
+                        'ticketno': ticket.get('ticketno') or clean_id,
+                        'ticket_id': ticket.get('ticketno') or clean_id,
+                        'similar_ticket_ref_id': sim_ref,
+                        'similarity_score': sim_score,
+                        'similar_subject': sim.get('subject', 'Historical Incident'),
+                        'similar_description': sim.get('description', ''),
+                        'historical_resolution_hours': int(sim.get('resolution_hours', 12) or 12)
+                    })
         except Exception as sim_err:
             similar_matches = []
 
@@ -1648,7 +1687,7 @@ def agent_ticket_reply(ticket_id):
     update_fields = []
     params = []
 
-    if new_status and new_status in ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed']:
+    if new_status and new_status in ['Submitted', 'In Progress', 'Resolved', 'Closed']:
         update_fields.append("status = ?")
         params.append(new_status)
         if new_status == 'Resolved':
@@ -1677,6 +1716,7 @@ def agent_ticket_reply(ticket_id):
 
 
 @app.route('/agent/assigned')
+@app.route('/agent/tickets/assigned')
 @agent_required
 def agent_assigned_tickets():
     """Agent Assigned Tickets queue view with sorting and filters."""
@@ -1777,7 +1817,12 @@ def handle_intelligence():
     if selected_ticket:
         raw_text = f"{selected_ticket['subject']} {selected_ticket['description']}"
         try:
-            ai_data = predict_and_retrieve(selected_ticket['subject'], selected_ticket['description'], top_k=3)
+            ai_data = predict_and_retrieve(
+                selected_ticket['subject'], 
+                selected_ticket['description'], 
+                top_k=1,
+                exclude_ticket_id=selected_ticket['ticketno']
+            )
             pred_cat = ai_data.get('predicted_category') or selected_ticket.get('predicted_category') or 'General Inquiry'
             pred_prio = ai_data.get('predicted_priority') or selected_ticket.get('predicted_priority') or 'Medium'
             nlp_result = {
@@ -1807,13 +1852,19 @@ def handle_intelligence():
                 'assigned_department': selected_ticket.get('department_name') or pred_cat
             }
             raw_sim = ai_data.get('similar_tickets', [])
-            for s in raw_sim:
-                similar_matches.append({
-                    'similar_ticket_ref_id': s.get('ticket_id', 'HIST-000'),
-                    'similarity_score': float(s.get('similarity_score', 0.85)),
-                    'similar_subject': s.get('subject', 'Similar Historical Issue'),
-                    'similar_description': s.get('description', '')
-                })
+            sel_norm = str(selected_ticket['ticketno']).strip().upper()
+            for s in raw_sim[:1]:
+                sim_id = str(s.get('ticket_id', 'HIST-000')).strip().upper()
+                if sim_id == sel_norm:
+                    continue
+                sim_score = float(s.get('similarity_score', 0))
+                if sim_score >= 0.35:
+                    similar_matches.append({
+                        'similar_ticket_ref_id': s.get('ticket_id', 'HIST-000'),
+                        'similarity_score': sim_score,
+                        'similar_subject': s.get('subject', 'Similar Historical Issue'),
+                        'similar_description': s.get('description', '')
+                    })
         except Exception as e:
             print(f"[Intelligence Inspector Error] {e}")
             nlp_result = {'cleaned_text': raw_text.lower()}
@@ -1824,13 +1875,18 @@ def handle_intelligence():
                 'priority_confidence': '91%',
                 'assigned_department': selected_ticket.get('department_name') or 'Technical Support'
             }
-            # Fallback to database stored matches
+            # Fallback to database stored match (1 best match, excluding self)
             db_sim = query_db(
                 """SELECT similar_ticket_ref_id, similarity_score, similar_subject, similar_description
-                   FROM ticket_similar_matches WHERE ticketno = ? ORDER BY similarity_score DESC LIMIT 3""",
-                (selected_ticket['ticketno'],)
+                   FROM ticket_similar_matches 
+                   WHERE ticketno = ? 
+                     AND similarity_score >= 0.35
+                     AND similar_ticket_ref_id != ?
+                     AND LOWER(similar_ticket_ref_id) != LOWER(?)
+                   ORDER BY similarity_score DESC LIMIT 1""",
+                (selected_ticket['ticketno'], selected_ticket['ticketno'], selected_ticket['ticketno'])
             )
-            similar_matches = db_sim or []
+            similar_matches = (db_sim or [])[:1]
 
     return render_template(
         'intelligence.html',
@@ -1840,6 +1896,13 @@ def handle_intelligence():
         ai_result=ai_result,
         similar_matches=similar_matches
     )
+
+
+@app.route('/intelligence', endpoint='intelligence_page')
+@login_required
+def intelligence_page():
+    """Unified AI Intelligence ML pipeline inspector view."""
+    return handle_intelligence()
 
 
 @app.route('/agent/intelligence')
@@ -1942,6 +2005,19 @@ def admin_profile():
     return handle_profile_update()
 
 
+@app.route('/profile')
+def universal_profile():
+    """Universal profile endpoint routing to the user's role profile."""
+    role = session.get('role')
+    if role == 'admin':
+        return redirect(url_for('admin_profile'))
+    elif role == 'agent':
+        return redirect(url_for('agent_profile'))
+    elif role == 'customer':
+        return redirect(url_for('customer_profile'))
+    return redirect(url_for('login_page'))
+
+
 
 # ============================================================================
 # FLOW 5: ADMIN PORTAL (System Metrics, Category Distribution Analytics)
@@ -1991,6 +2067,7 @@ def admin_dashboard():
     # Step 4: Fetch all system tickets for Ticket Registry
     all_tickets = query_db(
            """SELECT ticketno, subject, d.deptname as category, predicted_priority,
+                   c.status,
                    CASE WHEN c.status IN ('Resolved', 'Closed')
                        THEN 'Solved' ELSE 'Pending' END as admin_status,
                    submitdate
@@ -2058,7 +2135,7 @@ def admin_close_ticket(ticket_id):
         (ticket_id,)
     )
     flash(f"Ticket {ticket_id} closed by Admin.", "info")
-    return redirect(url_for('admin_dashboard'))
+    return redirect(request.referrer or url_for('admin_tickets'))
 
 
 @app.route('/admin/tickets')
@@ -2155,7 +2232,7 @@ def admin_analytics():
         priority_data.append(c)
 
     # Status stats
-    statuses = ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Closed']
+    statuses = ['Submitted', 'In Progress', 'Resolved', 'Closed']
     status_data = []
     for s in statuses:
         c = query_db("SELECT COUNT(*) as count FROM complaints WHERE status = ?", (s,), one=True)['count']

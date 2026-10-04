@@ -122,7 +122,7 @@
                     <div class="pipeline-landing-num">05</div>
                     <div class="pipeline-landing-info">
                         <h4>Retrieve</h4>
-                        <p>Sparse cosine similarity against the historical corpus retrieves the Top-3 most similar resolved tickets.</p>
+                        <p>Sparse cosine similarity against the historical corpus retrieves the single best matching resolved case and solution.</p>
                     </div>
                 </div>
                 <div class="pipeline-landing-step step-highlight">
@@ -165,8 +165,8 @@
                                 <span class="landing-preview-val">Account Department</span>
                             </div>
                             <div class="landing-preview-row">
-                                <span class="landing-preview-key">Similar Tickets</span>
-                                <span class="landing-preview-accent">3 retrieved via cosine similarity</span>
+                                <span class="landing-preview-key">Similar Case</span>
+                                <span class="landing-preview-accent">Top match retrieved via cosine similarity</span>
                             </div>
                         </div>
                     </div>
@@ -205,12 +205,12 @@
             <div class="capability-card">
                 <div class="capability-icon"><i class="bi bi-search"></i></div>
                 <h3 class="capability-title">Historical Ticket Retrieval</h3>
-                <p class="capability-desc">Sparse cosine similarity retrieves the top-3 most relevant resolved tickets from the historical corpus.</p>
+                <p class="capability-desc">Sparse cosine similarity retrieves the single best matching resolved case from the historical corpus.</p>
             </div>
             <div class="capability-card">
                 <div class="capability-icon"><i class="bi bi-lightbulb"></i></div>
                 <h3 class="capability-title">Suggested Resolution</h3>
-                <p class="capability-desc">Resolution text from similar historical tickets is surfaced for the agent — insertable into the reply composer with one click.</p>
+                <p class="capability-desc">Resolution text from the top matching historical ticket is surfaced for the agent — insertable into the reply composer with one click.</p>
             </div>
             <div class="capability-card">
                 <div class="capability-icon"><i class="bi bi-arrow-repeat"></i></div>
@@ -295,7 +295,7 @@
                     <ul class="role-feature-list">
                         <li>Manage assigned department tickets</li>
                         <li>View ML predictions with confidence</li>
-                        <li>Access Top-3 similar historical tickets</li>
+                        <li>Access Top-1 similar historical case & solution</li>
                         <li>Use suggested resolution (editable)</li>
                         <li>Resolve and update ticket status</li>
                         <li>Full AI Intelligence pipeline view</li>
@@ -370,7 +370,7 @@
         {% for category, message in messages %}
             <div class="alert-modal-backdrop show">
                 <div class="alert-modal-box">
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()">&times;</button>
+                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()" aria-label="Close dialog"><i class="bi bi-x-lg"></i></button>
                     <h3 class="alert-modal-title">
                         {% if category == 'success' %}<i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
                         {% elif category == 'danger' %}<i class="bi bi-shield-x" style="color:var(--danger);"></i> Error

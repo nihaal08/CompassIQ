@@ -5,218 +5,403 @@
 <div class="page-content">
 <div class="page-container">
 
-    <!-- Back -->
-    <div style="margin-bottom:var(--space-md);">
-        <a href="{{ url_for('agent_assigned_tickets') }}" class="btn btn-ghost btn-sm">
-            <i class="bi bi-arrow-left"></i> Assigned Tickets
-        </a>
+    <!-- SaaS Breadcrumbs & Quick Header Navigation -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);margin-bottom:var(--space-md);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.8125rem;color:var(--text-muted);">
+            <a href="{{ url_for('agent_dashboard') }}" style="color:var(--text-muted);text-decoration:none;"><i class="bi bi-grid-fill"></i> Workspace</a>
+            <span>/</span>
+            <a href="{{ url_for('agent_assigned_tickets') }}" style="color:var(--text-muted);text-decoration:none;">Ticket Queue</a>
+            <span>/</span>
+            <span style="color:var(--accent);font-weight:600;">{{ ticket.ticketno }}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:var(--space-sm);">
+            <a href="{{ url_for('intelligence_page', ticket_id=ticket.ticketno) }}" class="btn btn-ghost btn-sm" title="View Full AI Pipeline Trace">
+                <i class="bi bi-cpu"></i> View AI Trace
+            </a>
+            <a href="{{ url_for('agent_assigned_tickets') }}" class="btn btn-ghost btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to Queue
+            </a>
+        </div>
     </div>
 
-    <!-- Ticket Header -->
-    <div class="card" style="margin-bottom:var(--space-lg);">
-        <div class="card-body">
+    <!-- Ticket Summary Banner Card -->
+    <div class="card" style="margin-bottom:var(--space-lg);border:1px solid var(--border-strong);">
+        <div class="card-body" style="padding:var(--space-lg);">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-lg);flex-wrap:wrap;">
-                <div>
-                    <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-sm);">
-                        <span class="ticket-id">{{ ticket.ticketno }}</span>
+                <div style="flex:1;min-width:280px;">
+                    <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:0.6rem;flex-wrap:wrap;">
+                        <span class="ticket-id" style="font-size:0.875rem;padding:0.2rem 0.6rem;">{{ ticket.ticketno }}</span>
                         {% set s = (ticket.status or 'Submitted') | lower | replace(' ', '-') %}
-                        <span class="badge badge-{{ s }}">{{ ticket.status }}</span>
-                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority or 'Medium' }}</span>
+                        <span class="badge badge-{{ s }}" style="font-size:0.75rem;">{{ ticket.status }}</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}" style="font-size:0.75rem;">
+                            <i class="bi bi-flag-fill" style="font-size:0.65rem;"></i> {{ ticket.predicted_priority or 'Medium' }} Priority
+                        </span>
+                        <span style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.2rem 0.55rem;font-size:0.75rem;color:var(--text-secondary);">
+                            <i class="bi bi-diagram-3"></i> {{ ticket.department_name }}
+                        </span>
                     </div>
-                    <h1 style="font-size:1.25rem;font-weight:700;color:var(--text-primary);margin:0 0 0.5rem;">{{ ticket.subject }}</h1>
-                    <div style="display:flex;gap:var(--space-lg);flex-wrap:wrap;font-size:0.8125rem;color:var(--text-muted);">
-                        <span><i class="bi bi-person"></i> {{ ticket.customer_name }}</span>
-                        <span><i class="bi bi-envelope"></i> {{ ticket.customer_email }}</span>
-                        <span><i class="bi bi-diagram-3"></i> {{ ticket.department_name }}</span>
-                        <span><i class="bi bi-calendar3"></i> {{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</span>
+
+                    <h1 style="font-size:1.375rem;font-weight:700;color:var(--text-primary);margin:0 0 0.75rem;line-height:1.35;">
+                        {{ ticket.subject }}
+                    </h1>
+
+                    <div style="display:flex;align-items:center;gap:var(--space-lg);flex-wrap:wrap;font-size:0.8125rem;color:var(--text-muted);">
+                        <span style="display:inline-flex;align-items:center;gap:0.4rem;">
+                            <div class="saas-avatar" style="width:24px;height:24px;font-size:0.65rem;">
+                                {{ (ticket.customer_name or 'CU')[:2] | upper }}
+                            </div>
+                            <strong style="color:var(--text-primary);">{{ ticket.customer_name }}</strong> ({{ ticket.customer_email }})
+                        </span>
+                        <span><i class="bi bi-clock"></i> Submitted: {{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</span>
+                        <span><i class="bi bi-shield-check"></i> Assignee: <strong>{{ ticket.assigned_agent_name or 'Unassigned' }}</strong></span>
                     </div>
                 </div>
-                <!-- Quick status update -->
-                <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="quickStatusForm" style="display:flex;gap:var(--space-sm);align-items:center;flex-wrap:wrap;">
-                    <input type="hidden" name="resolution_notes" id="quickNotes" value="">
-                    <select name="status" class="form-select" style="width:auto;" id="quickStatus">
-                        <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                        <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
-                    </select>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="quickUpdate()">
-                        <i class="bi bi-arrow-repeat"></i> Update Status
-                    </button>
-                </form>
+
+                <!-- Quick Status Bar -->
+                <div style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem 1rem;display:flex;flex-direction:column;gap:0.5rem;min-width:220px;">
+                    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);font-weight:600;">
+                        Quick State Transition
+                    </div>
+                    <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="quickStatusForm" style="display:flex;gap:var(--space-xs);align-items:center;">
+                        <input type="hidden" name="resolution_notes" id="quickNotes" value="">
+                        <select name="status" class="form-select form-select-sm" style="flex:1;" id="quickStatus">
+                            <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                        </select>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="quickUpdate()" style="white-space:nowrap;">
+                            <i class="bi bi-check2"></i> Update
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Workspace Grid: Main + Sidebar -->
-    <div class="workspace-grid">
+    <!-- Main SaaS Workspace Grid (70% Primary Action / 30% Context & Metadata) -->
+    <div class="saas-workspace-container">
 
-        <!-- 1. CONVERSATION COLUMN -->
-        <div class="workspace-conversation">
+        <!-- ════════════════════════════════════════════════════════
+             LEFT: PRIMARY ACTION STREAM (No Empty Spaces!)
+             ════════════════════════════════════════════════════════ -->
+        <div class="saas-action-stream">
 
-            <!-- Issue Description -->
+            <!-- 1. Customer Problem & Conversation History -->
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Issue Description</h2>
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                    <h2 class="card-title" style="font-size:0.9375rem;display:flex;align-items:center;gap:0.4rem;">
+                        <i class="bi bi-chat-left-text" style="color:var(--accent);"></i>
+                        Ticket Details &amp; Communication Thread
+                    </h2>
+                    <span style="font-size:0.75rem;color:var(--text-muted);">
+                        {{ (replies | length) + 1 }} {{ 'record' if (replies | length) == 0 else 'interactions' }}
+                    </span>
                 </div>
                 <div class="card-body">
-                    <p style="font-size:0.9375rem;line-height:1.65;color:var(--text-primary);white-space:pre-wrap;">{{ ticket.description }}</p>
-                </div>
-            </div>
+                    <!-- Original Customer Request Callout -->
+                    <div style="background:var(--bg-subtle);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-md);padding:1rem 1.125rem;margin-bottom:var(--space-md);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:var(--space-xs);">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <div class="saas-avatar" style="width:28px;height:28px;font-size:0.7rem;">
+                                    {{ (ticket.customer_name or 'CU')[:2] | upper }}
+                                </div>
+                                <div>
+                                    <span style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);">{{ ticket.customer_name }}</span>
+                                    <span style="font-size:0.72rem;color:var(--text-muted);margin-left:0.25rem;">(Customer Request)</span>
+                                </div>
+                            </div>
+                            <span style="font-size:0.72rem;color:var(--text-muted);">{{ ticket.submitdate[:16] if ticket.submitdate else '' }}</span>
+                        </div>
+                        <p style="font-size:0.9rem;line-height:1.65;color:var(--text-primary);margin:0;white-space:pre-wrap;">{{ ticket.description }}</p>
+                    </div>
 
-            <!-- Conversation -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Conversation</h2>
-                </div>
-                <div class="card-body">
+                    <!-- Conversation Thread / Messages -->
                     {% if replies %}
-                    <div class="conversation" id="conversationThread">
+                    <div class="conversation" id="conversationThread" style="padding:0;display:flex;flex-direction:column;gap:var(--space-sm);">
                         {% for reply in replies %}
                         <div class="message-bubble {{ 'customer' if reply.sender_role == 'customer' else 'agent' }}">
-                            <div class="message-sender">{{ reply.sender_name }}</div>
-                            <div class="message-body">{{ reply.message }}</div>
-                            <div class="message-time">{{ reply.created_at[:16] if reply.created_at else '' }}</div>
+                            <div class="message-sender" style="display:flex;align-items:center;gap:0.35rem;">
+                                <span>{{ reply.sender_name }}</span>
+                                <span style="font-size:0.65rem;opacity:0.7;text-transform:uppercase;">({{ reply.sender_role }})</span>
+                            </div>
+                            <div class="message-body" style="font-size:0.875rem;line-height:1.6;margin-top:0.25rem;">{{ reply.message }}</div>
+                            <div class="message-time" style="font-size:0.7rem;margin-top:0.35rem;">{{ reply.created_at[:16] if reply.created_at else '' }}</div>
                         </div>
                         {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state" style="padding:1.5rem;">
-                        <div class="empty-state-title">No messages yet</div>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-        </div>
-
-        <!-- 2. AI SIDEBAR -->
-        <div class="workspace-sidebar">
-
-            <!-- CompassIQ Analysis -->
-            <div class="ml-analysis">
-                <div class="ml-analysis-header">
-                    <i class="bi bi-cpu"></i> CompassIQ Analysis
-                </div>
-                <div class="ml-analysis-body">
-                    <div class="ml-row">
-                        <span class="ml-row-label">Category</span>
-                        <span class="ml-row-value">{{ ticket.predicted_category }}</span>
+            <!-- 2. AI COPILOT: Recommended Historical Solution (NEW PROMINENT POSITION!) -->
+            {% set top_match = similar_matches[0] if (similar_matches and similar_matches | length > 0 and (similar_matches[0].similarity_score or 0) >= 0.35 and ((similar_matches[0].similarity_score * 100) | int >= 35)) else None %}
+            <div class="ai-copilot-card" id="aiCopilotSection">
+                <div class="ai-copilot-header">
+                    <div class="ai-copilot-title">
+                        <i class="bi bi-stars"></i>
+                        <span>CompassIQ Copilot — AI Historical Case Assist</span>
                     </div>
-                    <div class="ml-row">
-                        <span class="ml-row-label">Priority</span>
-                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">{{ ticket.predicted_priority }}</span>
-                    </div>
-                    <div class="ml-row">
-                        <span class="ml-row-label">Department</span>
-                        <span class="ml-row-value">{{ ticket.department_name }}</span>
-                    </div>
-                    <div class="ml-row">
-                        <span class="ml-row-label">Assigned To</span>
-                        <span class="ml-row-value">{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
+                    <div class="ai-copilot-meta">
+                        {% if top_match and ((top_match.similarity_score * 100) | int >= 35) %}
+                            {% set score_pct = (top_match.similarity_score * 100) | int %}
+                            <span class="ai-score-badge {{ 'high-match' if score_pct >= 60 else '' }}">
+                                <i class="bi bi-bullseye"></i> {{ score_pct }}% Match
+                            </span>
+                            <span class="ticket-id" style="font-size:0.72rem;">
+                                Ref: {{ top_match.similar_ticket_ref_id or top_match.ticket_id }}
+                            </span>
+                        {% endif %}
+                        <button type="button" class="btn btn-accent btn-sm" id="btnFindSimilarAgent" onclick="findSimilarTicketsAgent('{{ ticket.ticketno }}')" style="font-size:0.75rem;padding:0.25rem 0.65rem;">
+                            <i class="bi bi-arrow-repeat"></i> Re-Scan Corpus
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Similar Historical Tickets & Resolutions -->
-            <div class="card" style="border: 1px solid var(--border-strong);">
-                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);">
-                    <div>
-                        <h2 class="card-title" style="font-size:0.875rem;display:flex;align-items:center;gap:0.35rem;">
-                            <i class="bi bi-robot" style="color:var(--accent);"></i> Similar Tickets &amp; Resolutions
-                        </h2>
-                        <span style="font-size:0.7rem;color:var(--text-muted);">TF-IDF Cosine Similarity Search</span>
-                    </div>
-                    <button type="button" class="btn btn-accent btn-sm" id="btnFindSimilarAgent" onclick="findSimilarTicketsAgent('{{ ticket.ticketno }}')">
-                        <i class="bi bi-search"></i> Find Similar Tickets
-                    </button>
-                </div>
-                <div class="card-body" id="similarAgentContainer" style="padding:var(--space-md);">
-                    {% if similar_matches %}
-                        {% for match in similar_matches %}
-                        <div class="similar-ticket-card" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.75rem;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
-                                <span class="ticket-id" style="font-size:0.75rem;">{{ match.similar_ticket_ref_id or match.ticket_id }}</span>
-                                <span class="badge badge-resolved" style="font-size:0.7rem;">{{ (match.similarity_score * 100) | int }}% Match</span>
-                            </div>
-                            <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">
-                                {{ match.similar_subject or match.subject }}
-                            </div>
-                            {% if match.department_name %}
-                            <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.35rem;">
-                                <i class="bi bi-diagram-3"></i> {{ match.department_name }}
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Problem preview -->
-                            {% if match.description and match.description != match.resolution_notes %}
-                            <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.4rem;line-height:1.4;">
-                                <strong>Issue:</strong> {{ match.description[:110] }}{{ '…' if match.description | length > 110 else '' }}
-                            </div>
-                            {% endif %}
-
-                            <!-- Resolution Box -->
-                            <div style="background:rgba(196, 174, 146, 0.08);border:1px solid rgba(196, 174, 146, 0.25);border-left:3px solid var(--accent);border-radius:4px;padding:0.5rem 0.65rem;margin-top:0.4rem;">
-                                <div style="font-size:0.7rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:0.3rem;margin-bottom:0.25rem;">
-                                    <i class="bi bi-check-circle-fill"></i> Department Resolution:
+                <div class="ai-copilot-body" id="similarAgentContainer">
+                    {% if top_match %}
+                        <!-- Best Matching Ticket Summary -->
+                        <div class="ai-copilot-case-summary">
+                            <div>
+                                <div class="ai-copilot-case-title">
+                                    <i class="bi bi-file-earmark-check" style="color:var(--accent);margin-right:0.3rem;"></i>
+                                    {{ top_match.similar_subject or top_match.subject }}
                                 </div>
-                                <div class="resolution-text-content" style="font-size:0.78rem;color:var(--text-primary);line-height:1.45;">
-                                    {{ match.resolution_notes or match.similar_description or 'Resolution documented in closed case.' }}
+                                {% if top_match.department_name %}
+                                <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.3rem;">
+                                    <i class="bi bi-diagram-3"></i> Resolved by: <strong>{{ top_match.department_name }}</strong>
                                 </div>
-                            </div>
-                            
-                            <!-- Action button -->
-                            <div style="margin-top:0.5rem;display:flex;justify-content:flex-end;">
-                                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="useSpecificResolution(this.getAttribute('data-res'))" data-res="{{ (match.resolution_notes or match.similar_description or '') | e }}">
-                                    <i class="bi bi-clipboard-plus"></i> Use This Resolution
-                                </button>
+                                {% endif %}
+                                {% if top_match.description and top_match.description != top_match.resolution_notes %}
+                                <div class="ai-copilot-case-desc">
+                                    <strong style="color:var(--text-primary);">Historical Context:</strong> {{ top_match.description[:140] }}{{ '…' if top_match.description | length > 140 else '' }}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
-                        {% endfor %}
+
+                        <!-- Verified Department Resolution Callout -->
+                        {% set res_content = top_match.resolution_notes or top_match.similar_description or 'Resolution documented in closed case.' %}
+                        <div class="resolution-callout-box">
+                            <div class="resolution-callout-header">
+                                <span class="resolution-callout-title">
+                                    <i class="bi bi-check-circle-fill"></i> Verified Department Solution
+                                </span>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="copyResolutionText(this)" data-res="{{ res_content | e }}" style="font-size:0.7rem;padding:0.15rem 0.45rem;">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                            </div>
+                            <div class="resolution-callout-text" id="copilotResolutionText">{{ res_content }}</div>
+                        </div>
+
+                        <!-- Action Bar to Apply into Composer -->
+                        <div class="ai-copilot-actions">
+                            <div class="ai-copilot-hint">
+                                <i class="bi bi-info-circle"></i>
+                                Clicking apply will insert this resolution into the response box below for your review.
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="useSpecificResolution(this.getAttribute('data-res'))" data-res="{{ res_content | e }}" style="font-size:0.8125rem;">
+                                <i class="bi bi-magic"></i> Apply Resolution to Composer
+                            </button>
+                        </div>
                     {% else %}
-                        <div style="text-align:center;padding:1.25rem 0.5rem;" id="similarAgentEmpty">
-                            <i class="bi bi-robot" style="font-size:1.75rem;color:var(--accent);margin-bottom:0.5rem;display:block;"></i>
-                            <p style="font-size:0.8125rem;color:var(--text-secondary);margin-bottom:0.75rem;">Click "Find Similar Tickets" to retrieve past matching tickets and their department solutions.</p>
+                        <div style="text-align:center;padding:1.5rem 1rem;" id="similarAgentEmpty">
+                            <i class="bi bi-search" style="font-size:1.75rem;color:var(--text-muted);margin-bottom:0.5rem;display:block;"></i>
+                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);margin-bottom:0.35rem;">
+                                No Similar Tickets Found
+                            </div>
+                            <p style="font-size:0.8125rem;color:var(--text-secondary);max-width:420px;margin:0 auto 1rem;">
+                                No closed historical cases met the similarity threshold for this issue. You can compose a custom resolution below.
+                            </p>
                             <button type="button" class="btn btn-accent btn-sm" onclick="findSimilarTicketsAgent('{{ ticket.ticketno }}')">
-                                <i class="bi bi-search"></i> Search Similar Tickets Now
+                                <i class="bi bi-cpu"></i> Search Similar Tickets Now
                             </button>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Timeline -->
+            <!-- 3. Resolution & Reply Composer (Directly below Copilot!) -->
+            <div class="card" id="composerSection" style="border:1px solid var(--border-strong);">
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
+                    <h2 class="card-title" style="font-size:0.9375rem;display:flex;align-items:center;gap:0.4rem;">
+                        <i class="bi bi-reply-fill" style="color:var(--accent);"></i>
+                        Send Customer Response &amp; Set Resolution
+                    </h2>
+                    <span style="font-size:0.75rem;color:var(--text-muted);">
+                        Markdown / plain text supported
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Macro / Template Buttons -->
+                    <div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap;align-items:center;">
+                        <span style="font-size:0.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-right:0.25rem;">
+                            Quick Templates:
+                        </span>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="insertMacro('We are actively investigating this issue and will update you shortly.')" style="font-size:0.72rem;padding:0.2rem 0.5rem;">
+                            Under Investigation
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="insertMacro('Could you please verify your configuration and share the screenshot/log output?')" style="font-size:0.72rem;padding:0.2rem 0.5rem;">
+                            Request Details
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="insertMacro('We have resolved the reported issue in our backend systems. Please verify and confirm.')" style="font-size:0.72rem;padding:0.2rem 0.5rem;">
+                            Resolution Completed
+                        </button>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="resolveForm">
+                        <div class="form-group">
+                            <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
+                                <span>Official Response / Resolution Notes <span class="required">*</span></span>
+                                <span id="charCount" style="font-size:0.72rem;color:var(--text-muted);font-weight:normal;">0 characters</span>
+                            </label>
+                            <textarea id="resolutionTextarea" name="resolution_notes" class="form-control" rows="6"
+                                      placeholder="Type your response to the customer or apply the AI recommended resolution above..."
+                                      style="line-height:1.55;font-size:0.875rem;"
+                                      oninput="updateCharCount(this)"></textarea>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-md);">
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">Update Ticket Status <span class="required">*</span></label>
+                                <select name="status" class="form-select" id="composerStatusSelect">
+                                    <option value="In Progress" {% if ticket.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="Resolved" {% if ticket.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <label class="form-label">Notification</label>
+                                <div style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0.75rem;background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);font-size:0.8125rem;color:var(--text-secondary);">
+                                    <i class="bi bi-envelope-check" style="color:var(--success);"></i>
+                                    <span>Auto-notify customer via email</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:var(--space-sm);align-items:center;justify-content:space-between;flex-wrap:wrap;border-top:1px solid var(--border-subtle);padding-top:var(--space-md);">
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="clearComposer()">
+                                <i class="bi bi-trash"></i> Clear Draft
+                            </button>
+                            <div style="display:flex;gap:var(--space-sm);">
+                                <button type="submit" class="btn btn-primary" id="btnSubmitReply">
+                                    <i class="bi bi-send-fill"></i> Send Response &amp; Update Ticket
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════
+             RIGHT: CONTEXT & METADATA SIDEBAR (Balanced & Dense)
+             ════════════════════════════════════════════════════════ -->
+        <div class="saas-sidebar-stream">
+
+            <!-- 1. CompassIQ ML Predictive Triage Box -->
+            <div class="ml-analysis">
+                <div class="ml-analysis-header">
+                    <i class="bi bi-cpu"></i> CompassIQ ML Triage
+                </div>
+                <div class="ml-analysis-body">
+                    <div class="ml-row">
+                        <span class="ml-row-label">Predicted Category</span>
+                        <span class="ml-row-value" style="color:var(--accent-light);">{{ ticket.predicted_category }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Priority Assessment</span>
+                        <span class="badge badge-{{ (ticket.predicted_priority or 'Medium') | lower }}">
+                            {{ ticket.predicted_priority or 'Medium' }}
+                        </span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Assigned Department</span>
+                        <span class="ml-row-value">{{ ticket.department_name }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">Active Agent</span>
+                        <span class="ml-row-value">{{ ticket.assigned_agent_name or 'Unassigned' }}</span>
+                    </div>
+                    <div class="ml-row">
+                        <span class="ml-row-label">ML Routing Logic</span>
+                        <span style="font-size:0.75rem;color:var(--text-muted);">TF-IDF + Softmax Classifier</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Customer Profile Snapshot -->
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title" style="font-size:0.875rem;">Timeline</h2>
+                    <h2 class="card-title" style="font-size:0.875rem;display:flex;align-items:center;gap:0.35rem;">
+                        <i class="bi bi-person-badge" style="color:var(--accent);"></i> Customer Profile
+                    </h2>
+                </div>
+                <div class="card-body" style="padding:var(--space-md);">
+                    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:var(--space-md);">
+                        <div class="saas-avatar" style="width:42px;height:42px;font-size:1rem;">
+                            {{ (ticket.customer_name or 'CU')[:2] | upper }}
+                        </div>
+                        <div style="min-width:0;">
+                            <div style="font-size:0.9375rem;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                {{ ticket.customer_name }}
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                {{ ticket.customer_email }}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.8125rem;">
+                        <div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">Customer ID</span>
+                            <span style="font-family:var(--font-mono);font-size:0.75rem;">{{ ticket.custid or ticket.customer_id or '—' }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.25rem 0;border-bottom:1px solid var(--border-subtle);">
+                            <span style="color:var(--text-muted);">Account Tier</span>
+                            <span style="color:var(--accent-light);font-weight:600;">Enterprise Client</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.25rem 0;">
+                            <span style="color:var(--text-muted);">SLA Window</span>
+                            <span style="color:var(--success);font-weight:600;"><i class="bi bi-check2"></i> Standard (4 Hours)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Ticket Lifecycle Audit Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" style="font-size:0.875rem;display:flex;align-items:center;gap:0.35rem;">
+                        <i class="bi bi-clock-history" style="color:var(--accent);"></i> Activity Timeline
+                    </h2>
                 </div>
                 <div class="card-body" style="padding:var(--space-md);">
                     <div class="timeline">
                         <div class="timeline-item">
                             <div class="timeline-dot success"></div>
                             <div class="timeline-content">
-                                <p class="timeline-text">Ticket created</p>
+                                <p class="timeline-text">Ticket Created &amp; Ingested</p>
                                 <p class="timeline-time">{{ ticket.submitdate[:16] if ticket.submitdate else '—' }}</p>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-dot active"></div>
                             <div class="timeline-content">
-                                <p class="timeline-text">AI analyzed → <strong>{{ ticket.department_name }}</strong></p>
-                                <p class="timeline-time">Automated</p>
+                                <p class="timeline-text">ML Triaged → <strong>{{ ticket.department_name }}</strong></p>
+                                <p class="timeline-time">Automated via NLP</p>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-dot {% if ticket.status != 'Submitted' %}active{% endif %}"></div>
                             <div class="timeline-content">
                                 <p class="timeline-text">Status: <strong>{{ ticket.status }}</strong></p>
-                                <p class="timeline-time">Current</p>
+                                <p class="timeline-time">Current Stage</p>
                             </div>
                         </div>
                         {% if ticket.status in ['Resolved', 'Closed'] %}
                         <div class="timeline-item">
                             <div class="timeline-dot success"></div>
                             <div class="timeline-content">
-                                <p class="timeline-text">Resolved</p>
-                                <p class="timeline-time">{{ ticket.resolved_at[:16] if ticket.resolved_at else '' }}</p>
+                                <p class="timeline-text">Ticket Resolved</p>
+                                <p class="timeline-time">{{ ticket.resolved_at[:16] if ticket.resolved_at else 'Closed' }}</p>
                             </div>
                         </div>
                         {% endif %}
@@ -224,40 +409,6 @@
                 </div>
             </div>
 
-        </div>
-        <!-- 3. RESPONSE COMPOSER -->
-        <div class="workspace-composer">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Send Response & Resolve</h2>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('agent_ticket_reply', ticket_id=ticket.ticketno) }}" id="resolveForm">
-                        <div class="form-group">
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-xs);">
-                                <label class="form-label" style="margin:0;">Resolution Notes / Response <span class="required">*</span></label>
-                            </div>
-                            <textarea id="resolutionTextarea" name="resolution_notes" class="form-control" rows="5"
-                                      placeholder="Enter your response to the customer. You can use the suggested resolution from the sidebar as a starting point."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Update Status <span class="required">*</span></label>
-                            <select name="status" class="form-select">
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
-                            </select>
-                        </div>
-                        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> Send Response
-                            </button>
-                            <button type="button" class="btn btn-ghost" onclick="document.getElementById('resolutionTextarea').value = ''">
-                                <i class="bi bi-x"></i> Clear
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -274,23 +425,57 @@
         const textarea = document.getElementById('resolutionTextarea');
         if (textarea && resText) {
             textarea.value = resText.trim();
+            updateCharCount(textarea);
             textarea.focus();
+            
+            // Auto select 'Resolved' when a resolution is applied
+            const statusSelect = document.getElementById('composerStatusSelect');
+            if (statusSelect) {
+                statusSelect.value = 'Resolved';
+            }
+
+            // Scroll to composer with smooth animation and highlight
             textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            textarea.classList.remove('composer-highlight');
+            void textarea.offsetWidth; // trigger reflow
+            textarea.classList.add('composer-highlight');
         }
     }
 
-    function useResolution() {
-        const resText = document.getElementById('suggestedResText');
-        if (resText) {
-            useSpecificResolution(resText.textContent);
+    function insertMacro(text) {
+        const textarea = document.getElementById('resolutionTextarea');
+        if (textarea) {
+            const currentVal = textarea.value.trim();
+            textarea.value = currentVal ? `${currentVal}\n\n${text}` : text;
+            updateCharCount(textarea);
+            textarea.focus();
         }
     }
 
-    function applySimilarResolution(index) {
-        if (currentSimilarTickets && currentSimilarTickets[index]) {
-            const t = currentSimilarTickets[index];
-            const res = t.resolution_notes || t.description || '';
-            useSpecificResolution(res);
+    function clearComposer() {
+        const textarea = document.getElementById('resolutionTextarea');
+        if (textarea) {
+            textarea.value = '';
+            updateCharCount(textarea);
+        }
+    }
+
+    function updateCharCount(el) {
+        const countSpan = document.getElementById('charCount');
+        if (countSpan && el) {
+            const count = el.value.length;
+            countSpan.textContent = `${count} character${count === 1 ? '' : 's'}`;
+        }
+    }
+
+    function copyResolutionText(btn) {
+        const text = btn.getAttribute('data-res') || document.getElementById('copilotResolutionText')?.textContent || '';
+        if (navigator.clipboard && text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+            });
         }
     }
 
@@ -302,7 +487,7 @@
         const originalBtnText = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.75rem;height:0.75rem;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.75s linear infinite;margin-right:4px;"></span> Searching...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:0.75rem;height:0.75rem;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 0.75s linear infinite;margin-right:4px;"></span> Scanning...';
         }
 
         try {
@@ -318,54 +503,72 @@
 
             const data = await resp.json();
 
-            if (data.success && data.similar_tickets && data.similar_tickets.length > 0) {
+            if (data.success && data.similar_tickets && data.similar_tickets.length > 0 && ((data.similar_tickets[0].match_percent || 0) >= 35 || (data.similar_tickets[0].similarity_score || 0) >= 0.35)) {
                 currentSimilarTickets = data.similar_tickets;
-                let html = '';
-                data.similar_tickets.forEach((ticket, idx) => {
-                    const matchPercent = ticket.match_percent || Math.round((ticket.similarity_score || 0.8) * 100);
-                    const resolution = ticket.resolution_notes || ticket.description || 'Resolution confirmed by team.';
-                    
-                    html += `
-                        <div class="similar-ticket-card" style="background:var(--bg-subtle);border:1px solid var(--border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.75rem;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
-                                <span class="ticket-id" style="font-size:0.75rem;">${escapeHtml(ticket.ticket_id || ticket.similar_ticket_ref_id)}</span>
-                                <span class="badge badge-resolved" style="font-size:0.7rem;">${matchPercent}% Match</span>
-                            </div>
-                            <div style="font-size:0.8125rem;font-weight:600;color:var(--text-primary);margin-bottom:0.25rem;">
-                                ${escapeHtml(ticket.subject || 'Similar Incident')}
+                const ticket = data.similar_tickets[0]; // Exactly 1 similar ticket
+                const matchPercent = ticket.match_percent || Math.round((ticket.similarity_score || 0.8) * 100);
+                const resolution = ticket.resolution_notes || ticket.description || 'Resolution confirmed by department.';
+                const ticketRef = ticket.ticket_id || ticket.similar_ticket_ref_id || 'HIST-001';
+
+                container.innerHTML = `
+                    <div class="ai-copilot-case-summary">
+                        <div>
+                            <div class="ai-copilot-case-title">
+                                <i class="bi bi-file-earmark-check" style="color:var(--accent);margin-right:0.3rem;"></i>
+                                ${escapeHtml(ticket.subject || 'Similar Historical Issue')}
                             </div>
                             ${ticket.department_name ? `
-                                <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.35rem;">
-                                    <i class="bi bi-diagram-3"></i> ${escapeHtml(ticket.department_name)}
+                                <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.3rem;">
+                                    <i class="bi bi-diagram-3"></i> Resolved by: <strong>${escapeHtml(ticket.department_name)}</strong>
                                 </div>
                             ` : ''}
                             ${ticket.description && ticket.description !== ticket.resolution_notes ? `
-                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.4rem;line-height:1.4;">
-                                    <strong>Issue:</strong> ${escapeHtml(ticket.description.substring(0, 110))}${ticket.description.length > 110 ? '…' : ''}
+                                <div class="ai-copilot-case-desc">
+                                    <strong style="color:var(--text-primary);">Historical Context:</strong> ${escapeHtml(ticket.description.substring(0, 140))}${ticket.description.length > 140 ? '…' : ''}
                                 </div>
                             ` : ''}
-                            <div style="background:rgba(196, 174, 146, 0.08);border:1px solid rgba(196, 174, 146, 0.25);border-left:3px solid var(--accent);border-radius:4px;padding:0.5rem 0.65rem;margin-top:0.4rem;">
-                                <div style="font-size:0.7rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:0.3rem;margin-bottom:0.25rem;">
-                                    <i class="bi bi-check-circle-fill"></i> Department Resolution:
-                                </div>
-                                <div class="resolution-text-content" style="font-size:0.78rem;color:var(--text-primary);line-height:1.45;">
-                                    ${escapeHtml(resolution)}
-                                </div>
-                            </div>
-                            <div style="margin-top:0.5rem;display:flex;justify-content:flex-end;">
-                                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;" onclick="applySimilarResolution(${idx})">
-                                    <i class="bi bi-clipboard-plus"></i> Use This Resolution
-                                </button>
-                            </div>
                         </div>
-                    `;
-                });
-                container.innerHTML = html;
+                    </div>
+
+                    <div class="resolution-callout-box">
+                        <div class="resolution-callout-header">
+                            <span class="resolution-callout-title">
+                                <i class="bi bi-check-circle-fill"></i> Verified Department Solution
+                            </span>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="copyResolutionText(this)" data-res="${escapeHtml(resolution)}" style="font-size:0.7rem;padding:0.15rem 0.45rem;">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                        <div class="resolution-callout-text" id="copilotResolutionText">${escapeHtml(resolution)}</div>
+                    </div>
+
+                    <div class="ai-copilot-actions">
+                        <div class="ai-copilot-hint">
+                            <i class="bi bi-info-circle"></i>
+                            Retrieved from historical corpus (${matchPercent}% cosine match).
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="useSpecificResolution(this.getAttribute('data-res'))" data-res="${escapeHtml(resolution)}" style="font-size:0.8125rem;">
+                            <i class="bi bi-magic"></i> Apply Resolution to Composer
+                        </button>
+                    </div>
+                `;
+
+                // Update the score badge in header
+                const headerMeta = document.querySelector('.ai-copilot-meta');
+                if (headerMeta) {
+                    const existingBadge = headerMeta.querySelector('.ai-score-badge');
+                    if (existingBadge) {
+                        existingBadge.innerHTML = `<i class="bi bi-bullseye"></i> ${matchPercent}% Match`;
+                    }
+                }
             } else {
                 container.innerHTML = `
-                    <div style="text-align:center;padding:1rem;">
-                        <i class="bi bi-info-circle" style="font-size:1.5rem;color:var(--text-muted);display:block;margin-bottom:0.4rem;"></i>
-                        <p style="font-size:0.8125rem;color:var(--text-secondary);margin:0;">No resolved tickets with significant cosine similarity found in corpus.</p>
+                    <div style="text-align:center;padding:1.5rem 1rem;">
+                        <i class="bi bi-info-circle" style="font-size:1.75rem;color:var(--text-muted);display:block;margin-bottom:0.5rem;"></i>
+                        <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);margin-bottom:0.35rem;">No Similar Tickets Found</div>
+                        <p style="font-size:0.8125rem;color:var(--text-secondary);max-width:380px;margin:0 auto;">
+                            No historical resolved cases met the cosine similarity threshold. You can compose a custom solution below.
+                        </p>
                     </div>
                 `;
             }
@@ -400,7 +603,8 @@
         document.getElementById('quickNotes').value = notes;
 
         if (status === 'Resolved' && !notes.trim()) {
-            alert('Please enter resolution notes before resolving.');
+            alert('Please enter resolution notes before marking the ticket as Resolved.');
+            document.getElementById('resolutionTextarea')?.focus();
             return;
         }
         document.getElementById('quickStatusForm').querySelector('[name="resolution_notes"]').value = notes || 'Status updated.';

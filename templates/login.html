@@ -20,7 +20,7 @@
         {% for category, message in messages %}
             <div class="alert-modal-backdrop show">
                 <div class="alert-modal-box">
-                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()">&times;</button>
+                    <button type="button" class="modal-close-btn" onclick="this.closest('.alert-modal-backdrop').remove()" aria-label="Close dialog"><i class="bi bi-x-lg"></i></button>
                     <h3 class="alert-modal-title">
                         {% if category == 'success' %}<i class="bi bi-check2-circle" style="color:var(--success);"></i> Success
                         {% elif category == 'danger' %}<i class="bi bi-shield-x" style="color:var(--danger);"></i> Error
@@ -118,68 +118,198 @@
             </div>
 
             <div class="auth-demo-section">
-                <div class="auth-demo-header">
-                    <span class="auth-demo-title">Quick access</span>
-                    <span class="auth-demo-pwd">6 main accounts</span>
-                </div>
-
-                <button type="button" class="auth-demo-toggle" aria-expanded="false" aria-controls="demoLoginList" onclick="toggleDemoLogins()">
-                    <span><i class="bi bi-person-badge"></i> Demo login</span>
-                    <i class="bi bi-chevron-down" id="demoToggleIcon" aria-hidden="true"></i>
-                </div>
-
-                <div class="auth-demo-list" id="demoLoginList" hidden>
-                    <div class="auth-demo-grid">
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('customer@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-customer">Customer</span>
-                            <span class="demo-btn-email">customer@compassiq.com</span>
-                        </button>
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('admin@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-admin">Admin</span>
-                            <span class="demo-btn-email">admin@compassiq.com</span>
-                        </button>
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('tech.agent@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-agent">Technical</span>
-                            <span class="demo-btn-email">tech.agent@compassiq.com</span>
-                        </button>
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('billing.agent@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-agent">Billing</span>
-                            <span class="demo-btn-email">billing.agent@compassiq.com</span>
-                        </button>
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('account.agent@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-agent">Account</span>
-                            <span class="demo-btn-email">account.agent@compassiq.com</span>
-                        </button>
-                        <button type="button" class="auth-demo-btn" onclick="fillDemo('general.agent@compassiq.com', 'password123', this)">
-                            <span class="role-badge role-badge-agent">General</span>
-                            <span class="demo-btn-email">general.agent@compassiq.com</span>
-                        </button>
-                    </div>
-
-                    <details class="auth-demo-more">
-                        <summary>More demo accounts (3)</summary>
-                        <div class="auth-demo-grid">
-                            <button type="button" class="auth-demo-btn" onclick="fillDemo('nihal@gmail.com', 'Nihal@123', this)">
-                                <span class="role-badge role-badge-customer">Nihal</span>
-                                <span class="demo-btn-email">nihal@gmail.com</span>
-                            </button>
-                            <button type="button" class="auth-demo-btn" onclick="fillDemo('aizen@gmail.com', 'Aizen@123', this)">
-                                <span class="role-badge role-badge-customer">Aizen</span>
-                                <span class="demo-btn-email">aizen@gmail.com</span>
-                            </button>
-                            <button type="button" class="auth-demo-btn auth-demo-btn-wide" onclick="fillDemo('fraud.agent@compassiq.com', 'password123', this)">
-                                <span class="role-badge role-badge-fraud"><i class="bi bi-shield-lock-fill"></i> Fraud & Security</span>
-                                <span class="demo-btn-email">fraud.agent@compassiq.com</span>
-                            </button>
-                        </div>
-                    </details>
-                    <div id="demoFeedback" class="demo-feedback-notice" style="display:none;"></div>
-                </div>
+                <button type="button" class="auth-demo-modal-trigger" id="openDemoBtn" onclick="openDemoModal()" aria-haspopup="dialog" aria-expanded="false">
+                    <span class="demo-trigger-left">
+                        <span class="demo-trigger-icon"><i class="bi bi-person-badge-fill"></i></span>
+                        <span class="demo-trigger-text">
+                            <strong>Demo Accounts</strong>
+                            <small>Instant 1-click test credentials</small>
+                        </span>
+                    </span>
+                    <span class="demo-trigger-pill">
+                        <span>Select</span>
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </span>
+                </button>
+                <div id="demoFeedback" class="demo-feedback-notice" style="display:none;" role="status"></div>
             </div>
 
             <div class="auth-back-link-row">
                 <a href="{{ url_for('index') }}">← Back to CompassIQ</a>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Demo Accounts Pop-up Modal -->
+<div class="demo-modal-backdrop" id="demoModal" role="dialog" aria-modal="true" aria-labelledby="demoModalTitle" style="display: none;" onclick="handleModalBackdropClick(event)">
+    <div class="demo-modal-dialog">
+        <div class="demo-modal-header">
+            <div class="demo-modal-header-info">
+                <div class="demo-modal-icon-badge">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <h3 class="demo-modal-title" id="demoModalTitle">Demo Accounts</h3>
+                    <p class="demo-modal-desc">Click any account below to auto-fill the sign-in form</p>
+                </div>
+            </div>
+            <button type="button" class="demo-modal-close" onclick="closeDemoModal()" aria-label="Close dialog">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="demo-modal-body">
+            <!-- Group 1: Primary Roles -->
+            <div class="demo-modal-group">
+                <div class="demo-group-label">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Primary Roles</span>
+                </div>
+                <div class="demo-cards-grid">
+                    <!-- Customer -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('customer@compassiq.com', 'password123', 'Customer')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-customer">Customer</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">customer@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+
+                    <!-- Admin -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('admin@compassiq.com', 'password123', 'Admin')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-admin">Admin</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">admin@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group 2: Department Support Agents -->
+            <div class="demo-modal-group">
+                <div class="demo-group-label">
+                    <i class="bi bi-headset"></i>
+                    <span>Support &amp; Department Agents</span>
+                </div>
+                <div class="demo-cards-grid">
+                    <!-- Technical -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('tech.agent@compassiq.com', 'password123', 'Technical Agent')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-agent">Technical</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">tech.agent@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+
+                    <!-- Billing -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('billing.agent@compassiq.com', 'password123', 'Billing Agent')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-agent">Billing</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">billing.agent@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+
+                    <!-- Account -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('account.agent@compassiq.com', 'password123', 'Account Agent')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-agent">Account</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">account.agent@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+
+                    <!-- General -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('general.agent@compassiq.com', 'password123', 'General Agent')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-agent">General</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">general.agent@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+
+                    <!-- Fraud & Security -->
+                    <button type="button" class="demo-account-card demo-account-card-wide" onclick="fillDemoAndClose('fraud.agent@compassiq.com', 'password123', 'Fraud & Security Agent')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-fraud"><i class="bi bi-shield-lock-fill"></i> Fraud &amp; Security</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">fraud.agent@compassiq.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>password123</code>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Group 3: Additional Test Accounts -->
+            <div class="demo-modal-group">
+                <div class="demo-group-label">
+                    <i class="bi bi-people"></i>
+                    <span>Additional Test Accounts</span>
+                </div>
+                <div class="demo-cards-grid">
+                    <!-- Nihal -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('nihal@gmail.com', 'Nihal@123', 'Customer (Nihal)')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-customer">Nihal</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">nihal@gmail.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>Nihal@123</code>
+                        </div>
+                    </button>
+
+                    <!-- Aizen -->
+                    <button type="button" class="demo-account-card" onclick="fillDemoAndClose('aizen@gmail.com', 'Aizen@123', 'Customer (Aizen)')">
+                        <div class="demo-card-head">
+                            <span class="role-badge role-badge-customer">Aizen</span>
+                            <span class="demo-card-use"><i class="bi bi-lightning-charge-fill"></i> Fill</span>
+                        </div>
+                        <div class="demo-card-email">aizen@gmail.com</div>
+                        <div class="demo-card-pwd">
+                            <span class="demo-pwd-label">Password:</span>
+                            <code>Aizen@123</code>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-modal-footer">
+            <span class="demo-modal-footer-hint">
+                <i class="bi bi-info-circle-fill"></i> Click any account card to auto-fill the login inputs and proceed.
+            </span>
+            <button type="button" class="demo-modal-cancel-btn" onclick="closeDemoModal()">Close</button>
         </div>
     </div>
 </div>
@@ -192,34 +322,87 @@
         else { pwd.type = 'password'; icon.className = 'bi bi-eye'; }
     }
 
-    function toggleDemoLogins() {
-        const toggle = document.querySelector('.auth-demo-toggle');
-        const list = document.getElementById('demoLoginList');
-        const icon = document.getElementById('demoToggleIcon');
-        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', String(!isExpanded));
-        list.hidden = isExpanded;
-        icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
-    }
-    
-    function fillDemo(email, pwd, btnElement) {
-        document.getElementById('email').value = email;
-        document.getElementById('password').value = pwd;
-        
-        // Remove active state from all demo buttons
-        document.querySelectorAll('.auth-demo-btn').forEach(b => b.classList.remove('active'));
-        if (btnElement) {
-            btnElement.classList.add('active');
+    function openDemoModal() {
+        const modal = document.getElementById('demoModal');
+        const trigger = document.getElementById('openDemoBtn');
+        if (modal) {
+            modal.style.display = 'flex';
+            void modal.offsetHeight;
+            modal.classList.add('show');
+            if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+            const firstCard = modal.querySelector('.demo-account-card');
+            if (firstCard) firstCard.focus();
         }
+    }
+
+    function closeDemoModal() {
+        const modal = document.getElementById('demoModal');
+        const trigger = document.getElementById('openDemoBtn');
+        if (modal) {
+            modal.classList.remove('show');
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.focus();
+            }
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                if (!modal.classList.contains('show')) {
+                    modal.style.display = 'none';
+                }
+            }, 200);
+        }
+    }
+
+    function handleModalBackdropClick(event) {
+        if (event.target === event.currentTarget) {
+            closeDemoModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('demoModal');
+            if (modal && modal.classList.contains('show')) {
+                closeDemoModal();
+            }
+        }
+    });
+
+    function fillDemoAndClose(email, pwd, roleName) {
+        const emailInput = document.getElementById('email');
+        const pwdInput = document.getElementById('password');
         
+        if (emailInput && pwdInput) {
+            emailInput.value = email;
+            pwdInput.value = pwd;
+            
+            // Highlight inputs with an accent pulse
+            emailInput.classList.remove('input-filled-flash');
+            pwdInput.classList.remove('input-filled-flash');
+            void emailInput.offsetHeight;
+            emailInput.classList.add('input-filled-flash');
+            pwdInput.classList.add('input-filled-flash');
+        }
+
+        closeDemoModal();
+
         // Provide clear feedback notice
         const feedback = document.getElementById('demoFeedback');
-        feedback.innerHTML = '<i class="bi bi-check-circle-fill"></i> Credentials auto-filled! Click "Sign in" to continue.';
-        feedback.style.display = 'block';
-        
+        if (feedback) {
+            feedback.innerHTML = '<i class="bi bi-check-circle-fill"></i> Loaded <strong>' + roleName + '</strong> (' + email + ') — Click "Sign in" to continue.';
+            feedback.style.display = 'flex';
+        }
+
         // Focus the submit button
         const loginBtn = document.getElementById('loginBtn');
-        loginBtn.focus();
+        if (loginBtn) {
+            setTimeout(() => loginBtn.focus(), 250);
+        }
+    }
+
+    function fillDemo(email, pwd, btnElement) {
+        fillDemoAndClose(email, pwd, 'Demo Account');
     }
     
     document.getElementById('loginForm').addEventListener('submit', function() {
